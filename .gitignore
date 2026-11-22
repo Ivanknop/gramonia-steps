@@ -10,3 +10,5 @@ android/local.properties
 *.jks
 *.keystore
 android/key.properties
+# Copia de la clave de debug (la restaura .devcontainer/post-create.sh)
+.devcontainer/android-keys/
