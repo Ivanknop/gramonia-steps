@@ -28,11 +28,13 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 
 ## Resumen de reglas del juego
 
-- Sin combate ni enemigos. Cada etapa se completa juntando objetos que se consiguen caminando.
-- Cada paso: +1 avance en la etapa actual. Cada objeto tiene un umbral de pasos dentro de la etapa; al cruzarlo, va al inventario con un aviso.
-- El último objeto está en la meta de la etapa. Al completarla se entrega la recompensa, se destraba la siguiente y los pasos que sobran pasan a ella (un salto grande puede completar varias etapas).
+- Sin combate ni enemigos. Cada etapa se completa juntando los objetos que pide.
+- Mecánicas genéricas para todos los objetos: aparición al azar (cada K pasos, 1 en N), garantía de mala suerte (sale seguro a los 3×N×K pasos), objetos fijos (uno cada M pasos), canje (X comunes → 1 objeto de la etapa) y tramo de "llegar" sin objetos al inicio de algunas etapas.
+- El azar usa un `Random` con semilla inyectable para los tests.
+- Al completar una etapa se entrega la recompensa y los pasos que sobran pasan a la siguiente (un salto grande puede completar varias).
 - No hay que mirar el celular mientras se camina: los objetos se juntan solos.
-- Capítulo 1: 7 etapas, 30.000 pasos. Termina cuando el barco zarpa.
+- Capítulo 1: 7 etapas, unos 100.000 pasos en promedio (unas 3 semanas). Termina cuando el barco zarpa. Al cambiar números, repetir la simulación de `docs/diseno.md`.
+- Los `id` de objetos y etapas quedan guardados en el celular: no se cambian sin migrar la partida vieja.
 - Monedas, tienda (mejoras para conseguir más objetos) y experiencia quedan para más adelante.
 
 ## Plan de desarrollo
