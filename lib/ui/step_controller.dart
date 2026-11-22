@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../data/chapter1.dart';
+import '../logic/chapter_engine.dart';
 import '../logic/clock.dart';
 import '../logic/game_save.dart';
 import '../logic/step_state.dart';
@@ -24,6 +26,7 @@ class StepController extends ChangeNotifier {
     required this.storage,
     this.clock = const SystemClock(),
     this.tracker = const StepTracker(),
+    this.engine = const ChapterEngine(chapter1),
     this.saveDelay = const Duration(seconds: 1),
     this.dayCheckInterval = const Duration(minutes: 1),
   });
@@ -32,6 +35,7 @@ class StepController extends ChangeNotifier {
   final GameStorage storage;
   final Clock clock;
   final StepTracker tracker;
+  final ChapterEngine engine;
 
   /// Como mucho se guarda una vez por [saveDelay], para no escribir en cada paso.
   final Duration saveDelay;
@@ -40,6 +44,11 @@ class StepController extends ChangeNotifier {
   GameSave _game = const GameSave.initial();
   GameSave get game => _game;
   StepState get state => _game.steps;
+
+  final _events = StreamController<List<ChapterEvent>>.broadcast();
+
+  /// Objetos conseguidos y etapas terminadas, agrupados por cada avance.
+  Stream<List<ChapterEvent>> get events => _events.stream;
 
   StepStatus _status = StepStatus.loading;
   StepStatus get status => _status;
@@ -142,7 +151,14 @@ class StepController extends ChangeNotifier {
 
   void _update(StepState next) {
     if (_disposed || next == state) return;
-    _game = _game.copyWith(steps: next);
+    // Los pasos nuevos (reales o de debug) avanzan el capítulo.
+    final delta = next.totalSteps - state.totalSteps;
+    final advance = engine.advance(_game.chapter, delta);
+    _game = GameSave(steps: next, chapter: advance.progress);
+    if (advance.events.isNotEmpty) {
+      _log('eventos: ${advance.events.length}');
+      _events.add(advance.events);
+    }
     notifyListeners();
   }
 
@@ -161,6 +177,7 @@ class StepController extends ChangeNotifier {
     _disposed = true;
     _subscription?.cancel();
     _dayTimer?.cancel();
+    _events.close();
     if (_saveTimer != null) {
       _saveTimer!.cancel();
       storage.save(_game);
