@@ -2,6 +2,9 @@
 //
 // Uso: dart run tool/simulate.dart [partidas] [semilla]
 // Imprime una tabla en Markdown para pegar en docs/diseno.md.
+// Es una herramienta de terminal: imprimir es lo que tiene que hacer.
+// ignore_for_file: avoid_print
+
 import 'dart:math';
 
 import 'package:rpg/data/chapter1.dart';
