@@ -12,14 +12,13 @@ void main() {
     final controller = StepController(sensor: sensor, storage: FakeStorage());
     await tester.pumpWidget(GramoniaApp(controller: controller));
     await tester.pump();
-    expect(find.text(Strings.today(0)), findsOneWidget);
-    expect(find.text(Strings.tracking), findsOneWidget);
+    expect(find.text(Strings.todayLabel), findsOneWidget);
 
     sensor.emit(100);
     sensor.emit(160);
     await tester.pump(); // Llegan las lecturas.
     await tester.pump(); // Se redibuja la pantalla.
-    expect(find.text(Strings.today(60)), findsOneWidget);
+    expect(find.text('60'), findsOneWidget);
     expect(find.text(Strings.total(60)), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox()); // Cierra la app y sus timers.

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'services/step_sensor.dart';
 import 'services/step_storage.dart';
 import 'strings.dart';
+import 'ui/home_screen.dart';
 import 'ui/step_controller.dart';
 
 class GramoniaApp extends StatefulWidget {
@@ -55,30 +56,7 @@ class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
     return MaterialApp(
       title: Strings.appTitle,
       theme: ThemeData(colorSchemeSeed: Colors.teal),
-      // Pantalla provisoria para probar el sensor; la definitiva va en el paso 5.
-      home: Scaffold(
-        body: Center(
-          child: ListenableBuilder(
-            listenable: _controller,
-            builder: (context, _) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(Strings.today(_controller.state.todaySteps)),
-                Text(Strings.total(_controller.state.totalSteps)),
-                Text(_statusText(_controller.status)),
-              ],
-            ),
-          ),
-        ),
-      ),
+      home: HomeScreen(controller: _controller),
     );
   }
-
-  String _statusText(StepStatus status) => switch (status) {
-    StepStatus.loading => Strings.loading,
-    StepStatus.tracking => Strings.tracking,
-    StepStatus.needsPermission => Strings.needsPermission,
-    StepStatus.permissionBlocked => Strings.permissionBlocked,
-    StepStatus.noSensor => Strings.noSensor,
-  };
 }
