@@ -64,42 +64,124 @@ class _HomeScreenState extends State<HomeScreen> {
     final controller = widget.controller;
     final engine = controller.engine;
     return Scaffold(
-      body: SafeArea(
-        child: ListenableBuilder(
-          listenable: controller,
-          builder: (context, _) {
-            final chapter = controller.game.chapter;
-            final stage = engine.currentStage(chapter);
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _StepsHeader(controller: controller),
-                  _StatusNotice(controller: controller),
-                  const SizedBox(height: 16),
-                  if (stage == null)
-                    _ChapterDoneCard(engine: engine)
-                  else ...[
-                    _StageCard(engine: engine, stage: stage, progress: chapter),
-                    const SizedBox(height: 12),
-                    _GoalsCard(engine: engine, stage: stage, progress: chapter),
-                  ],
-                  const SizedBox(height: 12),
-                  _JourneyCard(engine: engine, progress: chapter),
-                  if (widget.showDebug) ...[
-                    const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: () => controller.addDebugSteps(debugStepBonus),
-                      child: Text(Strings.debugAdd(debugStepBonus)),
-                    ),
-                  ],
-                ],
+      backgroundColor: Colors.black,
+      body: ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) {
+          final chapter = controller.game.chapter;
+          final stage = engine.currentStage(chapter);
+          // Después del final queda el fondo de la última etapa.
+          final background = (stage ?? engine.chapter.stages.last).background;
+          _precacheNext(chapter.stageIndex);
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              StageBackground(asset: background),
+              SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _StepsHeader(controller: controller),
+                      _StatusNotice(controller: controller),
+                      const SizedBox(height: 12),
+                      if (stage == null)
+                        _ChapterDoneCard(engine: engine)
+                      else ...[
+                        _StageCard(
+                          engine: engine,
+                          stage: stage,
+                          progress: chapter,
+                        ),
+                        const SizedBox(height: 12),
+                        _GoalsCard(
+                          engine: engine,
+                          stage: stage,
+                          progress: chapter,
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      _JourneyCard(engine: engine, progress: chapter),
+                      if (widget.showDebug) ...[
+                        const SizedBox(height: 12),
+                        _Panel(
+                          padding: const EdgeInsets.all(8),
+                          child: OutlinedButton(
+                            onPressed: () =>
+                                controller.addDebugSteps(debugStepBonus),
+                            child: Text(Strings.debugAdd(debugStepBonus)),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            );
-          },
-        ),
+            ],
+          );
+        },
       ),
+    );
+  }
+
+  int? _precached;
+
+  /// Carga de antemano el fondo de la etapa siguiente, para que el fundido
+  /// no titile al cambiar de etapa.
+  void _precacheNext(int stageIndex) {
+    if (_precached == stageIndex) return;
+    _precached = stageIndex;
+    final stages = widget.controller.engine.chapter.stages;
+    if (stageIndex + 1 >= stages.length) return;
+    final next = AssetImage(stages[stageIndex + 1].background);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) precacheImage(next, context);
+    });
+  }
+}
+
+/// Ilustración de la etapa a pantalla completa. Al cambiar de etapa, la
+/// nueva aparece con un fundido suave sobre la anterior.
+class StageBackground extends StatelessWidget {
+  const StageBackground({super.key, required this.asset});
+
+  final String asset;
+
+  static const fadeDuration = Duration(milliseconds: 800);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: fadeDuration,
+      layoutBuilder: (current, previous) =>
+          Stack(fit: StackFit.expand, children: [...previous, ?current]),
+      child: Image.asset(
+        asset,
+        key: ValueKey(asset),
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+      ),
+    );
+  }
+}
+
+/// Panel semitransparente con bordes redondeados, para que el texto se lea
+/// bien sobre la ilustración.
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child, this.padding = EdgeInsets.zero});
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(padding: padding, child: child),
     );
   }
 }
@@ -113,15 +195,18 @@ class _StepsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final state = controller.state;
-    return Column(
-      children: [
-        Text(Strings.todayLabel, style: text.titleMedium),
-        Text(
-          Strings.formatNumber(state.todaySteps),
-          style: text.displayMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        Text(Strings.total(state.totalSteps), style: text.bodyLarge),
-      ],
+    return _Panel(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Column(
+        children: [
+          Text(Strings.todayLabel, style: text.titleMedium),
+          Text(
+            Strings.formatNumber(state.todaySteps),
+            style: text.displayMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          Text(Strings.total(state.totalSteps), style: text.bodyLarge),
+        ],
+      ),
     );
   }
 }
@@ -156,7 +241,7 @@ class _StageCard extends StatelessWidget {
       value = have / need;
     }
 
-    return Card(
+    return _Panel(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -231,7 +316,7 @@ class _GoalsCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final chapter = engine.chapter;
     final traveling = engine.isTraveling(progress);
-    return Card(
+    return _Panel(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
@@ -307,7 +392,7 @@ class _JourneyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final stages = engine.chapter.stages;
-    return Card(
+    return _Panel(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
@@ -354,7 +439,7 @@ class _ChapterDoneCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return Card(
+    return _Panel(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -396,7 +481,7 @@ class _StatusNotice extends StatelessWidget {
     if (message == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 16),
-      child: Card(
+      child: _Panel(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(

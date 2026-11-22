@@ -97,11 +97,15 @@ class Stage {
     this.exchanges = const [],
     required this.reward,
     required this.completeMessage,
+    required this.background,
   });
 
   /// Se guarda en el celular: no cambiarlo sin migrar la partida.
   final String id;
   final String name;
+
+  /// Ilustración de fondo (ruta del asset).
+  final String background;
 
   /// Texto al empezar a juntar objetos (después de llegar).
   final String intro;

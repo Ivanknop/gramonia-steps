@@ -38,6 +38,7 @@ final testChapter = Chapter(
       ],
       reward: 'r',
       completeMessage: 'c',
+      background: 'test',
     ),
     // 1: fijos en orden, cada 100.
     Stage(
@@ -50,6 +51,7 @@ final testChapter = Chapter(
       ],
       reward: 'r',
       completeMessage: 'c',
+      background: 'test',
     ),
     // 2: llegar 50, fuego muy raro, agua común; 3 aguas → 1 fuego.
     Stage(
@@ -68,6 +70,7 @@ final testChapter = Chapter(
       ],
       reward: 'r',
       completeMessage: 'c',
+      background: 'test',
     ),
     // 3: canje que da el primero que falte de varios.
     Stage(
@@ -88,6 +91,7 @@ final testChapter = Chapter(
       ],
       reward: 'r',
       completeMessage: 'c',
+      background: 'test',
     ),
   ],
 );

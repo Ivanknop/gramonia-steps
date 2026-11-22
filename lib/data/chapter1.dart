@@ -167,6 +167,7 @@ const chapter1 = Chapter(
   stages: [
     Stage(
       id: 'casa_abuelita',
+      background: 'assets/backgrounds/stage_1.webp',
       name: 'Salir de la casa de la abuelita',
       intro:
           'Una mañana, una mariposa trae un mensaje del Hada Madrina: hay que '
@@ -185,6 +186,7 @@ const chapter1 = Chapter(
     ),
     Stage(
       id: 'nido_rocanron',
+      background: 'assets/backgrounds/stage_2.webp',
       name: 'El nido del Rocanrón',
       intro:
           'En lo más alto del bosque vive el Rocanrón, un pájaro enorme que '
@@ -219,6 +221,7 @@ const chapter1 = Chapter(
     ),
     Stage(
       id: 'laberinto_hormigas',
+      background: 'assets/backgrounds/stage_3.webp',
       name: 'El laberinto de las hormigas',
       intro:
           'Para salir del bosque hay que cruzar el laberinto de las hormigas '
@@ -252,6 +255,7 @@ const chapter1 = Chapter(
     ),
     Stage(
       id: 'puerto',
+      background: 'assets/backgrounds/stage_4.webp',
       name: 'El puerto',
       travelSteps: 10000,
       travelText:
@@ -271,6 +275,7 @@ const chapter1 = Chapter(
     ),
     Stage(
       id: 'montana_dragon',
+      background: 'assets/backgrounds/stage_5.webp',
       name: 'La montaña dragón',
       travelSteps: 15000,
       travelText:
@@ -307,6 +312,7 @@ const chapter1 = Chapter(
     ),
     Stage(
       id: 'casa_papa',
+      background: 'assets/backgrounds/stage_6.webp',
       name: 'La casa de papá Caperucita',
       travelSteps: 5000,
       travelText:
@@ -334,6 +340,7 @@ const chapter1 = Chapter(
     ),
     Stage(
       id: 'barco',
+      background: 'assets/backgrounds/stage_7.webp',
       name: 'El barco',
       travelSteps: 5000,
       travelText:

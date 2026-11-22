@@ -12,3 +12,6 @@ android/local.properties
 android/key.properties
 # Copia de la clave de debug (la restaura .devcontainer/post-create.sh)
 .devcontainer/android-keys/
+
+# Originales del arte (los fondos convertidos están en assets/)
+arte/

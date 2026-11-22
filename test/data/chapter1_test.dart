@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:rpg/data/chapter1.dart';
 import 'package:rpg/logic/chapter.dart';
 import 'package:test/test.dart';
@@ -12,6 +14,17 @@ void main() {
     expect(stageIds.toSet(), hasLength(stageIds.length));
     final itemIds = chapter1.items.map((i) => i.id).toList();
     expect(itemIds.toSet(), hasLength(itemIds.length));
+  });
+
+  test('cada etapa tiene su fondo, el archivo existe y está declarado', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    final backgrounds = chapter1.stages.map((s) => s.background).toList();
+    expect(backgrounds.toSet(), hasLength(chapter1.stages.length));
+    for (final path in backgrounds) {
+      expect(File(path).existsSync(), isTrue, reason: path);
+      final folder = path.substring(0, path.lastIndexOf('/') + 1);
+      expect(pubspec, contains('- $folder'), reason: path);
+    }
   });
 
   test('ningún texto está vacío', () {

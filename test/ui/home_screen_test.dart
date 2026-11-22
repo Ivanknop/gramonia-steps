@@ -136,6 +136,46 @@ void main() {
     expect(find.byIcon(Icons.lock), findsNothing);
   });
 
+  Finder background(String asset) => find.byWidgetPredicate(
+    (w) =>
+        w is Image &&
+        w.image is AssetImage &&
+        (w.image as AssetImage).assetName == asset,
+  );
+
+  testWidgets('se ve el fondo de la etapa actual', (tester) async {
+    storage.saved = saveAt(2, 0, const {});
+    await show(tester);
+    expect(background(chapter1.stages[2].background), findsOneWidget);
+    expect(background(chapter1.stages[1].background), findsNothing);
+  });
+
+  testWidgets('al pasar de etapa, el fondo cambia con un fundido', (
+    tester,
+  ) async {
+    await show(tester);
+    final first = chapter1.stages[0].background;
+    final second = chapter1.stages[1].background;
+    expect(background(first), findsOneWidget);
+
+    await tapText(tester, Strings.debugAdd(debugStepBonus));
+    await tester.pump(StageBackground.fadeDuration ~/ 2);
+    // A mitad del fundido se ven los dos.
+    expect(background(first), findsOneWidget);
+    expect(background(second), findsOneWidget);
+
+    await tester.pump(StageBackground.fadeDuration);
+    expect(background(first), findsNothing);
+    expect(background(second), findsOneWidget);
+    await tester.pump(const Duration(seconds: 10)); // Se va el aviso.
+  });
+
+  testWidgets('después del final queda el fondo de la etapa 7', (tester) async {
+    storage.saved = saveAt(7, 0, const {});
+    await show(tester);
+    expect(background(chapter1.stages.last.background), findsOneWidget);
+  });
+
   testWidgets('sin debug no aparece el botón', (tester) async {
     await show(tester, showDebug: false);
     expect(find.text(Strings.debugAdd(debugStepBonus)), findsNothing);
