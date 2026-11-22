@@ -12,6 +12,13 @@ import 'package:rpg/ui/step_controller.dart';
 import '../fakes/fake_random.dart';
 import '../fakes/fakes.dart';
 
+Finder background(String asset) => find.byWidgetPredicate(
+  (w) =>
+      w is Image &&
+      w.image is AssetImage &&
+      (w.image as AssetImage).assetName == asset,
+);
+
 void main() {
   late FakeSensor sensor;
   late FakeStorage storage;
@@ -24,12 +31,17 @@ void main() {
     todayDate: '2026-11-22',
   );
 
-  Future<void> show(WidgetTester tester, {bool showDebug = true}) async {
+  /// [dice] 0: todas las tiradas al azar salen; 1: ninguna (salvo garantía).
+  Future<void> show(
+    WidgetTester tester, {
+    bool showDebug = true,
+    int dice = 0,
+  }) async {
     controller = StepController(
       sensor: sensor,
       storage: storage,
       clock: FakeClock(DateTime(2026, 11, 22, 10)),
-      random: FixedRandom(0), // todas las tiradas al azar salen
+      random: FixedRandom(dice),
     );
     await controller.start();
     // El timer del cambio de día tiene que cerrarse dentro de cada test.
@@ -40,6 +52,8 @@ void main() {
       ),
     );
   }
+
+  int engineStage() => controller.game.chapter.stageIndex;
 
   Future<void> tapText(WidgetTester tester, String text) async {
     await tester.ensureVisible(find.text(text));
@@ -104,13 +118,94 @@ void main() {
     expect(find.text(Strings.stepsToNext(800)), findsOneWidget);
   });
 
-  testWidgets('tramo de llegar: barra del viaje y su texto', (tester) async {
+  testWidgets('tramo de llegar: mapa, "Caminando hasta" y barra del viaje', (
+    tester,
+  ) async {
     storage.saved = saveAt(3, 3200, const {});
     await show(tester);
-    expect(find.text(Strings.travelingTo('El puerto')), findsOneWidget);
+    expect(find.text(Strings.walkingTo('Muelle')), findsOneWidget);
     expect(find.text(chapter1.stages[3].travelText), findsOneWidget);
     expect(find.text(Strings.stageProgress(3200, 10000)), findsOneWidget);
-    expect(find.text(Strings.afterArriving), findsOneWidget);
+    expect(background(chapter1.walkingBackground), findsOneWidget);
+    expect(background(chapter1.stages[3].background), findsNothing);
+    // Durante el viaje no se muestra "Para juntar".
+    expect(find.text(Strings.goalsTitle), findsNothing);
+  });
+
+  testWidgets('al terminar el tramo, fundido del mapa al fondo de la etapa', (
+    tester,
+  ) async {
+    storage.saved = saveAt(3, 9500, const {});
+    // Sin suerte: la pista no sale enseguida y la etapa sigue después de llegar.
+    await show(tester, dice: 1);
+    expect(background(chapter1.walkingBackground), findsOneWidget);
+
+    await tapText(tester, Strings.debugAdd(debugStepBonus));
+    await tester.pump(StageBackground.fadeDuration ~/ 2);
+    expect(background(chapter1.walkingBackground), findsOneWidget);
+    expect(background(chapter1.stages[3].background), findsOneWidget);
+
+    await tester.pump(StageBackground.fadeDuration);
+    expect(background(chapter1.walkingBackground), findsNothing);
+    expect(background(chapter1.stages[3].background), findsOneWidget);
+    expect(find.text(Strings.goalsTitle), findsOneWidget);
+    await tester.pump(const Duration(seconds: 10)); // Se va el aviso.
+  });
+
+  testWidgets('al terminar la etapa 1, transición hasta el Árbol Mágico', (
+    tester,
+  ) async {
+    await show(tester);
+    await tapText(tester, Strings.debugAdd(debugStepBonus));
+    await tester.pump(); // Llega el evento.
+    await tester.pump(StageBackground.fadeDuration);
+    expect(find.byType(WalkingTransition), findsOneWidget);
+    expect(find.text(Strings.walkingTo('Árbol Mágico')), findsOneWidget);
+
+    // Se cierra sola a los pocos segundos.
+    await tester.pump(WalkingTransition.duration);
+    await tester.pumpAndSettle(); // Termina el fundido de salida.
+    expect(find.byType(WalkingTransition), findsNothing);
+    expect(background(chapter1.stages[1].background), findsOneWidget);
+    await tester.pump(const Duration(seconds: 10)); // Se va el aviso.
+  });
+
+  testWidgets('la transición se cierra antes tocándola', (tester) async {
+    storage.saved = saveAt(1, 0, {'flor_lila': 15, 'semilla_fuego': 2});
+    await show(tester);
+    // Con todo a favor, la tercera semilla de fuego sale a los 200 pasos.
+    await tapText(tester, Strings.debugAdd(debugStepBonus));
+    await tester.pump();
+    await tester.pump(StageBackground.fadeDuration);
+    expect(find.text(Strings.walkingTo('Bosque Mágico')), findsOneWidget);
+
+    await tester.tap(find.byType(WalkingTransition));
+    await tester.pumpAndSettle(); // Termina el fundido de salida.
+    expect(find.byType(WalkingTransition), findsNothing);
+    await tester.pump(const Duration(seconds: 10));
+  });
+
+  testWidgets('sin transición si la etapa nueva tiene su tramo de llegar', (
+    tester,
+  ) async {
+    storage.saved = saveAt(2, 5500, {
+      'flor_lila': 15,
+      'semilla_fuego': 3,
+      'pieza_hoja': 1,
+      'pieza_gota': 1,
+      'pieza_piedra': 1,
+      'pieza_sol': 1,
+      'pieza_luna': 1,
+    });
+    await show(tester);
+    await tapText(tester, Strings.debugAdd(debugStepBonus));
+    await tester.pump();
+    await tester.pump(StageBackground.fadeDuration);
+    expect(engineStage(), 3);
+    expect(find.byType(WalkingTransition), findsNothing);
+    // La etapa 4 arranca con su tramo: se ve el mapa en el fondo.
+    expect(find.text(Strings.walkingTo('Muelle')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 10));
   });
 
   testWidgets('el botón de debug avanza la etapa y muestra un aviso', (
@@ -135,13 +230,6 @@ void main() {
     expect(find.text(chapter1.stages.last.completeMessage), findsOneWidget);
     expect(find.byIcon(Icons.lock), findsNothing);
   });
-
-  Finder background(String asset) => find.byWidgetPredicate(
-    (w) =>
-        w is Image &&
-        w.image is AssetImage &&
-        (w.image as AssetImage).assetName == asset,
-  );
 
   testWidgets('se ve el fondo de la etapa actual', (tester) async {
     storage.saved = saveAt(2, 0, const {});

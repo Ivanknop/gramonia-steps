@@ -13,6 +13,7 @@ ItemType _item(String id) => ItemType(id: id, name: id, message: 'msg $id');
 /// Capítulo chico para probar cada mecánica por separado.
 final testChapter = Chapter(
   name: 'Prueba',
+  walkingBackground: 'test',
   items: [
     for (final id in [
       'flor',
@@ -39,6 +40,7 @@ final testChapter = Chapter(
       reward: 'r',
       completeMessage: 'c',
       background: 'test',
+      place: 'lugar',
     ),
     // 1: fijos en orden, cada 100.
     Stage(
@@ -52,6 +54,7 @@ final testChapter = Chapter(
       reward: 'r',
       completeMessage: 'c',
       background: 'test',
+      place: 'lugar',
     ),
     // 2: llegar 50, fuego muy raro, agua común; 3 aguas → 1 fuego.
     Stage(
@@ -71,6 +74,7 @@ final testChapter = Chapter(
       reward: 'r',
       completeMessage: 'c',
       background: 'test',
+      place: 'lugar',
     ),
     // 3: canje que da el primero que falte de varios.
     Stage(
@@ -92,6 +96,7 @@ final testChapter = Chapter(
       reward: 'r',
       completeMessage: 'c',
       background: 'test',
+      place: 'lugar',
     ),
   ],
 );

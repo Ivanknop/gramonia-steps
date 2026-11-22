@@ -21,6 +21,7 @@ const _bienes = ['madera', 'clavos', 'cuerdas', 'bandera', 'ancla'];
 
 const chapter1 = Chapter(
   name: 'Capítulo 1: La pluma del Rocanrón',
+  walkingBackground: 'assets/backgrounds/walking.webp',
   items: [
     // Etapa 1.
     ItemType(
@@ -168,6 +169,7 @@ const chapter1 = Chapter(
     Stage(
       id: 'casa_abuelita',
       background: 'assets/backgrounds/stage_1.webp',
+      place: 'Aldea de las Caperucitas',
       name: 'Salir de la casa de la abuelita',
       intro:
           'Una mañana, una mariposa trae un mensaje del Hada Madrina: hay que '
@@ -182,15 +184,17 @@ const chapter1 = Chapter(
       reward: 'Caperuza de aprendiz',
       completeMessage:
           'La abuelita tiñe la lana con las flores y teje toda la noche. ¡Ya '
-          'tenés tu Caperuza de aprendiz! Es hora de salir al bosque.',
+          'tenés tu Caperuza de aprendiz! Es hora de salir hacia el Árbol '
+          'Mágico.',
     ),
     Stage(
       id: 'nido_rocanron',
       background: 'assets/backgrounds/stage_2.webp',
+      place: 'Árbol Mágico',
       name: 'El nido del Rocanrón',
       intro:
-          'En lo más alto del bosque vive el Rocanrón, un pájaro enorme que '
-          'canta como una guitarra eléctrica. Te va a regalar una pluma si le '
+          'En la copa del Árbol Mágico tiene su nido el Rocanrón, un pájaro '
+          'enorme que canta como una guitarra eléctrica. Te va a regalar una pluma si le '
           'llevás 3 semillas de fuego, su comida favorita. Son muy difíciles de '
           'encontrar… pero dicen que 10 semillas de agua o de hielo, juntas, se '
           'pueden convertir en una de fuego.',
@@ -222,9 +226,11 @@ const chapter1 = Chapter(
     Stage(
       id: 'laberinto_hormigas',
       background: 'assets/backgrounds/stage_3.webp',
+      place: 'Bosque Mágico',
       name: 'El laberinto de las hormigas',
       intro:
-          'Para salir del bosque hay que cruzar el laberinto de las hormigas '
+          'Para salir del Bosque Mágico hay que cruzar el laberinto de las '
+          'hormigas '
           'guardianas. Solo dejan pasar a quien arme su acertijo: 6 piezas '
           'escondidas entre los caminos.',
       requirements: [
@@ -256,13 +262,14 @@ const chapter1 = Chapter(
     Stage(
       id: 'puerto',
       background: 'assets/backgrounds/stage_4.webp',
+      place: 'Muelle',
       name: 'El puerto',
       travelSteps: 10000,
       travelText:
-          'El camino hasta la costa es largo: hay que bajar colinas, cruzar '
+          'El camino hasta el Muelle es largo: hay que bajar colinas, cruzar '
           'arroyos y seguir el olor a sal. ¡A caminar!',
       intro:
-          'En el puerto hay un problema: una gran tormenta no deja zarpar a '
+          'En el Muelle hay un problema: una gran tormenta no deja zarpar a '
           'ningún barco. Los marineros dicen que alguien sabe cómo calmarla. '
           'Buscá la pista entre redes, cajones y gaviotas.',
       requirements: [Requirement('pista')],
@@ -276,6 +283,7 @@ const chapter1 = Chapter(
     Stage(
       id: 'montana_dragon',
       background: 'assets/backgrounds/stage_5.webp',
+      place: 'Montaña Dragón',
       name: 'La montaña dragón',
       travelSteps: 15000,
       travelText:
@@ -313,11 +321,12 @@ const chapter1 = Chapter(
     Stage(
       id: 'casa_papa',
       background: 'assets/backgrounds/stage_6.webp',
+      place: 'Aldea de las Caperucitas',
       name: 'La casa de papá Caperucita',
       travelSteps: 5000,
       travelText:
-          'Antes de embarcar, vale la pena visitar a papá Caperucita. Su casa '
-          'queda del otro lado del valle.',
+          'Antes de embarcar, vale la pena volver a la Aldea de las '
+          'Caperucitas a visitar a papá Caperucita.',
       intro:
           'Papá Caperucita te recibe con un abrazo de oso. Juntos preparan la '
           'mochila para el viaje: hay que conseguir 4 cosas.',
@@ -341,10 +350,11 @@ const chapter1 = Chapter(
     Stage(
       id: 'barco',
       background: 'assets/backgrounds/stage_7.webp',
+      place: 'Muelle',
       name: 'El barco',
       travelSteps: 5000,
       travelText:
-          'De vuelta al puerto. Ahora que la tormenta se calmó, el mar está '
+          'De vuelta al Muelle. Ahora que la tormenta se calmó, el mar está '
           'tranquilo y brillante.',
       intro:
           'En el muelle espera un barco viejito que necesita arreglos: madera, '

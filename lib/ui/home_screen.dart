@@ -35,12 +35,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _events = widget.controller.events.listen(_showNotice);
+    _events = widget.controller.events.listen(_onEvents);
+  }
+
+  void _onEvents(List<ChapterEvent> events) {
+    if (!mounted) return;
+    _maybeStartTransition(events);
+    _showNotice(events);
   }
 
   void _showNotice(List<ChapterEvent> events) {
     final text = noticeFor(events);
-    if (!mounted || text == null) return;
+    if (text == null) return;
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
@@ -56,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _events?.cancel();
+    _transitionTimer?.cancel();
     super.dispose();
   }
 
@@ -70,9 +77,14 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, _) {
           final chapter = controller.game.chapter;
           final stage = engine.currentStage(chapter);
-          // Después del final queda el fondo de la última etapa.
-          final background = (stage ?? engine.chapter.stages.last).background;
+          final traveling = engine.isTraveling(chapter);
+          // Durante el tramo de "llegar", el mapa; después del final, el
+          // fondo de la última etapa.
+          final background = traveling
+              ? engine.chapter.walkingBackground
+              : (stage ?? engine.chapter.stages.last).background;
           _precacheNext(chapter.stageIndex);
+          final transition = _transitionTo;
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -94,12 +106,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           stage: stage,
                           progress: chapter,
                         ),
-                        const SizedBox(height: 12),
-                        _GoalsCard(
-                          engine: engine,
-                          stage: stage,
-                          progress: chapter,
-                        ),
+                        // Durante el viaje no aparece nada: no hace falta.
+                        if (!traveling) ...[
+                          const SizedBox(height: 12),
+                          _GoalsCard(
+                            engine: engine,
+                            stage: stage,
+                            progress: chapter,
+                          ),
+                        ],
                       ],
                       const SizedBox(height: 12),
                       _JourneyCard(engine: engine, progress: chapter),
@@ -118,6 +133,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              // Transición a una etapa sin tramo de "llegar" (2 y 3).
+              AnimatedSwitcher(
+                duration: StageBackground.fadeDuration,
+                child: transition == null
+                    ? const SizedBox.shrink()
+                    : WalkingTransition(
+                        key: ValueKey(transition.id),
+                        background: engine.chapter.walkingBackground,
+                        place: transition.place,
+                        onDone: _endTransition,
+                      ),
+              ),
             ],
           );
         },
@@ -125,19 +152,114 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Etapa hacia la que se muestra la pantalla de transición, si hay una.
+  Stage? _transitionTo;
+  Timer? _transitionTimer;
+
+  /// Al terminar una etapa, si la nueva no tiene tramo de "llegar", se
+  /// muestra la caminata unos segundos (sin pasos extra: no cambia el balance).
+  void _maybeStartTransition(List<ChapterEvent> events) {
+    if (!events.any((e) => e is StageCompleted)) return;
+    final engine = widget.controller.engine;
+    final stage = engine.currentStage(widget.controller.game.chapter);
+    if (stage == null || stage.hasTravel) return;
+    _transitionTimer?.cancel();
+    _transitionTimer = Timer(WalkingTransition.duration, _endTransition);
+    setState(() => _transitionTo = stage);
+  }
+
+  void _endTransition() {
+    _transitionTimer?.cancel();
+    _transitionTimer = null;
+    if (mounted && _transitionTo != null) {
+      setState(() => _transitionTo = null);
+    }
+  }
+
   int? _precached;
 
-  /// Carga de antemano el fondo de la etapa siguiente, para que el fundido
-  /// no titile al cambiar de etapa.
+  /// Carga de antemano los fondos que pueden venir (el de la etapa
+  /// siguiente y el mapa), para que los fundidos no titilen.
   void _precacheNext(int stageIndex) {
     if (_precached == stageIndex) return;
     _precached = stageIndex;
-    final stages = widget.controller.engine.chapter.stages;
-    if (stageIndex + 1 >= stages.length) return;
-    final next = AssetImage(stages[stageIndex + 1].background);
+    final chapter = widget.controller.engine.chapter;
+    final upcoming = [
+      AssetImage(chapter.walkingBackground),
+      if (stageIndex + 1 < chapter.stages.length)
+        AssetImage(chapter.stages[stageIndex + 1].background),
+    ];
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) precacheImage(next, context);
+      if (!mounted) return;
+      for (final image in upcoming) {
+        precacheImage(image, context);
+      }
     });
+  }
+}
+
+/// Pantalla de unos segundos con el mapa y `Caminando hasta <lugar>`, para
+/// las etapas que no tienen tramo de "llegar". Se cierra sola o tocándola.
+class WalkingTransition extends StatelessWidget {
+  const WalkingTransition({
+    super.key,
+    required this.background,
+    required this.place,
+    required this.onDone,
+  });
+
+  final String background;
+  final String place;
+  final VoidCallback onDone;
+
+  static const duration = Duration(seconds: 4);
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onDone,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(background, fit: BoxFit.cover, gaplessPlayback: true),
+          SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: _Panel(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        Strings.walkingTo(place),
+                        textAlign: TextAlign.center,
+                        style: text.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // La barra se llena sola mientras dura la transición.
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: duration,
+                        builder: (context, value, _) => LinearProgressIndicator(
+                          value: value,
+                          minHeight: 12,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -251,10 +373,15 @@ class _StageCard extends StatelessWidget {
               Strings.stageOf(progress.stageIndex + 1, count),
               style: text.labelLarge,
             ),
-            Text(
-              traveling ? Strings.travelingTo(stage.name) : stage.name,
-              style: text.headlineSmall,
-            ),
+            if (traveling)
+              Text(
+                Strings.walkingTo(stage.place),
+                style: text.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            else
+              Text(stage.name, style: text.headlineSmall),
             const SizedBox(height: 8),
             Text(traveling ? stage.travelText : stage.intro),
             const SizedBox(height: 12),

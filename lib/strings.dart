@@ -18,7 +18,7 @@ abstract final class Strings {
   static String stageOf(int number, int count) => 'Etapa $number de $count';
   static String stageProgress(int steps, int goal) =>
       '${formatNumber(steps)} / ${formatNumber(goal)} pasos';
-  static String travelingTo(String stage) => 'Camino a: $stage';
+  static String walkingTo(String place) => 'Caminando hasta $place';
   static String reward(String reward) => 'Recompensa: $reward';
   static const goalsTitle = 'Para juntar';
   static String countOf(int have, int need) => '$have / $need';

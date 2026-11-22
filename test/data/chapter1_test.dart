@@ -27,6 +27,25 @@ void main() {
     }
   });
 
+  test('el fondo de caminata existe y está declarado', () {
+    final path = chapter1.walkingBackground;
+    expect(File(path).existsSync(), isTrue);
+    final folder = path.substring(0, path.lastIndexOf('/') + 1);
+    expect(File('pubspec.yaml').readAsStringSync(), contains('- $folder'));
+  });
+
+  test('cada etapa tiene su lugar', () {
+    expect(chapter1.stages.map((s) => s.place), [
+      'Aldea de las Caperucitas',
+      'Árbol Mágico',
+      'Bosque Mágico',
+      'Muelle',
+      'Montaña Dragón',
+      'Aldea de las Caperucitas',
+      'Muelle',
+    ]);
+  });
+
   test('ningún texto está vacío', () {
     for (final item in chapter1.items) {
       expect(item.name.trim(), isNotEmpty, reason: item.id);

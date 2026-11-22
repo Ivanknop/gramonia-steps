@@ -98,6 +98,7 @@ class Stage {
     required this.reward,
     required this.completeMessage,
     required this.background,
+    required this.place,
   });
 
   /// Se guarda en el celular: no cambiarlo sin migrar la partida.
@@ -106,6 +107,9 @@ class Stage {
 
   /// Ilustración de fondo (ruta del asset).
   final String background;
+
+  /// Lugar al que se llega en esta etapa (`Caminando hasta <lugar>`).
+  final String place;
 
   /// Texto al empezar a juntar objetos (después de llegar).
   final String intro;
@@ -137,11 +141,15 @@ class Chapter {
     required this.name,
     required this.items,
     required this.stages,
+    required this.walkingBackground,
   });
 
   final String name;
   final List<ItemType> items;
   final List<Stage> stages;
+
+  /// Fondo de los tramos de caminata (el mapa).
+  final String walkingBackground;
 
   ItemType item(String id) => items.firstWhere(
     (i) => i.id == id,
