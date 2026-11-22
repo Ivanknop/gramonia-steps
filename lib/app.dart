@@ -10,9 +10,7 @@ class GramoniaApp extends StatelessWidget {
     return MaterialApp(
       title: Strings.appTitle,
       theme: ThemeData(colorSchemeSeed: Colors.teal),
-      home: const Scaffold(
-        body: Center(child: Text(Strings.appTitle)),
-      ),
+      home: const Scaffold(body: Center(child: Text(Strings.appTitle))),
     );
   }
 }
