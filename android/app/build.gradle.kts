@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "ar.gramonia.rpg"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37 // permission_handler pide 37 o más
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

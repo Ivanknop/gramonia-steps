@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permiso para leer el sensor de pasos (Android 10 en adelante). -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <!-- Lo mismo para Android 9 o anterior. -->
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
+    <!-- La app se instala aunque el celular no tenga sensor de pasos. -->
+    <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
     <application
         android:label="Gramonia"
         android:name="${applicationName}"
