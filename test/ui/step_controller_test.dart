@@ -4,6 +4,7 @@ import 'package:rpg/logic/step_state.dart';
 import 'package:rpg/services/step_sensor.dart';
 import 'package:rpg/ui/step_controller.dart';
 
+import '../fakes/fake_random.dart';
 import '../fakes/fakes.dart';
 
 void main() {
@@ -17,6 +18,7 @@ void main() {
     storage: storage,
     clock: clock,
     saveDelay: Duration.zero,
+    random: FixedRandom(0), // todas las tiradas al azar salen
   );
 
   Future<void> settle() => Future<void>.delayed(Duration.zero);
@@ -130,10 +132,13 @@ void main() {
     final received = <List<ChapterEvent>>[];
     c.events.listen(received.add);
     await c.start();
+    // Con todo a favor, 1.000 pasos dan 15 flores (a los 750) y pasan
+    // a la etapa 2 con 250 pasos.
     await c.addDebugSteps(1000);
     await settle();
+    expect(c.game.chapter.count('flor_lila'), 15);
     expect(c.game.chapter.stageIndex, 1);
-    expect(c.game.chapter.collected, hasLength(4));
+    expect(c.game.chapter.stepsInStage, 250);
     expect(received, hasLength(1));
     expect(received.single.whereType<StageCompleted>(), hasLength(1));
     expect(storage.saved.chapter, c.game.chapter);
@@ -145,13 +150,13 @@ void main() {
     c.events.listen(received.addAll);
     await c.start();
     sensor.emit(5000); // base
-    sensor.emit(5260); // +260: hoja dorada (250)
+    sensor.emit(5060); // +60: una tirada de flor (cada 50)
     await settle();
     await settle();
-    expect(c.game.chapter.stepsInStage, 260);
-    expect(c.game.chapter.collected, ['hoja_dorada']);
-    expect(received.single, isA<ItemCollected>());
-    expect(storage.saved.chapter.collected, ['hoja_dorada']);
+    expect(c.game.chapter.stepsInStage, 60);
+    expect(c.game.chapter.count('flor_lila'), 1);
+    expect(received.single, isA<ItemFound>());
+    expect(storage.saved.chapter.count('flor_lila'), 1);
   });
 
   test('el cambio de día no avanza el capítulo', () async {

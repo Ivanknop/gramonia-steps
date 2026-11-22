@@ -9,6 +9,7 @@ import 'package:rpg/strings.dart';
 import 'package:rpg/ui/home_screen.dart';
 import 'package:rpg/ui/step_controller.dart';
 
+import '../fakes/fake_random.dart';
 import '../fakes/fakes.dart';
 
 void main() {
@@ -16,7 +17,7 @@ void main() {
   late FakeStorage storage;
   late StepController controller;
 
-  const steps = StepState(
+  const savedSteps = StepState(
     lastReading: 100,
     totalSteps: 12345,
     todaySteps: 678,
@@ -28,6 +29,7 @@ void main() {
       sensor: sensor,
       storage: storage,
       clock: FakeClock(DateTime(2026, 11, 22, 10)),
+      random: FixedRandom(0), // todas las tiradas al azar salen
     );
     await controller.start();
     // El timer del cambio de día tiene que cerrarse dentro de cada test.
@@ -47,7 +49,7 @@ void main() {
 
   setUp(() {
     sensor = FakeSensor();
-    storage = FakeStorage(steps);
+    storage = FakeStorage(savedSteps);
   });
 
   testWidgets('muestra los pasos de hoy y el total', (tester) async {
@@ -58,37 +60,57 @@ void main() {
     expect(find.text(Strings.needsPermission), findsNothing);
   });
 
-  testWidgets('muestra la etapa actual, sus objetos y el viaje', (
-    tester,
-  ) async {
-    storage.saved = const GameSave(
-      steps: steps,
-      chapter: ChapterProgress(
-        stageIndex: 1,
-        stepsInStage: 1200,
-        collected: [
-          'hoja_dorada',
-          'mapa_gramonia',
-          'farol_luciernagas',
-          'carta_mision',
-          'frutillas',
-          'nueces',
-        ],
-      ),
-    );
+  GameSave saveAt(int stage, int steps, Map<String, int> inventory) => GameSave(
+    steps: savedSteps,
+    chapter: ChapterProgress(
+      stageIndex: stage,
+      stepsInStage: steps,
+      inventory: inventory,
+      sinceLast: const {},
+    ),
+  );
+
+  testWidgets('etapa con objetos al azar y canje', (tester) async {
+    storage.saved = saveAt(1, 300, {'flor_lila': 15, 'semilla_agua': 4});
     await show(tester);
     expect(find.text(Strings.stageOf(2, 7)), findsOneWidget);
-    expect(find.text(Strings.stageProgress(1200, 4000)), findsOneWidget);
-    expect(find.text(Strings.reward('Pluma del Rocanrón')), findsOneWidget);
-    // Conseguidos sin subtítulo, el próximo con lo que falta.
-    expect(find.text('Nueces del bosque'), findsOneWidget);
-    expect(find.text(Strings.stepsToNext(300)), findsOneWidget);
-    expect(find.text(Strings.itemAt(2000)), findsOneWidget);
-    // El viaje: etapa 1 hecha, la 2 actual y la 3 bloqueada.
-    expect(find.text('1. El árbol mágico'), findsOneWidget);
+    expect(find.text('El nido del Rocanrón'), findsOneWidget);
+    expect(find.text(chapter1.stages[1].intro), findsOneWidget);
+    expect(find.text('Semilla de fuego'), findsOneWidget);
+    expect(find.text(Strings.countOf(0, 3)), findsOneWidget);
+    expect(find.text(Strings.appearsRandomly), findsOneWidget);
+    expect(
+      find.text(
+        Strings.exchangeProgress(
+          'Semilla de agua o Semilla de hielo',
+          4,
+          10,
+          'Semilla de fuego',
+        ),
+      ),
+      findsOneWidget,
+    );
+    // El viaje: etapa 1 hecha, la 2 actual y 5 bloqueadas.
+    expect(find.text('1. Salir de la casa de la abuelita'), findsOneWidget);
     expect(find.text(Strings.reward('Caperuza de aprendiz')), findsOneWidget);
     expect(find.byIcon(Icons.directions_walk), findsOneWidget);
     expect(find.byIcon(Icons.lock), findsNWidgets(5));
+  });
+
+  testWidgets('etapa con objetos fijos: cuántos pasos faltan', (tester) async {
+    storage.saved = saveAt(2, 1200, {'pieza_hoja': 1});
+    await show(tester);
+    expect(find.text('Pieza de la gota'), findsOneWidget);
+    expect(find.text(Strings.stepsToNext(800)), findsOneWidget);
+  });
+
+  testWidgets('tramo de llegar: barra del viaje y su texto', (tester) async {
+    storage.saved = saveAt(3, 3200, const {});
+    await show(tester);
+    expect(find.text(Strings.travelingTo('El puerto')), findsOneWidget);
+    expect(find.text(chapter1.stages[3].travelText), findsOneWidget);
+    expect(find.text(Strings.stageProgress(3200, 10000)), findsOneWidget);
+    expect(find.text(Strings.afterArriving), findsOneWidget);
   });
 
   testWidgets('el botón de debug avanza la etapa y muestra un aviso', (
@@ -100,23 +122,17 @@ void main() {
     await tester.pump(); // Llega el evento y aparece el aviso.
     expect(find.text('1.678'), findsOneWidget);
     expect(find.text(Strings.stageOf(2, 7)), findsOneWidget);
-    expect(
-      find.text(Strings.collectedSummary(4, 1)),
-      findsOneWidget,
-      reason: 'el aviso resume los 4 objetos y la etapa',
-    );
-    await tester.pump(const Duration(seconds: 5)); // Se va el aviso.
+    expect(find.textContaining('¡Conseguiste'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 10)); // Se va el aviso.
   });
 
   testWidgets('con el capítulo terminado se ve que el barco zarpó', (
     tester,
   ) async {
-    storage.saved = const GameSave(
-      steps: steps,
-      chapter: ChapterProgress(stageIndex: 7, stepsInStage: 0, collected: []),
-    );
+    storage.saved = saveAt(7, 0, const {});
     await show(tester);
     expect(find.text(Strings.chapterDoneTitle), findsOneWidget);
+    expect(find.text(chapter1.stages.last.completeMessage), findsOneWidget);
     expect(find.byIcon(Icons.lock), findsNothing);
   });
 

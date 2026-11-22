@@ -16,17 +16,18 @@ class PrefsGameStorage implements GameStorage {
 
   final ChapterEngine engine;
 
-  static const key = 'game_save_v2';
+  static const key = 'game_save';
 
-  /// Partida de la versión anterior (solo pasos). Se lee una vez para
-  /// convertirla y se borra al guardar en el formato nuevo.
+  /// Partidas de versiones anteriores. Se leen una vez para convertirlas y
+  /// se borran al guardar en el formato nuevo.
+  static const v2Key = 'game_save_v2';
   static const legacyKey = 'step_state_v1';
 
   @override
   Future<GameSave> load() async {
     final prefs = await SharedPreferences.getInstance();
     return GameSave.decode(
-      prefs.getString(key),
+      prefs.getString(key) ?? prefs.getString(v2Key),
       legacySource: prefs.getString(legacyKey),
       engine: engine,
     );
@@ -36,6 +37,8 @@ class PrefsGameStorage implements GameStorage {
   Future<void> save(GameSave game) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, game.encode());
-    if (prefs.containsKey(legacyKey)) await prefs.remove(legacyKey);
+    for (final old in [v2Key, legacyKey]) {
+      if (prefs.containsKey(old)) await prefs.remove(old);
+    }
   }
 }

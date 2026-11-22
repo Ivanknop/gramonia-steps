@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'chapter_engine.dart';
 import 'chapter_progress.dart';
@@ -12,7 +13,8 @@ class GameSave {
     : steps = const StepState.initial(),
       chapter = const ChapterProgress.initial();
 
-  static const int version = 2;
+  /// 3: etapas con inventario por cantidades (azar, fijos, canjes).
+  static const int version = 3;
 
   final StepState steps;
   final ChapterProgress chapter;
@@ -28,15 +30,17 @@ class GameSave {
 
   /// Lee la partida guardada.
   ///
-  /// - [source] es la partida en el formato actual.
-  /// - [legacySource] es la partida vieja (solo pasos), si existe.
+  /// - [source] es la partida guardada (formato actual o el de la versión 2).
+  /// - [legacySource] es la partida de la versión 1 (solo pasos), si existe.
   ///
-  /// Si el progreso del capítulo falta o está roto, se reconstruye con el
-  /// total de pasos: así una partida vieja no pierde lo caminado.
+  /// Si el progreso del capítulo falta, está roto o es de una versión vieja
+  /// (que tenía otras etapas y objetos), se reconstruye aplicando el total de
+  /// pasos a las reglas actuales: así no se pierde lo caminado.
   static GameSave decode(
     String? source, {
     String? legacySource,
     required ChapterEngine engine,
+    Random? random,
   }) {
     StepState? steps;
     ChapterProgress? chapter;
@@ -44,14 +48,20 @@ class GameSave {
     final json = _tryDecodeMap(source);
     if (json != null) {
       steps = _tryParse(() => StepState.fromJson(_map(json['steps'])));
-      chapter = _tryParse(
-        () => ChapterProgress.fromJson(_map(json['chapter'])),
-      );
+      if (json['version'] == version) {
+        chapter = _tryParse(
+          () => ChapterProgress.fromJson(_map(json['chapter'])),
+        );
+      }
     }
 
     steps ??= StepState.decode(legacySource);
     chapter ??= engine
-        .advance(const ChapterProgress.initial(), steps.totalSteps)
+        .advance(
+          const ChapterProgress.initial(),
+          steps.totalSteps,
+          random ?? Random(),
+        )
         .progress;
 
     return GameSave(steps: steps, chapter: chapter);

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:rpg/data/chapter1.dart';
 import 'package:rpg/logic/chapter_engine.dart';
 import 'package:rpg/logic/chapter_progress.dart';
@@ -9,70 +11,77 @@ void main() {
   const engine = ChapterEngine(chapter1);
   const steps = StepState(
     lastReading: 82018,
-    totalSteps: 1300,
-    todaySteps: 400,
+    totalSteps: 64,
+    todaySteps: 64,
     todayDate: '2026-11-22',
   );
 
-  test('ida y vuelta en el formato nuevo', () {
+  GameSave decode(String? source, {String? legacy}) => GameSave.decode(
+    source,
+    legacySource: legacy,
+    engine: engine,
+    random: Random(1),
+  );
+
+  test('ida y vuelta en el formato actual', () {
     const game = GameSave(
       steps: steps,
       chapter: ChapterProgress(
         stageIndex: 1,
         stepsInStage: 300,
-        collected: ['hoja_dorada', 'mapa_gramonia'],
+        inventory: {'flor_lila': 15, 'semilla_agua': 4},
+        sinceLast: {'semilla_fuego': 200},
       ),
     );
-    expect(GameSave.decode(game.encode(), engine: engine), game);
+    expect(decode(game.encode()), game);
   });
 
   test('sin nada guardado arranca de cero', () {
-    expect(GameSave.decode(null, engine: engine), const GameSave.initial());
+    expect(decode(null), const GameSave.initial());
   });
 
   test(
-    'una partida vieja (solo pasos) se carga y aplica el total al capítulo',
+    'partida v1 (solo pasos): conserva los pasos y los aplica al capítulo',
     () {
-      final game = GameSave.decode(
-        null,
-        legacySource: steps.encode(),
-        engine: engine,
-      );
+      final game = decode(null, legacy: steps.encode());
       expect(game.steps, steps);
-      // 1.300 pasos: árbol mágico completo (1.000) y 300 en el nido.
-      expect(game.chapter.stageIndex, 1);
-      expect(game.chapter.stepsInStage, 300);
-      expect(game.chapter.collected, [
-        'hoja_dorada',
-        'mapa_gramonia',
-        'farol_luciernagas',
-        'carta_mision',
-      ]);
+      expect(game.chapter.stageIndex, 0);
+      expect(game.chapter.stepsInStage, 64);
     },
   );
 
-  test('el formato nuevo tiene prioridad sobre la partida vieja', () {
-    const game = GameSave(steps: steps, chapter: ChapterProgress.initial());
-    final loaded = GameSave.decode(
-      game.encode(),
-      legacySource: const StepState.initial().encode(),
-      engine: engine,
-    );
-    expect(loaded, game);
-  });
+  test(
+    'partida v2 (objetos viejos): conserva los pasos y rehace el capítulo',
+    () {
+      const v2Steps = StepState(
+        lastReading: 90000,
+        totalSteps: 30000,
+        todaySteps: 1000,
+        todayDate: '2026-11-22',
+      );
+      final v2 =
+          '{"version":2,"steps":${v2Steps.encode()},'
+          '"chapter":{"stageIndex":7,"stepsInStage":0,'
+          '"collected":["hoja_dorada","frutillas","pieza_hoja","bandera"]}}';
+      final game = decode(v2);
+      expect(game.steps, v2Steps);
+      // Las reglas nuevas, con 30.000 pasos, no llegan al final del capítulo.
+      expect(engine.isFinished(game.chapter), isFalse);
+      expect(game.chapter.stageIndex, greaterThan(0));
+      expect(game.chapter.has('hoja_dorada'), isFalse);
+      expect(game.chapter.count('flor_lila'), 15);
+    },
+  );
 
-  test('si el capítulo guardado está roto, se reconstruye con los pasos', () {
+  test('si el capítulo guardado está roto, se rehace con los pasos', () {
     final source =
-        '{"version":2,"steps":${steps.encode()},"chapter":{"stageIndex":"x"}}';
-    final game = GameSave.decode(source, engine: engine);
+        '{"version":3,"steps":${steps.encode()},"chapter":{"stageIndex":"x"}}';
+    final game = decode(source);
     expect(game.steps, steps);
-    expect(game.chapter.stageIndex, 1);
+    expect(game.chapter.stepsInStage, 64);
   });
 
   test('todo roto arranca de cero sin romperse', () {
-    expect(
-      GameSave.decode('{roto', legacySource: 'roto', engine: engine),
-      const GameSave.initial(),
-    );
+    expect(decode('{roto', legacy: 'roto'), const GameSave.initial());
   });
 }

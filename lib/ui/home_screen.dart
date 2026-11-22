@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
@@ -11,7 +12,7 @@ import '../strings.dart';
 import 'notices.dart';
 import 'step_controller.dart';
 
-/// Pantalla única: pasos, etapa actual con sus objetos y el viaje completo.
+/// Pantalla única: pasos, etapa actual con lo que hay que juntar y el viaje.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -38,11 +39,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showNotice(List<ChapterEvent> events) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    final text = noticeFor(events);
+    if (!mounted || text == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
       SnackBar(
-        content: Text(noticeFor(events)),
-        duration: const Duration(seconds: 4),
+        content: Text(text),
+        // Los textos largos (fin de etapa) quedan más tiempo.
+        duration: Duration(seconds: max(4, text.length ~/ 15)),
+        showCloseIcon: true,
       ),
     );
   }
@@ -73,11 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   _StatusNotice(controller: controller),
                   const SizedBox(height: 16),
                   if (stage == null)
-                    const _ChapterDoneCard()
+                    _ChapterDoneCard(engine: engine)
                   else ...[
                     _StageCard(engine: engine, stage: stage, progress: chapter),
                     const SizedBox(height: 12),
-                    _ItemsCard(engine: engine, stage: stage, progress: chapter),
+                    _GoalsCard(engine: engine, stage: stage, progress: chapter),
                   ],
                   const SizedBox(height: 12),
                   _JourneyCard(engine: engine, progress: chapter),
@@ -135,6 +141,21 @@ class _StageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final count = engine.chapter.stages.length;
+    final traveling = engine.isTraveling(progress);
+
+    // Barra: durante el viaje, pasos del tramo; después, objetos juntados.
+    final double value;
+    if (traveling) {
+      value = progress.stepsInStage / stage.travelSteps;
+    } else {
+      var have = 0, need = 0;
+      for (final r in stage.requirements) {
+        have += min(progress.count(r.item), r.count);
+        need += r.count;
+      }
+      value = have / need;
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -145,15 +166,24 @@ class _StageCard extends StatelessWidget {
               Strings.stageOf(progress.stageIndex + 1, count),
               style: text.labelLarge,
             ),
-            Text(stage.name, style: text.headlineSmall),
+            Text(
+              traveling ? Strings.travelingTo(stage.name) : stage.name,
+              style: text.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(traveling ? stage.travelText : stage.intro),
             const SizedBox(height: 12),
             LinearProgressIndicator(
-              value: progress.stepsInStage / stage.steps,
+              value: value,
               minHeight: 12,
               borderRadius: BorderRadius.circular(6),
             ),
-            const SizedBox(height: 6),
-            Text(Strings.stageProgress(progress.stepsInStage, stage.steps)),
+            if (traveling) ...[
+              const SizedBox(height: 6),
+              Text(
+                Strings.stageProgress(progress.stepsInStage, stage.travelSteps),
+              ),
+            ],
             const SizedBox(height: 6),
             Text(Strings.reward(stage.reward), style: text.bodySmall),
           ],
@@ -163,8 +193,9 @@ class _StageCard extends StatelessWidget {
   }
 }
 
-class _ItemsCard extends StatelessWidget {
-  const _ItemsCard({
+/// Lo que pide la etapa, con cuánto hay, y el avance de cada canje.
+class _GoalsCard extends StatelessWidget {
+  const _GoalsCard({
     required this.engine,
     required this.stage,
     required this.progress,
@@ -174,10 +205,32 @@ class _ItemsCard extends StatelessWidget {
   final Stage stage;
   final ChapterProgress progress;
 
+  /// Debajo de cada objeto: cómo o cuándo aparece.
+  String? _hint(Requirement r, bool traveling) {
+    if (progress.count(r.item) >= r.count) return null;
+    for (final spawn in stage.spawns) {
+      if (!spawn.items.contains(r.item)) continue;
+      if (traveling) return Strings.afterArriving;
+      if (spawn is RandomSpawn) return Strings.appearsRandomly;
+      // Fijos: solo el próximo de la lista sabe cuántos pasos faltan.
+      final next = spawn.items.firstWhere(
+        (id) => progress.count(id) < stage.requiredCount(id),
+      );
+      if (next == r.item) {
+        return Strings.stepsToNext(
+          engine.stepsToNextFixed(progress, spawn as FixedSpawn),
+        );
+      }
+      return null;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final next = engine.nextItem(progress);
+    final chapter = engine.chapter;
+    final traveling = engine.isTraveling(progress);
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -187,31 +240,60 @@ class _ItemsCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Text(
-                Strings.itemsTitle,
+                Strings.goalsTitle,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
-            for (final item in stage.items)
+            for (final r in stage.requirements)
               ListTile(
                 dense: true,
-                leading: progress.has(item.id)
+                leading: progress.count(r.item) >= r.count
                     ? Icon(Icons.check_circle, color: colors.primary)
                     : Icon(Icons.radio_button_unchecked, color: colors.outline),
-                title: Text(item.name),
-                subtitle: progress.has(item.id)
-                    ? null
-                    : Text(
-                        item == next
-                            ? Strings.stepsToNext(
-                                engine.stepsToNextItem(progress),
-                              )
-                            : Strings.itemAt(item.atSteps),
-                      ),
+                title: Text(chapter.item(r.item).name),
+                subtitle: switch (_hint(r, traveling)) {
+                  final hint? => Text(hint),
+                  null => null,
+                },
+                trailing: r.count > 1
+                    ? Text(
+                        Strings.countOf(
+                          min(progress.count(r.item), r.count),
+                          r.count,
+                        ),
+                      )
+                    : null,
               ),
+            for (final exchange in stage.exchanges)
+              if (_firstMissingOutput(exchange) case final output?)
+                ListTile(
+                  dense: true,
+                  leading: Icon(Icons.swap_horiz, color: colors.tertiary),
+                  title: Text(
+                    Strings.exchangeProgress(
+                      exchange.inputs
+                          .map((id) => chapter.item(id).name)
+                          .join(Strings.or),
+                      exchange.inputs.fold(
+                        0,
+                        (s, id) => s + progress.count(id),
+                      ),
+                      exchange.count,
+                      chapter.item(output).name,
+                    ),
+                  ),
+                ),
           ],
         ),
       ),
     );
+  }
+
+  String? _firstMissingOutput(Exchange exchange) {
+    for (final id in exchange.outputs) {
+      if (progress.count(id) < stage.requiredCount(id)) return id;
+    }
+    return null;
   }
 }
 
@@ -265,7 +347,9 @@ class _JourneyCard extends StatelessWidget {
 }
 
 class _ChapterDoneCard extends StatelessWidget {
-  const _ChapterDoneCard();
+  const _ChapterDoneCard({required this.engine});
+
+  final ChapterEngine engine;
 
   @override
   Widget build(BuildContext context) {
@@ -278,7 +362,10 @@ class _ChapterDoneCard extends StatelessWidget {
             const Icon(Icons.sailing, size: 48),
             Text(Strings.chapterDoneTitle, style: text.headlineSmall),
             const SizedBox(height: 8),
-            const Text(Strings.chapterDoneBody, textAlign: TextAlign.center),
+            Text(
+              engine.chapter.stages.last.completeMessage,
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

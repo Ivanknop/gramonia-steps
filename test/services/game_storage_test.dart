@@ -24,18 +24,22 @@ void main() {
     expect(await PrefsGameStorage().load(), game);
   });
 
-  test('carga la partida vieja y la borra al guardar la nueva', () async {
-    SharedPreferences.setMockInitialValues({
-      PrefsGameStorage.legacyKey: oldSteps.encode(),
-    });
-    final storage = PrefsGameStorage();
-    final game = await storage.load();
-    expect(game.steps, oldSteps);
-    expect(game.chapter.stepsInStage, 64);
+  for (final oldKey in [PrefsGameStorage.legacyKey, PrefsGameStorage.v2Key]) {
+    test('carga la partida vieja ($oldKey) y la borra al guardar', () async {
+      final oldValue = oldKey == PrefsGameStorage.legacyKey
+          ? oldSteps.encode()
+          : '{"version":2,"steps":${oldSteps.encode()},'
+                '"chapter":{"stageIndex":0,"stepsInStage":64,"collected":[]}}';
+      SharedPreferences.setMockInitialValues({oldKey: oldValue});
+      final storage = PrefsGameStorage();
+      final game = await storage.load();
+      expect(game.steps, oldSteps);
+      expect(game.chapter.stepsInStage, 64);
 
-    await storage.save(game);
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.containsKey(PrefsGameStorage.legacyKey), isFalse);
-    expect(await storage.load(), game);
-  });
+      await storage.save(game);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.containsKey(oldKey), isFalse);
+      expect(await storage.load(), game);
+    });
+  }
 }

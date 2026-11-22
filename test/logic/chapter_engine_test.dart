@@ -1,40 +1,93 @@
+import 'dart:math';
+
 import 'package:rpg/data/chapter1.dart';
 import 'package:rpg/logic/chapter.dart';
 import 'package:rpg/logic/chapter_engine.dart';
 import 'package:rpg/logic/chapter_progress.dart';
 import 'package:test/test.dart';
 
-/// Capítulo chico para probar reglas sin depender de los números reales.
-const testChapter = Chapter(
+import '../fakes/fake_random.dart';
+
+ItemType _item(String id) => ItemType(id: id, name: id, message: 'msg $id');
+
+/// Capítulo chico para probar cada mecánica por separado.
+final testChapter = Chapter(
   name: 'Prueba',
-  stages: [
+  items: [
+    for (final id in [
+      'flor',
+      'fuego',
+      'agua',
+      'pieza1',
+      'pieza2',
+      'gema',
+      'oro1',
+      'oro2',
+    ])
+      _item(id),
+  ],
+  stages: const [
+    // 0: al azar, 3 flores, cada 10 pasos, 1 en 5 (garantía a los 150).
     Stage(
-      id: 'a',
-      name: 'Etapa A',
-      steps: 100,
-      reward: 'Premio A',
-      items: [
-        StageItem(id: 'a1', name: 'A1', atSteps: 30),
-        StageItem(id: 'a2', name: 'A2', atSteps: 60),
-        StageItem(id: 'a3', name: 'A3', atSteps: 100),
+      id: 'azar',
+      name: 'Azar',
+      intro: 'i',
+      requirements: [Requirement('flor', 3)],
+      spawns: [
+        RandomSpawn(items: ['flor'], every: 10, oneIn: 5),
       ],
+      reward: 'r',
+      completeMessage: 'c',
     ),
+    // 1: fijos en orden, cada 100.
     Stage(
-      id: 'b',
-      name: 'Etapa B',
-      steps: 50,
-      reward: 'Premio B',
-      items: [
-        StageItem(id: 'b1', name: 'B1', atSteps: 20),
-        StageItem(id: 'b2', name: 'B2', atSteps: 50),
+      id: 'fijo',
+      name: 'Fijo',
+      intro: 'i',
+      requirements: [Requirement('pieza1'), Requirement('pieza2')],
+      spawns: [
+        FixedSpawn(items: ['pieza1', 'pieza2'], every: 100),
       ],
+      reward: 'r',
+      completeMessage: 'c',
     ),
+    // 2: llegar 50, fuego muy raro, agua común; 3 aguas → 1 fuego.
     Stage(
-      id: 'c',
-      name: 'Etapa C',
-      steps: 40,
-      reward: 'Premio C',
-      items: [StageItem(id: 'c1', name: 'C1', atSteps: 40)],
+      id: 'canje',
+      name: 'Canje',
+      intro: 'i',
+      travelSteps: 50,
+      travelText: 't',
+      requirements: [Requirement('fuego', 2)],
+      spawns: [
+        RandomSpawn(items: ['fuego'], every: 10, oneIn: 1000),
+        FixedSpawn(items: ['agua'], every: 10),
+      ],
+      exchanges: [
+        Exchange(inputs: ['agua'], count: 3, outputs: ['fuego'], message: 'm'),
+      ],
+      reward: 'r',
+      completeMessage: 'c',
+    ),
+    // 3: canje que da el primero que falte de varios.
+    Stage(
+      id: 'compra',
+      name: 'Compra',
+      intro: 'i',
+      requirements: [Requirement('oro1'), Requirement('oro2')],
+      spawns: [
+        FixedSpawn(items: ['gema'], every: 10),
+      ],
+      exchanges: [
+        Exchange(
+          inputs: ['gema'],
+          count: 2,
+          outputs: ['oro1', 'oro2'],
+          message: '{item}',
+        ),
+      ],
+      reward: 'r',
+      completeMessage: 'c',
     ),
   ],
 );
@@ -42,153 +95,239 @@ const testChapter = Chapter(
 List<String> describe(List<ChapterEvent> events) => [
   for (final e in events)
     switch (e) {
-      ItemCollected(:final item) => 'objeto:${item.id}',
+      ItemFound(:final item) => 'objeto:${item.id}',
+      ExchangeMade(:final item) => 'canje:${item.id}',
+      Arrived(:final stage) => 'llegó:${stage.id}',
       StageCompleted(:final stage) => 'etapa:${stage.id}',
       ChapterCompleted() => 'fin',
     },
 ];
 
+ChapterProgress at(
+  int stage, {
+  int steps = 0,
+  Map<String, int> inv = const {},
+}) => ChapterProgress(
+  stageIndex: stage,
+  stepsInStage: steps,
+  inventory: inv,
+  sinceLast: const {},
+);
+
 void main() {
-  const engine = ChapterEngine(testChapter);
+  final engine = ChapterEngine(testChapter);
   const start = ChapterProgress.initial();
 
-  test('un paso antes del umbral no da el objeto', () {
-    final r = engine.advance(start, 29);
-    expect(r.events, isEmpty);
-    expect(r.progress.stepsInStage, 29);
-    expect(engine.stepsToNextItem(r.progress), 1);
+  group('aparición al azar', () {
+    test('se tira una vez cada K pasos', () {
+      final random = FixedRandom(1); // nunca sale
+      engine.advance(start, 49, random);
+      expect(random.rolls, 4);
+      engine.advance(start, 50, random);
+      expect(random.rolls, 4 + 5);
+    });
+
+    test('si sale 1, aparece el objeto', () {
+      final r = engine.advance(start, 10, FixedRandom(0));
+      expect(describe(r.events), ['objeto:flor']);
+      expect(r.progress.count('flor'), 1);
+    });
+
+    test('si no sale, no aparece y se cuenta para la garantía', () {
+      final r = engine.advance(start, 30, FixedRandom(1));
+      expect(r.events, isEmpty);
+      expect(r.progress.sinceLast['flor'], 30);
+    });
+
+    test('garantía: a los 3×N×K pasos sin salir, sale seguro', () {
+      // N=5, K=10: garantía a los 150 pasos.
+      var r = engine.advance(start, 140, FixedRandom(1));
+      expect(r.events, isEmpty);
+      r = engine.advance(r.progress, 10, FixedRandom(1));
+      expect(describe(r.events), ['objeto:flor']);
+      expect(r.progress.sinceLast['flor'], 0);
+    });
+
+    test('la garantía vuelve a empezar después de cada aparición', () {
+      final r = engine.advance(start, 300, FixedRandom(1));
+      expect(r.progress.count('flor'), 2); // a los 150 y a los 300
+    });
+
+    test('con la misma semilla, el mismo resultado', () {
+      final a = engine.advance(start, 500, Random(42));
+      final b = engine.advance(start, 500, Random(42));
+      expect(a.progress, b.progress);
+      expect(describe(a.events), describe(b.events));
+    });
+
+    test('de a un paso da lo mismo que de golpe', () {
+      final once = engine.advance(start, 2000, Random(7));
+      final random = Random(7);
+      var p = start;
+      final events = <ChapterEvent>[];
+      for (var i = 0; i < 2000; i++) {
+        final r = engine.advance(p, 1, random);
+        p = r.progress;
+        events.addAll(r.events);
+      }
+      expect(p, once.progress);
+      expect(describe(events), describe(once.events));
+    });
   });
 
-  test('al llegar justo al umbral se consigue el objeto', () {
-    final r = engine.advance(engine.advance(start, 29).progress, 1);
-    expect(describe(r.events), ['objeto:a1']);
-    expect(r.progress.collected, ['a1']);
-    expect(engine.nextItem(r.progress)?.id, 'a2');
-    expect(engine.stepsToNextItem(r.progress), 30);
+  group('objetos fijos', () {
+    test('salen cada M pasos, en orden', () {
+      var r = engine.advance(at(1), 99, FixedRandom(0));
+      expect(r.events, isEmpty);
+      expect(
+        engine.stepsToNextFixed(
+          r.progress,
+          testChapter.stages[1].spawns.single as FixedSpawn,
+        ),
+        1,
+      );
+      r = engine.advance(r.progress, 1, FixedRandom(0));
+      expect(describe(r.events), ['objeto:pieza1']);
+      r = engine.advance(r.progress, 100, FixedRandom(0));
+      expect(describe(r.events), ['objeto:pieza2', 'etapa:fijo']);
+    });
   });
 
-  test('cruzar varios umbrales de golpe da todos los objetos', () {
-    final r = engine.advance(start, 70);
-    expect(describe(r.events), ['objeto:a1', 'objeto:a2']);
-    expect(r.progress.stepsInStage, 70);
+  group('llegar', () {
+    test('durante el viaje no aparece nada', () {
+      final r = engine.advance(at(2), 49, FixedRandom(0));
+      expect(r.events, isEmpty);
+      expect(engine.isTraveling(r.progress), isTrue);
+    });
+
+    test('al llegar hay aviso y lo que sobra cuenta para juntar', () {
+      final r = engine.advance(at(2), 70, FixedRandom(1));
+      expect(describe(r.events), ['llegó:canje', 'objeto:agua', 'objeto:agua']);
+      expect(engine.isTraveling(r.progress), isFalse);
+    });
   });
 
-  test('al completar la etapa se pasa a la siguiente y sobra lo justo', () {
-    final r = engine.advance(start, 125);
-    expect(describe(r.events), [
-      'objeto:a1',
-      'objeto:a2',
-      'objeto:a3',
-      'etapa:a',
-      'objeto:b1',
-    ]);
-    expect(r.progress.stageIndex, 1);
-    expect(r.progress.stepsInStage, 25);
+  group('canje', () {
+    test('al juntar X comunes se cambian solos por el objeto', () {
+      final r = engine.advance(at(2, steps: 50), 30, FixedRandom(1));
+      expect(describe(r.events), [
+        'objeto:agua',
+        'objeto:agua',
+        'objeto:agua',
+        'canje:fuego',
+      ]);
+      expect(r.progress.count('agua'), 0);
+      expect(r.progress.count('fuego'), 1);
+    });
+
+    test('no canjea si el objeto ya no hace falta', () {
+      // Ya hay 1 fuego; con otro de canje se completa la etapa.
+      final r = engine.advance(
+        at(2, steps: 50, inv: {'fuego': 1}),
+        30,
+        FixedRandom(1),
+      );
+      expect(describe(r.events).last, 'etapa:canje');
+      expect(r.progress.stageIndex, 3);
+      // Las aguas sobrantes no siguen canjeándose en la etapa siguiente.
+      expect(r.progress.count('fuego'), 2);
+    });
+
+    test('con varios objetos, da el primero que falte', () {
+      final r = engine.advance(at(3, inv: {'oro1': 1}), 20, FixedRandom(0));
+      expect(describe(r.events), [
+        'objeto:gema',
+        'objeto:gema',
+        'canje:oro2',
+        'etapa:compra',
+        'fin',
+      ]);
+    });
+
+    test('un objeto de la etapa que ya no hace falta deja de aparecer', () {
+      final r = engine.advance(at(2, steps: 50), 10000, FixedRandom(0));
+      // El fuego sale en las 2 primeras tiradas; después termina la etapa.
+      expect(r.progress.count('fuego'), 2);
+      expect(r.progress.stageIndex, greaterThan(2));
+    });
   });
 
-  test('llegar exacto a la meta deja la etapa siguiente en 0', () {
-    final r = engine.advance(start, 100);
-    expect(r.progress.stageIndex, 1);
-    expect(r.progress.stepsInStage, 0);
-    expect(describe(r.events).last, 'etapa:a');
-  });
+  group('avance general', () {
+    test('un salto grande completa varias etapas y el sobrante pasa', () {
+      final r = engine.advance(start, 30 + 200 + 5, FixedRandom(0));
+      expect(describe(r.events), [
+        'objeto:flor',
+        'objeto:flor',
+        'objeto:flor',
+        'etapa:azar',
+        'objeto:pieza1',
+        'objeto:pieza2',
+        'etapa:fijo',
+      ]);
+      expect(r.progress.stageIndex, 2);
+      expect(r.progress.stepsInStage, 5);
+    });
 
-  test('un salto grande completa varias etapas', () {
-    final r = engine.advance(start, 160);
-    expect(describe(r.events), [
-      'objeto:a1',
-      'objeto:a2',
-      'objeto:a3',
-      'etapa:a',
-      'objeto:b1',
-      'objeto:b2',
-      'etapa:b',
-    ]);
-    expect(r.progress.stageIndex, 2);
-    expect(r.progress.stepsInStage, 10);
-  });
+    test('al pasar de etapa se reinicia la cuenta de la garantía', () {
+      final r = engine.advance(start, 100, FixedRandom(0));
+      expect(r.progress.stageIndex, 1);
+      expect(r.progress.sinceLast, isEmpty);
+    });
 
-  test('el fin del capítulo da todos los eventos y descarta el sobrante', () {
-    final r = engine.advance(start, 1000);
-    expect(describe(r.events).sublist(r.events.length - 3), [
-      'objeto:c1',
-      'etapa:c',
-      'fin',
-    ]);
-    expect(engine.isFinished(r.progress), isTrue);
-    expect(r.progress.collected, hasLength(6));
-    expect(r.progress.stepsInStage, 0);
-    expect(engine.currentStage(r.progress), isNull);
-    expect(engine.nextItem(r.progress), isNull);
-  });
+    test('fin del capítulo y pasos después del fin', () {
+      final done = engine.advance(start, 100000, Random(1));
+      expect(engine.isFinished(done.progress), isTrue);
+      expect(describe(done.events).last, 'fin');
+      final after = engine.advance(done.progress, 5000, Random(1));
+      expect(after.events, isEmpty);
+      expect(after.progress, done.progress);
+    });
 
-  test('después del fin, los pasos no cambian nada', () {
-    final done = engine.advance(start, 190).progress;
-    expect(engine.isFinished(done), isTrue);
-    final r = engine.advance(done, 500);
-    expect(r.events, isEmpty);
-    expect(r.progress, done);
-  });
+    test('0 o pasos negativos no cambian nada', () {
+      final p = engine.advance(start, 25, FixedRandom(1)).progress;
+      expect(engine.advance(p, 0, FixedRandom(0)).progress, p);
+      expect(engine.advance(p, -5, FixedRandom(0)).progress, p);
+    });
 
-  test('avanzar 0 o pasos negativos no cambia nada', () {
-    final p = engine.advance(start, 40).progress;
-    expect(engine.advance(p, 0).progress, p);
-    expect(engine.advance(p, -5).progress, p);
-    expect(engine.advance(p, 0).events, isEmpty);
-  });
-
-  test('avanzar de a poco da lo mismo que de golpe', () {
-    var p = start;
-    final events = <ChapterEvent>[];
-    for (var i = 0; i < 175; i++) {
-      final r = engine.advance(p, 1);
-      p = r.progress;
-      events.addAll(r.events);
-    }
-    final once = engine.advance(start, 175);
-    expect(p, once.progress);
-    expect(describe(events), describe(once.events));
-  });
-
-  test('estado de cada etapa: hecha, actual y bloqueada', () {
-    final p = engine.advance(start, 110).progress;
-    expect(engine.statusOf(0, p), StageStatus.done);
-    expect(engine.statusOf(1, p), StageStatus.current);
-    expect(engine.statusOf(2, p), StageStatus.locked);
-  });
-
-  test('si cambian los datos, recoge objetos que quedaron atrás', () {
-    // Partida guardada con 70 pasos pero sin el objeto a2 (umbral 60).
-    const p = ChapterProgress(
-      stageIndex: 0,
-      stepsInStage: 70,
-      collected: ['a1'],
-    );
-    final r = engine.advance(p, 0);
-    expect(describe(r.events), ['objeto:a2']);
+    test('estado de cada etapa: hecha, actual y bloqueada', () {
+      final p = at(1);
+      expect(engine.statusOf(0, p), StageStatus.done);
+      expect(engine.statusOf(1, p), StageStatus.current);
+      expect(engine.statusOf(2, p), StageStatus.locked);
+    });
   });
 
   group('capítulo 1 real', () {
     const real = ChapterEngine(chapter1);
 
-    test('30.000 pasos terminan el capítulo con los 42 objetos', () {
-      final r = real.advance(start, 30000);
+    test('con suerte total (todo sale) termina y da cada recompensa', () {
+      final r = real.advance(start, 1000000, FixedRandom(0));
       expect(real.isFinished(r.progress), isTrue);
-      expect(r.progress.collected, hasLength(42));
-      expect(describe(r.events).last, 'fin');
+      expect(
+        r.events.whereType<StageCompleted>().map((e) => e.stage.id),
+        chapter1.stages.map((s) => s.id),
+      );
     });
 
-    test('29.999 pasos dejan el barco a un paso de zarpar', () {
-      final r = real.advance(start, 29999);
-      expect(real.isFinished(r.progress), isFalse);
-      expect(real.currentStage(r.progress)?.id, 'barco');
-      expect(real.stepsToNextItem(r.progress), 1);
+    test('con mala suerte total, la garantía y los canjes lo terminan', () {
+      final r = real.advance(start, 1000000, FixedRandom(999999));
+      expect(real.isFinished(r.progress), isTrue);
     });
 
-    test('1.000 pasos completan el árbol mágico', () {
-      final r = real.advance(start, debugStepBonus);
-      expect(describe(r.events), contains('etapa:arbol_magico'));
-      expect(r.progress.stageIndex, 1);
+    test('balance: 300 partidas promedian entre 90.000 y 120.000 pasos', () {
+      final random = Random(2026);
+      var total = 0;
+      for (var game = 0; game < 300; game++) {
+        var p = start;
+        var steps = 0;
+        while (!real.isFinished(p)) {
+          p = real.advance(p, 500, random).progress;
+          steps += 500;
+        }
+        total += steps;
+      }
+      final average = total / 300;
+      expect(average, inInclusiveRange(90000, 120000));
     });
   });
 }

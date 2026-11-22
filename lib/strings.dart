@@ -18,21 +18,26 @@ abstract final class Strings {
   static String stageOf(int number, int count) => 'Etapa $number de $count';
   static String stageProgress(int steps, int goal) =>
       '${formatNumber(steps)} / ${formatNumber(goal)} pasos';
+  static String travelingTo(String stage) => 'Camino a: $stage';
   static String reward(String reward) => 'Recompensa: $reward';
-  static const itemsTitle = 'Objetos para juntar';
+  static const goalsTitle = 'Para juntar';
+  static String countOf(int have, int need) => '$have / $need';
   static String stepsToNext(int steps) =>
       steps == 1 ? 'Falta 1 paso' : 'Faltan ${formatNumber(steps)} pasos';
-  static String itemAt(int steps) => 'A los ${formatNumber(steps)} pasos';
+  static const appearsRandomly = 'Aparece al azar';
+  static const afterArriving = 'Aparece al llegar';
+  static String exchangeProgress(
+    String inputs,
+    int have,
+    int need,
+    String output,
+  ) => '$inputs: $have / $need → $output';
+  static const or = ' o ';
   static const journeyTitle = 'El viaje';
   static const chapterDoneTitle = '¡El barco zarpó!';
-  static const chapterDoneBody =
-      'Terminaste el Capítulo 1. La Isla Negra te espera en el próximo.';
 
   // Avisos.
-  static String itemCollected(String item) => '¡Conseguiste: $item!';
-  static String stageCompleted(String stage, String reward) =>
-      '¡Terminaste $stage! Recompensa: $reward';
-  static const chapterCompleted = '¡El barco zarpó! Fin del Capítulo 1';
+  static String arrived(String stage) => '¡Llegaste! $stage';
   static String collectedSummary(int items, int stages) {
     final itemsText = items == 1 ? '1 objeto' : '$items objetos';
     if (stages == 0) return '¡Conseguiste $itemsText!';

@@ -5,38 +5,63 @@ import 'package:rpg/strings.dart';
 import 'package:rpg/ui/notices.dart';
 import 'package:test/test.dart';
 
+import '../fakes/fake_random.dart';
+
 void main() {
   const engine = ChapterEngine(chapter1);
+  final stages = chapter1.stages;
   const start = ChapterProgress.initial();
-  String noticeAfter(int steps) =>
-      noticeFor(engine.advance(start, steps).events);
 
-  test('un objeto: dice cuál', () {
+  List<ChapterEvent> events(ChapterProgress p, int steps, {int dice = 0}) =>
+      engine.advance(p, steps, FixedRandom(dice)).events;
+
+  ChapterProgress at(int stage, int steps, [Map<String, int> inv = const {}]) =>
+      ChapterProgress(
+        stageIndex: stage,
+        stepsInStage: steps,
+        inventory: inv,
+        sinceLast: const {},
+      );
+
+  test('un objeto: su mensaje', () {
+    expect(noticeFor(events(start, 50)), chapter1.item('flor_lila').message);
+  });
+
+  test('terminar una etapa con su último objeto: el mensaje final', () {
+    final p = at(0, 700, {'flor_lila': 14});
+    expect(noticeFor(events(p, 50)), stages[0].completeMessage);
+  });
+
+  test('un canje con el común que lo completa: el mensaje del canje', () {
+    final p = at(1, 0, {'semilla_agua': 9});
+    // A los 50 pasos sale una semilla común (no la de fuego, que es cada 200).
+    expect(noticeFor(events(p, 50)), stages[1].exchanges.single.message);
+  });
+
+  test('el canje reemplaza {item} por el objeto que se recibe', () {
+    final p = at(4, 15000, {'gema': 99});
     expect(
-      noticeAfter(250),
-      Strings.itemCollected('Hoja dorada del árbol mágico'),
+      noticeFor(events(p, 50, dice: 1)),
+      'Los dragones cuentan tus 100 gemas, sonríen con todos sus dientes y te '
+      'dan a cambio: Piedra de fuego.',
     );
   });
 
-  test('terminar una etapa: dice cuál y su recompensa', () {
-    final p = engine.advance(start, 900).progress;
-    final events = engine.advance(p, 100).events;
-    expect(
-      noticeFor(events),
-      Strings.stageCompleted('El árbol mágico', 'Caperuza de aprendiz'),
-    );
+  test('las gemas solas no tienen aviso', () {
+    final p = at(4, 15000);
+    expect(noticeFor(events(p, 50, dice: 1)), isNull);
   });
 
-  test('varios objetos: un resumen', () {
-    expect(noticeAfter(600), Strings.collectedSummary(2, 0));
-    expect(noticeAfter(1500), Strings.collectedSummary(5, 1));
-    expect(
-      Strings.collectedSummary(7, 1),
-      '¡Conseguiste 7 objetos y terminaste 1 etapa!',
-    );
+  test('al terminar el tramo de llegar: aviso de llegada', () {
+    final p = at(3, 9900);
+    expect(noticeFor(events(p, 100, dice: 1)), Strings.arrived('El puerto'));
   });
 
-  test('fin del capítulo: el barco zarpa', () {
-    expect(noticeAfter(30000), Strings.chapterCompleted);
+  test('muchas cosas juntas: un resumen', () {
+    expect(noticeFor(events(start, 2000)), startsWith('¡Conseguiste'));
+  });
+
+  test('fin del capítulo: el mensaje del barco', () {
+    expect(noticeFor(events(start, 1000000)), stages.last.completeMessage);
   });
 }

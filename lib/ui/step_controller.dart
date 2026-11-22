@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
@@ -27,15 +28,19 @@ class StepController extends ChangeNotifier {
     this.clock = const SystemClock(),
     this.tracker = const StepTracker(),
     this.engine = const ChapterEngine(chapter1),
+    Random? random,
     this.saveDelay = const Duration(seconds: 1),
     this.dayCheckInterval = const Duration(minutes: 1),
-  });
+  }) : random = random ?? Random();
 
   final StepSensor sensor;
   final GameStorage storage;
   final Clock clock;
   final StepTracker tracker;
   final ChapterEngine engine;
+
+  /// Azar para la aparición de objetos (en los tests, con semilla fija).
+  final Random random;
 
   /// Como mucho se guarda una vez por [saveDelay], para no escribir en cada paso.
   final Duration saveDelay;
@@ -153,7 +158,7 @@ class StepController extends ChangeNotifier {
     if (_disposed || next == state) return;
     // Los pasos nuevos (reales o de debug) avanzan el capítulo.
     final delta = next.totalSteps - state.totalSteps;
-    final advance = engine.advance(_game.chapter, delta);
+    final advance = engine.advance(_game.chapter, delta, random);
     _game = GameSave(steps: next, chapter: advance.progress);
     if (advance.events.isNotEmpty) {
       _log('eventos: ${advance.events.length}');

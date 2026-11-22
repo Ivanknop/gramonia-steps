@@ -3,38 +3,51 @@ class ChapterProgress {
   const ChapterProgress({
     required this.stageIndex,
     required this.stepsInStage,
-    required this.collected,
+    required this.inventory,
+    required this.sinceLast,
   });
 
   const ChapterProgress.initial()
     : stageIndex = 0,
       stepsInStage = 0,
-      collected = const [];
+      inventory = const {},
+      sinceLast = const {};
 
   /// Etapa actual (0 = la primera). Si es igual a la cantidad de etapas,
   /// el capítulo está terminado.
   final int stageIndex;
 
-  /// Pasos acumulados dentro de la etapa actual.
+  /// Pasos dentro de la etapa actual, contando el tramo de "llegar".
   final int stepsInStage;
 
-  /// Ids de los objetos conseguidos, en el orden en que se consiguieron.
-  final List<String> collected;
+  /// Cuántos objetos de cada tipo hay (por id).
+  final Map<String, int> inventory;
 
-  bool has(String itemId) => collected.contains(itemId);
+  /// Para la garantía de mala suerte: pasos desde la última vez que salió
+  /// cada aparición al azar de la etapa actual (por [Spawn.key]).
+  final Map<String, int> sinceLast;
+
+  int count(String itemId) => inventory[itemId] ?? 0;
+
+  bool has(String itemId) => count(itemId) > 0;
 
   Map<String, Object?> toJson() => {
     'stageIndex': stageIndex,
     'stepsInStage': stepsInStage,
-    'collected': collected,
+    'inventory': inventory,
+    'sinceLast': sinceLast,
   };
 
   /// Lanza una excepción si el JSON no tiene la forma esperada.
   static ChapterProgress fromJson(Map<String, dynamic> json) {
+    Map<String, int> ints(Object? value) => Map.unmodifiable(
+      (value as Map<String, dynamic>).map((k, v) => MapEntry(k, v as int)),
+    );
     return ChapterProgress(
       stageIndex: json['stageIndex'] as int,
       stepsInStage: json['stepsInStage'] as int,
-      collected: List<String>.unmodifiable(json['collected'] as List),
+      inventory: ints(json['inventory']),
+      sinceLast: ints(json['sinceLast']),
     );
   }
 
@@ -43,22 +56,31 @@ class ChapterProgress {
       other is ChapterProgress &&
       other.stageIndex == stageIndex &&
       other.stepsInStage == stepsInStage &&
-      _sameList(other.collected, collected);
+      _sameMap(other.inventory, inventory) &&
+      _sameMap(other.sinceLast, sinceLast);
 
   @override
-  int get hashCode =>
-      Object.hash(stageIndex, stepsInStage, Object.hashAll(collected));
+  int get hashCode => Object.hash(
+    stageIndex,
+    stepsInStage,
+    Object.hashAllUnordered(
+      inventory.entries.map((e) => '${e.key}=${e.value}'),
+    ),
+    Object.hashAllUnordered(
+      sinceLast.entries.map((e) => '${e.key}=${e.value}'),
+    ),
+  );
 
   @override
   String toString() =>
       'ChapterProgress(stage: $stageIndex, steps: $stepsInStage, '
-      'collected: $collected)';
+      'inventory: $inventory, sinceLast: $sinceLast)';
 }
 
-bool _sameList(List<String> a, List<String> b) {
+bool _sameMap(Map<String, int> a, Map<String, int> b) {
   if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
+  for (final e in a.entries) {
+    if (b[e.key] != e.value) return false;
   }
   return true;
 }

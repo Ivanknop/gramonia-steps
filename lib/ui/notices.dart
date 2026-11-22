@@ -1,21 +1,40 @@
 import '../logic/chapter_engine.dart';
 import '../strings.dart';
 
-/// Arma un solo aviso para un grupo de eventos que pasaron juntos.
-String noticeFor(List<ChapterEvent> events) {
-  if (events.any((e) => e is ChapterCompleted)) {
-    return Strings.chapterCompleted;
-  }
-  final items = events.whereType<ItemCollected>().toList();
-  final stages = events.whereType<StageCompleted>().toList();
+/// Texto del aviso para un evento suelto.
+String noticeText(ChapterEvent event) => switch (event) {
+  ItemFound(:final item) => item.message,
+  ExchangeMade(:final exchange, :final item) => exchange.message.replaceAll(
+    '{item}',
+    item.name,
+  ),
+  Arrived(:final stage) => Strings.arrived(stage.name),
+  StageCompleted(:final stage) => stage.completeMessage,
+  ChapterCompleted(:final stage) => stage.completeMessage,
+};
 
-  if (stages.isEmpty && items.length == 1) {
-    return Strings.itemCollected(items.single.item.name);
+/// Arma un solo aviso para un grupo de eventos que pasaron juntos.
+/// Devuelve null si no hay nada para avisar (por ejemplo, solo gemas).
+String? noticeFor(List<ChapterEvent> events) {
+  final shown = [
+    for (final e in events)
+      if (e is! ItemFound || e.item.notify) e,
+  ];
+  if (shown.isEmpty) return null;
+
+  final finale = shown.whereType<ChapterCompleted>();
+  if (finale.isNotEmpty) return noticeText(finale.first);
+  if (shown.length == 1) return noticeText(shown.single);
+
+  final stages = shown.whereType<StageCompleted>().toList();
+  // Terminar una etapa suele llegar junto con su último objeto o canje.
+  if (stages.length == 1 && shown.length <= 3) return noticeText(stages.single);
+  // Un canje suele llegar junto con el objeto común que lo completó.
+  final exchanges = shown.whereType<ExchangeMade>().toList();
+  if (stages.isEmpty && exchanges.length == 1 && shown.length <= 2) {
+    return noticeText(exchanges.single);
   }
-  // Terminar una etapa casi siempre llega junto con su último objeto.
-  if (stages.length == 1 && items.length <= 1) {
-    final stage = stages.single.stage;
-    return Strings.stageCompleted(stage.name, stage.reward);
-  }
-  return Strings.collectedSummary(items.length, stages.length);
+
+  final items = shown.where((e) => e is ItemFound || e is ExchangeMade).length;
+  return Strings.collectedSummary(items, stages.length);
 }
