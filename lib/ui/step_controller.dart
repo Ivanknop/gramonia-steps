@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../logic/clock.dart';
+import '../logic/game_save.dart';
 import '../logic/step_state.dart';
 import '../logic/step_tracker.dart';
 import '../services/step_sensor.dart';
-import '../services/step_storage.dart';
+import '../services/game_storage.dart';
 
 enum StepStatus {
   loading,
@@ -28,7 +29,7 @@ class StepController extends ChangeNotifier {
   });
 
   final StepSensor sensor;
-  final StepStorage storage;
+  final GameStorage storage;
   final Clock clock;
   final StepTracker tracker;
 
@@ -36,8 +37,9 @@ class StepController extends ChangeNotifier {
   final Duration saveDelay;
   final Duration dayCheckInterval;
 
-  StepState _state = const StepState.initial();
-  StepState get state => _state;
+  GameSave _game = const GameSave.initial();
+  GameSave get game => _game;
+  StepState get state => _game.steps;
 
   StepStatus _status = StepStatus.loading;
   StepStatus get status => _status;
@@ -50,7 +52,9 @@ class StepController extends ChangeNotifier {
   Future<void> start() async {
     final loaded = await storage.load();
     if (_disposed) return;
-    _update(tracker.refreshDay(loaded, clock.now()));
+    _game = loaded;
+    _update(tracker.refreshDay(loaded.steps, clock.now()));
+    notifyListeners();
     await _flush();
     _dayTimer = Timer.periodic(dayCheckInterval, (_) => refreshDay());
     await _applyPermission(await sensor.requestPermission());
@@ -78,15 +82,15 @@ class StepController extends ChangeNotifier {
   Future<void> onPause() => _flush();
 
   void refreshDay() {
-    final next = tracker.refreshDay(_state, clock.now());
-    if (next != _state) {
+    final next = tracker.refreshDay(state, clock.now());
+    if (next != state) {
       _update(next);
       _scheduleSave();
     }
   }
 
   Future<void> addDebugSteps(int steps) async {
-    _update(tracker.addDebugSteps(_state, steps, clock.now()));
+    _update(tracker.addDebugSteps(state, steps, clock.now()));
     await _flush();
   }
 
@@ -117,10 +121,10 @@ class StepController extends ChangeNotifier {
   }
 
   void _onReading(int reading) {
-    final next = tracker.applyReading(_state, reading, clock.now());
+    final next = tracker.applyReading(state, reading, clock.now());
     _log(
       'lectura=$reading total=${next.totalSteps} hoy=${next.todaySteps} '
-      '(antes: lectura=${_state.lastReading})',
+      '(antes: lectura=${state.lastReading})',
     );
     _update(next);
     _scheduleSave();
@@ -133,12 +137,12 @@ class StepController extends ChangeNotifier {
   Future<void> _flush() async {
     _saveTimer?.cancel();
     _saveTimer = null;
-    await storage.save(_state);
+    await storage.save(_game);
   }
 
   void _update(StepState next) {
-    if (_disposed || next == _state) return;
-    _state = next;
+    if (_disposed || next == state) return;
+    _game = _game.copyWith(steps: next);
     notifyListeners();
   }
 
@@ -159,7 +163,7 @@ class StepController extends ChangeNotifier {
     _dayTimer?.cancel();
     if (_saveTimer != null) {
       _saveTimer!.cancel();
-      storage.save(_state);
+      storage.save(_game);
     }
     super.dispose();
   }

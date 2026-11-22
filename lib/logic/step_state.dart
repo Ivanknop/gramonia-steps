@@ -52,16 +52,20 @@ class StepState {
   static StepState decode(String? source) {
     if (source == null || source.isEmpty) return const StepState.initial();
     try {
-      final json = jsonDecode(source) as Map<String, dynamic>;
-      return StepState(
-        lastReading: json['lastReading'] as int?,
-        totalSteps: json['totalSteps'] as int,
-        todaySteps: json['todaySteps'] as int,
-        todayDate: json['todayDate'] as String,
-      );
+      return fromJson(jsonDecode(source) as Map<String, dynamic>);
     } catch (_) {
       return const StepState.initial();
     }
+  }
+
+  /// Lanza una excepción si el JSON no tiene la forma esperada.
+  static StepState fromJson(Map<String, dynamic> json) {
+    return StepState(
+      lastReading: json['lastReading'] as int?,
+      totalSteps: json['totalSteps'] as int,
+      todaySteps: json['todaySteps'] as int,
+      todayDate: json['todayDate'] as String,
+    );
   }
 
   @override

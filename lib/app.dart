@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import 'services/step_sensor.dart';
-import 'services/step_storage.dart';
+import 'services/game_storage.dart';
 import 'strings.dart';
 import 'ui/home_screen.dart';
 import 'ui/step_controller.dart';
@@ -26,7 +26,7 @@ class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
         widget.controller ??
         StepController(
           sensor: const DeviceStepSensor(),
-          storage: PrefsStepStorage(),
+          storage: PrefsGameStorage(),
         );
     WidgetsBinding.instance.addObserver(this);
     _controller.start();

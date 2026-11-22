@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:rpg/logic/clock.dart';
+import 'package:rpg/logic/game_save.dart';
 import 'package:rpg/logic/step_state.dart';
 import 'package:rpg/services/step_sensor.dart';
-import 'package:rpg/services/step_storage.dart';
+import 'package:rpg/services/game_storage.dart';
 
 class FakeClock implements Clock {
   FakeClock(this.time);
@@ -13,17 +14,18 @@ class FakeClock implements Clock {
   DateTime now() => time;
 }
 
-class FakeStorage implements StepStorage {
-  FakeStorage([this.saved = const StepState.initial()]);
-  StepState saved;
+class FakeStorage implements GameStorage {
+  FakeStorage([StepState steps = const StepState.initial()])
+    : saved = GameSave(steps: steps, chapter: const GameSave.initial().chapter);
+  GameSave saved;
   int saveCount = 0;
 
   @override
-  Future<StepState> load() async => saved;
+  Future<GameSave> load() async => saved;
 
   @override
-  Future<void> save(StepState state) async {
-    saved = state;
+  Future<void> save(GameSave game) async {
+    saved = game;
     saveCount++;
   }
 }

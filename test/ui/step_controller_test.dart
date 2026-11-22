@@ -29,11 +29,13 @@ void main() {
   tearDown(() => c.dispose());
 
   test('al arrancar carga lo guardado', () async {
-    storage.saved = const StepState(
-      lastReading: 500,
-      totalSteps: 8000,
-      todaySteps: 300,
-      todayDate: '2026-11-22',
+    storage = FakeStorage(
+      const StepState(
+        lastReading: 500,
+        totalSteps: 8000,
+        todaySteps: 300,
+        todayDate: '2026-11-22',
+      ),
     );
     c = make();
     await c.start();
@@ -43,11 +45,13 @@ void main() {
   });
 
   test('si lo guardado es de otro día, hoy arranca en 0', () async {
-    storage.saved = const StepState(
-      lastReading: 500,
-      totalSteps: 8000,
-      todaySteps: 300,
-      todayDate: '2026-11-21',
+    storage = FakeStorage(
+      const StepState(
+        lastReading: 500,
+        totalSteps: 8000,
+        todaySteps: 300,
+        todayDate: '2026-11-21',
+      ),
     );
     c = make();
     await c.start();
@@ -63,8 +67,8 @@ void main() {
     await settle();
     await settle();
     expect(c.state.totalSteps, 250);
-    expect(storage.saved.totalSteps, 250);
-    expect(storage.saved.lastReading, 1250);
+    expect(storage.saved.steps.totalSteps, 250);
+    expect(storage.saved.steps.lastReading, 1250);
   });
 
   test('si se niega el permiso, el estado es "sin permiso"', () async {
@@ -107,7 +111,7 @@ void main() {
     await c.start();
     await c.addDebugSteps(1000);
     expect(c.state.todaySteps, 1000);
-    expect(storage.saved.totalSteps, 1000);
+    expect(storage.saved.steps.totalSteps, 1000);
   });
 
   test('al volver a la app en otro día, hoy vuelve a 0', () async {
