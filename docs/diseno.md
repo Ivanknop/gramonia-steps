@@ -2,87 +2,126 @@
 
 Diseño del 22 nov 2026 (Iván). Documento vivo: los nombres y números son una propuesta para revisar.
 
+Cambio del 22 nov 2026: se saca el combate. Cada etapa se completa juntando objetos que se consiguen caminando.
+
 ## Resumen
 
-El Capítulo 1 lleva a la jugadora del árbol mágico al barco: se completa con unos 30.000 pasos reales, repartidos en 7 etapas.
+El Capítulo 1 lleva a la jugadora del árbol mágico al barco. Se completa con unos 30.000 pasos reales, repartidos en 7 etapas.
 
 - **Misión:** el Hada Madrina pide llevar una pluma del Rocanrón hasta la Isla Negra para calmar la furia de Mututu.
 - **Recorrido:** árbol mágico → bosque mágico (laberinto de las hormigas) → puerto en la costa → montaña dragón → casa de papá Caperucita → barco.
-- **Cómo se avanza:** cada etapa tiene una meta de pasos. Caminar llena la barra de la etapa, da experiencia y monedas, y dispara encuentros con enemigos.
+- **Cómo se avanza:** cada etapa tiene una meta de pasos y una lista de objetos para juntar. Caminar llena la barra de la etapa, y cada objeto se consigue al llegar a cierta cantidad de pasos dentro de la etapa.
 - **Final:** el capítulo termina cuando el barco zarpa. Isla Negra queda para un capítulo posterior.
 
 La meta total está pensada para una o dos semanas de caminata normal (3.000 a 5.000 pasos por día). Se ajusta cambiando un número por etapa.
 
-## Sistema de pasos
+## Sistema de pasos y objetos
 
-Cada paso real cuenta tres veces: llena la barra de la etapa, da experiencia y junta monedas.
-
-| Qué se gana | Cuánto | Para qué sirve |
-| --- | --- | --- |
-| Avance de etapa | 1 por paso | Llegar a la meta de la etapa y destrabar la siguiente |
-| Experiencia (XP) | 1 por paso + XP por enemigo vencido | Subir de nivel: más Vida y Fuerza |
-| Monedas | 1 cada 10 pasos + botín de enemigos | Comprar equipo y pociones |
-| Encuentros | 1 enemigo cada 500 pasos, aprox. | Pelear por turnos; se puede jugar después, en casa |
-
-Estadísticas de la jugadora:
-
-- **Vida:** cuánto daño aguanta en un combate.
-- **Fuerza:** cuánto daño hace.
-- **Defensa:** cuánto daño le saca a cada golpe enemigo.
-- **Suerte:** más monedas y más chance de esquivar.
-
-Niveles: nivel 2 a los 1.000 XP, nivel 3 a los 2.500, nivel 4 a los 4.500, nivel 5 a los 7.000, y así, sumando 500 más cada vez. Cada nivel da +5 de Vida y +1 de Fuerza.
-
-Los combates no necesitan caminar: los encuentros se guardan y se resuelven cuando la jugadora quiera.
+- Cada paso real suma 1 a la etapa actual.
+- Cada objeto de la etapa tiene un umbral de pasos. Al cruzarlo, el objeto pasa al inventario y aparece un aviso en pantalla.
+- El último objeto de cada etapa está justo en la meta de la etapa. Así, juntar todos los objetos y llegar a la meta es lo mismo.
+- Al completar la etapa se entrega su recompensa y se destraba la siguiente.
+- Los pasos que sobran pasan a la etapa siguiente. Un salto grande de pasos (por ejemplo, al abrir la app después de caminar mucho) puede completar varias etapas de golpe.
+- Después de que el barco zarpa, los pasos se siguen contando en el total, pero ya no hay etapas en este capítulo.
+- No hace falta mirar el celular mientras se camina: los objetos se juntan solos y los avisos se ven al abrir la app.
 
 ## Etapas del capítulo
 
-La montaña dragón es la etapa más larga y dura: es el centro del capítulo.
+La montaña dragón es la etapa más larga: es el centro del capítulo.
 
-| # | Etapa | Pasos | Qué pasa | Al terminar |
+| # | Etapa | Pasos | Qué pasa | Recompensa al terminar |
 | --- | --- | --- | --- | --- |
-| 1 | El árbol mágico | 1.000 | El Hada Madrina da la misión. Tutorial: primer combate contra un enemigo débil. | Caperuza de aprendiz |
-| 2 | El nido del Rocanrón | 4.000 | Buscar al Rocanrón en el bosque y ganarse su pluma. | Pluma del Rocanrón (objeto de misión) |
-| 3 | El laberinto de las hormigas | 6.000 | Cada 1.000 pasos se elige un camino. Las hormigas guardianas hacen un acertijo: si se falla, el camino suma 500 pasos. | Salida a la costa |
-| 4 | El puerto | 3.000 | Se descubre la gran tormenta; ningún barco puede zarpar. Abre la primera tienda. | Pista: "los dragones pueden calmarla" |
-| 5 | La montaña dragón | 10.000 | Subida con enemigos más fuertes. Arriba, una prueba para que los dragones acepten ayudar. | Los dragones calman la tormenta con sus alas |
-| 6 | La casa de papá Caperucita | 2.000 | Visita a papá Caperucita. | Mochila con insumos (pociones y espacio para objetos) |
-| 7 | El barco | 4.000 | Buscar el barco en el puerto y prepararlo. | El barco zarpa: fin del capítulo |
+| 1 | El árbol mágico | 1.000 | El Hada Madrina da la misión y lo necesario para empezar el viaje. | Caperuza de aprendiz |
+| 2 | El nido del Rocanrón | 4.000 | Buscar al Rocanrón en el bosque y juntar los alimentos que le gustan para ganarse su pluma. | Pluma del Rocanrón (objeto de misión) |
+| 3 | El laberinto de las hormigas | 6.000 | Las hormigas guardianas piden juntar las piezas de su acertijo para dejar salir del laberinto. | Salida a la costa |
+| 4 | El puerto | 3.000 | Se descubre la gran tormenta: ningún barco puede zarpar. Se buscan pistas en el puerto. | Pista: "los dragones pueden calmarla" |
+| 5 | La montaña dragón | 10.000 | Subida larga. Arriba, los dragones piden ofrendas para aceptar ayudar. | Los dragones calman la tormenta con sus alas |
+| 6 | La casa de papá Caperucita | 2.000 | Visita a papá Caperucita, que ayuda a preparar el viaje. | Mochila con insumos |
+| 7 | El barco | 4.000 | Buscar el barco en el puerto y juntar todo lo que hace falta para zarpar. | El barco zarpa: fin del capítulo |
 
 Total: 30.000 pasos.
 
-## Enemigos lanzados por Mututu
+## Objetos por etapa (propuesta a revisar)
 
-La furia de Mututu transforma criaturas comunes en enemigos; al vencerlos no mueren, se calman y vuelven a su forma.
+Los pasos son dentro de la etapa: cuentan desde 0 al empezar cada una.
 
-| Enemigo | Aparece en | Vida | Fuerza | XP | Monedas | Qué lo hace distinto |
-| --- | --- | --- | --- | --- | --- | --- |
-| Gotas de furia | Etapas 1 y 2 | 8 | 2 | 10 | 3 | El más débil, para aprender a pelear |
-| Escarabajos gruñones | Etapa 2 | 14 | 3 | 20 | 5 | Atacan de a dos |
-| Hormigas hechizadas | Etapa 3 | 18 | 4 | 30 | 8 | Al vencerlas, ayudan con el acertijo del laberinto |
-| Cangrejos de tormenta | Etapa 4 | 25 | 5 | 40 | 10 | Mucha defensa; conviene usar guantes |
-| Murciélagos de trueno | Etapa 5 | 30 | 7 | 60 | 15 | Rápidos: atacan primero |
-| Rocas enojadas | Etapa 5 | 45 | 6 | 80 | 20 | Lentas pero aguantan mucho |
+**1. El árbol mágico (1.000 pasos)**
+| Pasos | Objeto |
+| --- | --- |
+| 250 | Hoja dorada del árbol mágico |
+| 500 | Mapa de Gramonia |
+| 750 | Farol de luciérnagas |
+| 1.000 | Carta de la misión del Hada Madrina |
 
-Combate por turnos con tres opciones: **Atacar**, **Defender** (la mitad de daño en ese turno) y **Usar objeto** (poción). Si la Vida llega a cero, la jugadora vuelve al último lugar seguro sin perder pasos ni monedas.
+**2. El nido del Rocanrón (4.000 pasos): alimentos para el Rocanrón**
+| Pasos | Objeto |
+| --- | --- |
+| 500 | Frutillas silvestres |
+| 1.000 | Nueces del bosque |
+| 1.500 | Miel de abejas mágicas |
+| 2.000 | Semillas de girasol |
+| 2.500 | Moras azules |
+| 3.000 | Lombrices gorditas |
+| 3.500 | Manzana roja |
+| 4.000 | Pastel de bellotas |
 
-## Equipo
+**3. El laberinto de las hormigas (6.000 pasos): piezas del acertijo**
+| Pasos | Objeto |
+| --- | --- |
+| 1.000 | Pieza de la hoja |
+| 2.000 | Pieza de la gota |
+| 3.000 | Pieza de la piedra |
+| 4.000 | Pieza del sol |
+| 5.000 | Pieza de la luna |
+| 6.000 | Pieza de la estrella |
 
-Con los 30.000 pasos se juntan unas 3.600 monedas: alcanza para casi todo el equipo, pero hay que elegir qué comprar primero.
+**4. El puerto (3.000 pasos): pistas sobre la tormenta**
+| Pasos | Objeto |
+| --- | --- |
+| 750 | Catalejo |
+| 1.500 | Mapa de las corrientes |
+| 2.250 | Bitácora del capitán |
+| 3.000 | Caracola que cuenta secretos |
 
-| Pieza | Espacio | Mejora | Precio | Dónde |
-| --- | --- | --- | --- | --- |
-| Caperuza de aprendiz | Caperuza | +5 Vida | Gratis | Regalo del Hada Madrina |
-| Sable de madera | Arma | +1 Fuerza | Gratis | Inicio |
-| Zapatos de caminante | Zapatos | +1 Suerte | 200 | Tienda del puerto |
-| Guantes de cuero | Guantes | +2 Fuerza | 250 | Tienda del puerto |
-| Caperuza de lana | Caperuza | +15 Vida | 300 | Tienda del puerto |
-| Sable de coral | Arma | +3 Fuerza | 500 | Tienda del puerto |
-| Botas de marinero | Zapatos | +3 Suerte, +2 Defensa | 700 | Papá Caperucita |
-| Guantes de escama de dragón | Guantes | +5 Fuerza | 800 | Los dragones, a cambio de monedas |
-| Poción | Objeto | Recupera 20 Vida | 30 | Tienda del puerto |
+**5. La montaña dragón (10.000 pasos): ofrendas para los dragones**
+| Pasos | Objeto |
+| --- | --- |
+| 1.250 | Bastón de caminante |
+| 2.500 | Bufanda abrigada |
+| 3.750 | Piedra de fuego |
+| 5.000 | Agua de la cascada |
+| 6.250 | Escama brillante |
+| 7.500 | Flor de las nubes |
+| 8.750 | Campana de viento |
+| 10.000 | Cuerno de los dragones |
 
-La caperuza de Caperucita Pirata no se compra: se gana al final de la saga ("una caperucita no nace, se hace").
+**6. La casa de papá Caperucita (2.000 pasos): preparativos del viaje**
+| Pasos | Objeto |
+| --- | --- |
+| 500 | Leña para la chimenea |
+| 1.000 | Pan casero |
+| 1.500 | Frasco de mermelada |
+| 2.000 | Foto de la familia |
+
+**7. El barco (4.000 pasos): provisiones y piezas del barco**
+| Pasos | Objeto |
+| --- | --- |
+| 500 | Vela remendada |
+| 1.000 | Cuerdas de marinero |
+| 1.500 | Timón |
+| 2.000 | Barril de agua dulce |
+| 2.500 | Galletas marineras |
+| 3.000 | Ancla |
+| 3.500 | Brújula |
+| 4.000 | Bandera pirata |
+
+En total son 42 objetos.
+
+## Más adelante
+
+- **Monedas y tienda:** vuelven en una etapa posterior. Las monedas se ganan caminando y en la tienda se compran mejoras que ayudan a conseguir más objetos.
+- **Experiencia y niveles:** quedan para más adelante, si suman al juego.
+- **Laberinto con caminos:** la idea original de elegir un camino cada 1.000 pasos y resolver el acertijo de las hormigas (si se falla, el camino suma 500 pasos) puede volver como mejora de la etapa 3.
 
 ## Personajes y objetos clave
 
@@ -94,10 +133,12 @@ Personajes:
 - **Hormigas guardianas:** custodian el laberinto del bosque mágico.
 - **Dragones:** viven en la montaña dragón; con sus alas enormes pueden calmar la tormenta.
 - **Papá Caperucita:** entrega la mochila con insumos antes del viaje.
-- **Mututu:** está furioso en la Isla Negra. No aparece en este capítulo; solo se ven los enemigos que lanza.
+- **Mututu:** está furioso en la Isla Negra y su furia causa la gran tormenta. No aparece en este capítulo.
 
 Objetos de misión:
 
 - **Pluma del Rocanrón:** el objetivo de todo el viaje.
-- **Mochila con insumos:** suma pociones y espacio para objetos.
+- **Mochila con insumos:** lo necesario para el viaje en barco.
 - **El barco:** destraba el mar y el próximo capítulo.
+
+La caperuza de Caperucita Pirata no se consigue en este capítulo: se gana al final de la saga ("una caperucita no nace, se hace").

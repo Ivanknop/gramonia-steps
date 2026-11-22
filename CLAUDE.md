@@ -13,9 +13,9 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 ## Reglas
 
 - Textos del juego en español. Código, nombres de variables y comentarios técnicos pueden ir en inglés; los textos visibles van en archivos de strings, no sueltos en los widgets.
-- Las cifras del juego (pasos por etapa, enemigos, precios, niveles) van en un solo archivo de datos (por ejemplo `lib/data/chapter1.dart`), nunca repetidas en la lógica. Así se ajustan cambiando un número.
+- Las cifras del juego (pasos por etapa, objetos y sus umbrales, recompensas) van en un solo archivo de datos: `lib/data/chapter1.dart`. Nunca se repiten en la lógica. Así se ajustan cambiando un número.
 - Trabajar en partes chicas que se puedan probar en el celular. Antes de terminar una tarea: `flutter analyze` y `flutter test` sin errores.
-- La lógica del juego (pasos → avance, XP, monedas, encuentros, combate) va en Dart puro, sin Flutter, con tests unitarios.
+- La lógica del juego (pasos → avance de etapa, objetos, recompensas) va en Dart puro, sin Flutter, con tests unitarios.
 - Mantener siempre un botón de debug "+1.000 pasos" (solo en builds de debug) para probar sin caminar.
 - Nunca subir al repo la keystore ni `key.properties`. Sin ella no se pueden publicar actualizaciones de la misma app.
 
@@ -28,21 +28,21 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 
 ## Resumen de reglas del juego
 
-- Cada paso: +1 avance de etapa, +1 XP; 1 moneda cada 10 pasos; 1 encuentro cada ~500 pasos.
-- Los encuentros se guardan y se pelean cuando la jugadora quiera (no hay que mirar el celular mientras camina).
-- Combate por turnos: Atacar, Defender (mitad de daño ese turno), Usar objeto. Si la Vida llega a 0, vuelve al último lugar seguro sin perder pasos ni monedas.
-- Niveles: nivel 2 a 1.000 XP, nivel 3 a 2.500, nivel 4 a 4.500, nivel 5 a 7.000, sumando 500 más cada vez. Cada nivel: +5 Vida, +1 Fuerza.
+- Sin combate ni enemigos. Cada etapa se completa juntando objetos que se consiguen caminando.
+- Cada paso: +1 avance en la etapa actual. Cada objeto tiene un umbral de pasos dentro de la etapa; al cruzarlo, va al inventario con un aviso.
+- El último objeto está en la meta de la etapa. Al completarla se entrega la recompensa, se destraba la siguiente y los pasos que sobran pasan a ella (un salto grande puede completar varias etapas).
+- No hay que mirar el celular mientras se camina: los objetos se juntan solos.
 - Capítulo 1: 7 etapas, 30.000 pasos. Termina cuando el barco zarpa.
+- Monedas, tienda (mejoras para conseguir más objetos) y experiencia quedan para más adelante.
 
 ## Plan de desarrollo
 
 1. App vacía que abre en el celular.
 2. Leer los pasos y mostrarlos.
-3. Barras de progreso de las 7 etapas.
-4. Guardado de la partida.
-5. Combate por turnos.
-6. Tienda y equipo.
-7. Textos, dibujos y sonidos.
+3. Las 7 etapas con su barra de progreso y sus objetos a recolectar.
+4. Guardado de la partida (etapas e inventario).
+5. Monedas y tienda de mejoras.
+6. Textos, dibujos y sonidos.
 
 ## Comandos útiles
 
