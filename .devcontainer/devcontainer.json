@@ -1,0 +1,20 @@
+{
+  "name": "Gramonia RPG (Flutter + Android)",
+  "build": { "dockerfile": "Dockerfile" },
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+  "mounts": [
+    "source=gramonia-gradle,target=/home/vscode/.gradle,type=volume",
+    "source=gramonia-pub-cache,target=/home/vscode/.pub-cache,type=volume",
+    "source=gramonia-claude,target=/home/vscode/.claude,type=volume"
+  ],
+  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.gradle /home/vscode/.pub-cache /home/vscode/.claude && flutter --version && ([ -f pubspec.yaml ] && flutter pub get || true)",
+  "customizations": {
+    "vscode": {
+      "extensions": ["Dart-Code.dart-code", "Dart-Code.flutter", "anthropic.claude-code"]
+    }
+  }
+}
