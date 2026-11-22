@@ -2,8 +2,12 @@ FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 ARG FLUTTER_CHANNEL=stable
 ARG ANDROID_CMDLINE_TOOLS=13114758
-ARG ANDROID_PLATFORM=android-35
-ARG ANDROID_BUILD_TOOLS=35.0.0
+# Lo que usa el build hoy: compileSdk 37 (lo pide permission_handler) y 36
+# (lo usan los plugins de Flutter), más las herramientas que pide Gradle.
+ARG ANDROID_PLATFORMS="platforms;android-37.0 platforms;android-36"
+ARG ANDROID_BUILD_TOOLS=36.0.0
+ARG ANDROID_NDK=28.2.13676358
+ARG ANDROID_CMAKE=3.22.1
 
 ENV DEBIAN_FRONTEND=noninteractive \
     JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 \
@@ -25,7 +29,8 @@ RUN mkdir -p ${ANDROID_HOME}/cmdline-tools \
     && mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest \
     && rm /tmp/cmdtools.zip \
     && yes | sdkmanager --licenses > /dev/null \
-    && sdkmanager --install "platform-tools" "platforms;${ANDROID_PLATFORM}" "build-tools;${ANDROID_BUILD_TOOLS}"
+    && sdkmanager --install "platform-tools" ${ANDROID_PLATFORMS} \
+       "build-tools;${ANDROID_BUILD_TOOLS}" "ndk;${ANDROID_NDK}" "cmake;${ANDROID_CMAKE}"
 
 RUN git clone --depth 1 -b ${FLUTTER_CHANNEL} https://github.com/flutter/flutter.git ${FLUTTER_HOME}
 
