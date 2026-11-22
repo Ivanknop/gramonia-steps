@@ -43,7 +43,7 @@ Las mismas reglas sirven para todos los objetos. Solo cambian el objeto y sus n�
 | 6 | La casa de papá Caperucita | 5.000 | 4 objetos para la mochila | Fijos: uno cada 2.000 pasos | Mochila con insumos |
 | 7 | El barco (en el puerto) | 5.000 | 5 bienes: madera, clavos, cuerdas, bandera pirata y ancla | Cada bien: 1 en **100** cada 100 pasos. Moneda de oro: 1 en 10 cada 50 pasos. **Canje:** **20** monedas → el bien que falte | El barco zarpa: fin del capítulo |
 
-**Ajuste propuesto en la etapa 7, pendiente de aprobación.** El pedido original era "cada bien 1 en 1.000" y "200 monedas". Con esos números, el barco solo tarda unos 149.000 pasos en promedio y el capítulo llega a unos 234.000 (ver la simulación). Con "1 en 100" y "20 monedas", el capítulo queda en unos 100.000.
+**Ajuste aprobado en la etapa 7.** El pedido original era "cada bien 1 en 1.000" y "200 monedas". Con esos números, el barco solo tarda unos 149.000 pasos en promedio y el capítulo llega a unos 234.000 (ver la simulación). Con "1 en 100" y "20 monedas", el capítulo queda en unos 100.000.
 
 ## Pasos por etapa: simulación de 1.000 partidas
 
@@ -51,22 +51,22 @@ Cada número es el total de pasos de la etapa, incluido el tramo de "llegar".
 - **Suerte (10%):** solo 1 de cada 10 partidas termina más rápido que esto.
 - **Mala suerte (90%):** 9 de cada 10 partidas terminan antes que esto.
 
-**Con el ajuste propuesto (bienes 1 en 100, 20 monedas):**
+**Reglas actuales (bienes 1 en 100, 20 monedas), con el motor real del juego:**
 
 | # | Etapa | Promedio | Suerte (10%) | Mala suerte (90%) |
 | --- | --- | --- | --- | --- |
-| 1 | Casa de la abuelita | 7.236 | 5.300 | 9.350 |
-| 2 | Nido del Rocanrón | 11.881 | 7.750 | 16.150 |
-| 3 | Laberinto de las hormigas | 6.000 | 6.000 | 6.000 |
-| 4 | El puerto | 14.497 | 10.500 | 20.700 |
-| 5 | Montaña dragón | 31.435 | 25.900 | 35.000 |
-| 6 | Casa de papá Caperucita | 13.000 | 13.000 | 13.000 |
-| 7 | El barco | 19.460 | 13.100 | 26.200 |
-| | **Capítulo completo** | **103.509** | **93.000** | **114.900** |
+| 1 | Salir de la casa de la abuelita | 7.194 | 5.250 | 9.200 |
+| 2 | El nido del Rocanrón | 11.931 | 7.800 | 15.700 |
+| 3 | El laberinto de las hormigas | 6.000 | 6.000 | 6.000 |
+| 4 | El puerto | 14.906 | 10.550 | 22.050 |
+| 5 | La montaña dragón | 31.378 | 25.400 | 35.000 |
+| 6 | La casa de papá Caperucita | 13.000 | 13.000 | 13.000 |
+| 7 | El barco | 19.166 | 13.200 | 26.100 |
+| | **Capítulo completo** | **103.576** | **93.550** | **113.950** |
 
-A 4.500 pasos por día, son unos 23 días en promedio: entre 21 y 26 días en 8 de cada 10 partidas. La partida más corta de la simulación fue de 80.850 pasos y la más larga de 130.050.
+A 4.500 pasos por día, son unos 23 días en promedio: entre 21 y 25 días en 8 de cada 10 partidas. La partida más corta de la simulación fue de 82.800 pasos y la más larga de 135.650.
 
-**Con los números originales (bienes 1 en 1.000, 200 monedas):**
+**Con los números originales (bienes 1 en 1.000, 200 monedas), simulación preliminar:**
 
 | # | Etapa | Promedio | Suerte (10%) | Mala suerte (90%) |
 | --- | --- | --- | --- | --- |
@@ -82,7 +82,9 @@ A 4.500 pasos por día, son unos 23 días en promedio: entre 21 y 26 días en 8 
 **Por qué el barco tardaba tanto:** con 1 en 1.000 cada 100 pasos, cada bien sale en promedio cada 100.000 pasos. Una compra con 200 monedas también cuesta unos 100.000 pasos (una moneda cada 500). Los primeros bienes salen rápido, pero los últimos tardan cada vez más.
 
 **Notas de la simulación**
-- La hizo un script de prueba (Python) con las mismas reglas de este documento. Cuando el juego esté programado, se va a repetir con el código real del juego (`tool/simulate.dart`) y se van a actualizar estas tablas.
+- La tabla de las reglas actuales sale del motor real del juego: `dart run tool/simulate.dart` (1.000 partidas, semilla 2026). Hay que repetirla cada vez que se cambien números en `lib/data/chapter1.dart`.
+- La tabla de los números originales salió de un script preliminar en Python, antes de programar el juego. Con el ajuste, ese script daba casi lo mismo que el motor real (103.509 contra 103.576).
+- Un test (`test/logic/chapter_engine_test.dart`) verifica que 300 partidas promedien entre 90.000 y 120.000 pasos. Si un cambio de números rompe el balance, el test avisa.
 - En la montaña dragón, la mala suerte (90%) da justo 35.000: es el tope que ponen las gemas. Con una gema cada 50 pasos, 100 gemas son 5.000 pasos por ofrenda. Por eso las 4 ofrendas nunca tardan más de 20.000 pasos después de llegar.
 
 ## Avisos
