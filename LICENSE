@@ -1,0 +1,30 @@
+Caminando por Gramonia
+Copyright (c) 2026 Ivan Knopoff y Regina Knopoff. Todos los derechos reservados.
+
+Este juego está basado en los Cuentos de Gramonia
+(https://cuentosdegramonia.substack.com/), de Ivan y Regina Knopoff.
+
+1. La historia, los personajes, los textos, los nombres, los dibujos, la
+   música y el código de este repositorio son propiedad de sus autores.
+
+2. Se permite descargar e instalar la aplicación desde las releases oficiales
+   de este repositorio y usarla en forma personal, gratuita y sin fines
+   comerciales.
+
+3. Se permite ver el código fuente con fines de estudio.
+
+4. No se permite, sin autorización escrita de los autores: copiar, modificar,
+   redistribuir, publicar en otras tiendas o sitios, vender, ni usar la
+   historia, los personajes, los dibujos o la música en otras obras.
+
+5. Componentes de terceros, con sus propias licencias:
+   - Tipografía Luckiest Guy: Apache License 2.0.
+   - Tipografía Nunito: SIL Open Font License 1.1.
+   - Paquetes de Flutter y Dart: cada uno con su licencia, listada en la app
+     (Créditos > Ver las licencias).
+
+6. La aplicación se ofrece "tal cual", sin garantías de ningún tipo. Los
+   autores no se responsabilizan por daños derivados de su uso. Se recomienda
+   que los chicos la usen con el acompañamiento de un adulto.
+
+Contacto: a través del blog https://cuentosdegramonia.substack.com/
