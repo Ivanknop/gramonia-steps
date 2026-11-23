@@ -1,0 +1,10 @@
+# Firma de release. Copiá este archivo a android/key.properties y completalo.
+# android/key.properties NO se sube a git (está en .gitignore).
+# Guardá una copia de la keystore y de estas contraseñas fuera de la compu:
+# sin ellas no se pueden publicar actualizaciones de la app.
+
+# Ruta a la keystore, relativa a android/app/.
+storeFile=../../.devcontainer/android-keys/gramonia-release.jks
+storePassword=
+keyAlias=
+keyPassword=
