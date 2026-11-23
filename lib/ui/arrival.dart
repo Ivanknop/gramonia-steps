@@ -23,17 +23,20 @@ class ArrivalScreen extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         const ColoredBox(color: Colors.black),
+        // El mismo fondo de la etapa que después queda detrás del juego.
+        // Se ve desde el primer momento.
+        Image.asset(
+          stage.background,
+          key: const ValueKey('arrival-background'),
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+        ),
+        // Si algún día hay una imagen (o GIF) propia del lugar, va encima.
         Image.asset(
           stage.arrivalImage,
           fit: BoxFit.cover,
           gaplessPlayback: true,
-          // Sin imagen propia del lugar: el fondo de la etapa.
-          errorBuilder: (context, error, stack) => Image.asset(
-            stage.background,
-            key: const ValueKey('arrival-background'),
-            fit: BoxFit.cover,
-            gaplessPlayback: true,
-          ),
+          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
         ),
         SafeArea(
           child: Padding(
