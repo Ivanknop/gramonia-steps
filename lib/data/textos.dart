@@ -19,6 +19,10 @@ import '../logic/story.dart';
 abstract final class Strings {
   static const appTitle = 'Caminando por Gramonia';
 
+  /// Nombre corto debajo del ícono, en el celular (el largo se corta). Si se
+  /// cambia, cambiar también android:label en AndroidManifest.xml.
+  static const launcherName = 'Gramonia';
+
   // Portada.
   static const titleLogo = 'Caminando por Gramonia';
   static const titleSubtitle = 'Basado en los Cuentos de Gramonia';
