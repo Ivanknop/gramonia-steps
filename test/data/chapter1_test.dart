@@ -59,10 +59,9 @@ void main() {
     }
   });
 
-  test('las animaciones de los diálogos existen', () {
+  test('las animaciones de los diálogos y la caminata existen', () {
+    expect(chapter1.character(chapter1.walkingCharacter).animation, isNotNull);
     for (final c in chapter1.characters) {
-      // La de caminar todavía no está (se ve el dibujo quieto).
-      if (c.id == chapter1.walkingCharacter) continue;
       final path = c.animatedImage;
       if (path != null) expect(File(path).existsSync(), isTrue, reason: path);
     }

@@ -458,14 +458,18 @@ void main() {
     final walking = tester.widget<GameImage>(
       gameImage('assets/characters/caperucita_espalda.webp'),
     );
-    // Caminando, la animación de caminar (todavía no está el GIF: se ve el
-    // dibujo quieto).
-    expect(walking.animated, 'assets/characters/caperucita_caminando.webp');
+    // Caminando, la animación de Sofía caminando.
+    expect(walking.animated, 'assets/characters/sofia_caminando.webp');
     await tester.runAsync(() => Future<void>.delayed(Durations.long2));
     await tester.pump();
     expect(
-      assetImage('assets/characters/caperucita_espalda.webp'),
+      assetImage('assets/characters/sofia_caminando.webp'),
       findsOneWidget,
+    );
+    // Cargó la animación: el dibujo quieto no hizo falta.
+    expect(
+      assetImage('assets/characters/caperucita_espalda.webp'),
+      findsNothing,
     );
   });
 

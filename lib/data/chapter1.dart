@@ -31,12 +31,11 @@ const chapter1 = Chapter(
       name: 'Caperucita',
       animation: 'caperucita_animada',
     ),
-    // Todavía no hay GIF de Caperucita caminando: hasta que esté
-    // (arte/personajes/caperucita_caminando.gif) se ve el dibujo quieto.
+    // Caperucita (Sofía) caminando, en los tramos de caminata.
     Character(
       id: 'caperucita_espalda',
       name: 'Caperucita',
-      animation: 'caperucita_caminando',
+      animation: 'sofia_caminando',
     ),
     Character(
       id: 'hada_madrina',
