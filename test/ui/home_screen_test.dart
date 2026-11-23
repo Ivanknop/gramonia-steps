@@ -5,7 +5,7 @@ import 'package:rpg/logic/chapter_progress.dart';
 import 'package:rpg/logic/game_save.dart';
 import 'package:rpg/logic/step_state.dart';
 import 'package:rpg/services/step_sensor.dart';
-import 'package:rpg/strings.dart';
+import 'package:rpg/data/textos.dart';
 import 'package:rpg/ui/arrival.dart';
 import 'package:rpg/ui/bag.dart';
 import 'package:rpg/ui/found_item.dart';
@@ -158,7 +158,7 @@ void main() {
       findsOneWidget,
     );
     // El viaje: etapas 1 y 2 hechas, la 3 actual y 5 bloqueadas.
-    expect(find.text('2. Salir de la casa de la abuelita'), findsOneWidget);
+    expect(find.text('2. La caperuza lila'), findsOneWidget);
     expect(find.text(Strings.reward('Caperuza de aprendiz')), findsOneWidget);
     expect(find.byIcon(Icons.directions_walk), findsOneWidget);
     expect(find.byIcon(Icons.lock), findsNWidgets(5));
@@ -602,7 +602,7 @@ void main() {
     await tester.pumpAndSettle();
     // Mismo lugar (la Aldea): no hay tramo de caminata.
     expect(
-      find.text(Strings.walkingTo('Aldea de las Caperucitas', 'la')),
+      find.text(Strings.walkingTo('Campo de Caperucitas', 'el')),
       findsNothing,
     );
     expect(find.text(Strings.stageOf(2, 8)), findsOneWidget);

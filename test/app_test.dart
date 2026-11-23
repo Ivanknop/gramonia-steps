@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rpg/app.dart';
-import 'package:rpg/strings.dart';
+import 'package:rpg/data/textos.dart';
 import 'package:rpg/ui/step_controller.dart';
 
 import 'fakes/fakes.dart';

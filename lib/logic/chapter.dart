@@ -2,23 +2,69 @@
 /// Los valores concretos están en `lib/data/`.
 library;
 
+/// Textos de un objeto (se escriben en lib/data/textos.dart).
+class TextoObjeto {
+  const TextoObjeto({
+    required this.nombre,
+    required this.conArticulo,
+    required this.mensaje,
+  });
+
+  final String nombre;
+
+  /// Para "¡Encontraste `conArticulo`!".
+  final String conArticulo;
+
+  /// Lo que dice el cartel al encontrarlo.
+  final String mensaje;
+}
+
+/// Textos de una etapa (se escriben en lib/data/textos.dart).
+class TextoEtapa {
+  const TextoEtapa({
+    required this.nombre,
+    required this.lugar,
+    this.articulo = '',
+    this.camino = '',
+    required this.tarjeta,
+    required this.alTerminar,
+  });
+
+  final String nombre;
+
+  /// Lugar al que se llega (`Caminando hasta <lugar>`).
+  final String lugar;
+
+  /// Artículo del lugar ("el", "la" o nada), para "Llegaste al Muelle".
+  final String articulo;
+
+  /// Texto durante el tramo de caminata (si la etapa tiene).
+  final String camino;
+
+  /// Recordatorio de qué hay que juntar, en la tarjeta de la etapa.
+  final String tarjeta;
+
+  /// Texto de la ventana de fin de etapa.
+  final String alTerminar;
+}
+
 /// Un tipo de objeto que se puede tener en el inventario.
 class ItemType {
   const ItemType({
     required this.id,
-    required this.name,
-    required this.foundName,
-    required this.message,
+    required this.texto,
     this.notify = true,
     this._image,
   });
 
   /// Se guarda en el celular: no cambiarlo sin migrar la partida.
   final String id;
-  final String name;
+  final TextoObjeto texto;
+
+  String get name => texto.nombre;
 
   /// Nombre con artículo, para "¡Encontraste `foundName`!".
-  final String foundName;
+  String get foundName => texto.conArticulo;
 
   final String? _image;
 
@@ -26,7 +72,7 @@ class ItemType {
   String get image => _image ?? 'assets/items/$id.webp';
 
   /// Texto del aviso al conseguirlo.
-  final String message;
+  String get message => texto.mensaje;
 
   /// Si es falso, no hay aviso propio (objetos muy frecuentes, como gemas).
   final bool notify;
@@ -114,7 +160,7 @@ class Exchange {
   final int count;
   final List<String> outputs;
 
-  /// Texto del aviso. `{item}` se reemplaza por el objeto que se recibe.
+  /// Texto del aviso. `{objeto}` se reemplaza por el objeto que se recibe.
   final String message;
 }
 
@@ -129,51 +175,48 @@ class Requirement {
 class Stage {
   const Stage({
     required this.id,
-    required this.name,
-    required this.intro,
+    required this.texto,
     this.travelSteps = 0,
-    this.travelText = '',
     required this.requirements,
     required this.spawns,
     this.exchanges = const [],
     required this.reward,
-    required this.completeMessage,
     required this.background,
-    required this.place,
-    this.placeArticle = '',
     required this.introCharacter,
     required this.completeCharacter,
   });
 
   /// Se guarda en el celular: no cambiarlo sin migrar la partida.
   final String id;
-  final String name;
+  final TextoEtapa texto;
+
+  String get name => texto.nombre;
 
   /// Ilustración de fondo (ruta del asset).
   final String background;
 
   /// Lugar al que se llega en esta etapa (`Caminando hasta <lugar>`).
-  final String place;
+  String get place => texto.lugar;
 
   /// Artículo del lugar ("el", "la" o nada), para "Llegaste al Muelle".
-  final String placeArticle;
+  String get placeArticle => texto.articulo;
 
   /// Imagen de la pantalla de llegada (puede ser animada). Si no existe, se
   /// usa [background].
   String get arrivalImage => 'assets/places/$id.webp';
 
-  /// Texto al empezar a juntar objetos (después de llegar).
-  final String intro;
+  /// Recordatorio de qué juntar (en la tarjeta de la etapa).
+  String get intro => texto.tarjeta;
 
   /// Tramo de viaje al principio de la etapa: no aparece ningún objeto.
   final int travelSteps;
-  final String travelText;
+  String get travelText => texto.camino;
 
   final List<Requirement> requirements;
   final List<Spawn> spawns;
   final List<Exchange> exchanges;
   final Reward reward;
-  final String completeMessage;
+  String get completeMessage => texto.alTerminar;
 
   /// Personajes (por id) junto a la intro y en la ventana de fin de etapa.
   final String introCharacter;

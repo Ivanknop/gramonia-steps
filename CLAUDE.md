@@ -12,8 +12,8 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 
 ## Reglas
 
-- Textos del juego en español. Código, nombres de variables y comentarios técnicos pueden ir en inglés; los textos visibles van en archivos de strings, no sueltos en los widgets.
-- Las cifras del juego (pasos por etapa, objetos y sus umbrales, recompensas) van en un solo archivo de datos: `lib/data/chapter1.dart`. Nunca se repiten en la lógica. Así se ajustan cambiando un número.
+- Textos del juego en español, con el estilo de los cuentos (`arte/cuentos/`): frases cortas, para primaria, y sin género para quien juega. Código, nombres de variables y comentarios técnicos pueden ir en inglés. **Todos** los textos visibles van en `lib/data/textos.dart` (pantallas e historia), nunca sueltos en los widgets ni en `chapter1.dart`.
+- Las cifras del juego (pasos por etapa, objetos y sus umbrales, recompensas) y los `id` van en un solo archivo de datos: `lib/data/chapter1.dart`. Nunca se repiten en la lógica. Así se ajustan cambiando un número.
 - Trabajar en partes chicas que se puedan probar en el celular. Antes de terminar una tarea: `flutter analyze` y `flutter test` sin errores.
 - La lógica del juego (pasos → avance de etapa, objetos, recompensas) va en Dart puro, sin Flutter, con tests unitarios.
 - Mantener siempre un botón de debug "+1.000 pasos" (solo en builds de debug) para probar sin caminar.

@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../logic/step_history.dart';
-import '../strings.dart';
+import '../data/textos.dart';
 import 'step_controller.dart';
 
 enum StepPeriod { week, month, months }

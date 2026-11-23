@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../logic/chapter.dart';
-import '../strings.dart';
+import '../data/textos.dart';
 import 'widgets.dart';
 
 /// Ventana de fin de etapa: el personaje, la recompensa en grande y el texto

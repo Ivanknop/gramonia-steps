@@ -1,7 +1,7 @@
 import 'package:rpg/data/chapter1.dart';
 import 'package:rpg/logic/chapter_engine.dart';
 import 'package:rpg/logic/chapter_progress.dart';
-import 'package:rpg/strings.dart';
+import 'package:rpg/data/textos.dart';
 import 'package:rpg/ui/notices.dart';
 import 'package:test/test.dart';
 
@@ -82,7 +82,7 @@ void main() {
     expect(found.last.message, stages[2].exchanges.single.message);
   });
 
-  test('el canje reemplaza {item} por el objeto que se recibe', () {
+  test('el canje reemplaza {objeto} por el objeto que se recibe', () {
     final p = at(5, 15000, {'gema': 99});
     final found = moments(p, 50, dice: 1).single as FoundMoment;
     expect(

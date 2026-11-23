@@ -39,13 +39,13 @@ void main() {
 
   test('cada etapa tiene su lugar', () {
     expect(chapter1.stages.map((s) => s.place), [
-      'Aldea de las Caperucitas',
-      'Aldea de las Caperucitas',
+      'Campo de Caperucitas',
+      'Campo de Caperucitas',
       'Árbol Mágico',
       'Bosque Mágico',
       'Muelle',
       'Montaña Dragón',
-      'Aldea de las Caperucitas',
+      'Ciudad',
       'Muelle',
     ]);
   });
@@ -129,7 +129,7 @@ void main() {
         for (final e in stage.exchanges) {
           expect(e.outputs.every(stage.isRequired), isTrue);
           expect(e.count, greaterThan(0));
-          if (e.outputs.length > 1) expect(e.message, contains('{item}'));
+          if (e.outputs.length > 1) expect(e.message, contains('{objeto}'));
         }
       });
     });

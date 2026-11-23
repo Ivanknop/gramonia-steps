@@ -1,6 +1,6 @@
 import '../logic/chapter.dart';
 import '../logic/chapter_engine.dart';
-import '../strings.dart';
+import '../data/textos.dart';
 
 /// Algo para mostrar en grande, uno después del otro.
 sealed class Moment {
@@ -53,7 +53,7 @@ List<Moment> momentsFor(Chapter chapter, List<ChapterEvent> events) {
       case ItemFound(:final stage, :final item) when item.notify:
         _add(groups, order, stage, item, item.message);
       case ExchangeMade(:final stage, :final exchange, :final item):
-        final message = exchange.message.replaceAll('{item}', item.name);
+        final message = exchange.message.replaceAll('{objeto}', item.name);
         _add(groups, order, stage, item, message);
       case StageCompleted(:final stage):
         order.add(StageMoment(stage));

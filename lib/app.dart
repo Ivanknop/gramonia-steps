@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'services/step_sensor.dart';
 import 'services/game_storage.dart';
 import 'services/step_history_storage.dart';
-import 'strings.dart';
+import 'data/textos.dart';
 import 'ui/home_screen.dart';
 import 'ui/my_steps_screen.dart';
 import 'ui/step_controller.dart';

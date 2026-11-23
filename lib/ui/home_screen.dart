@@ -8,7 +8,7 @@ import '../data/chapter1.dart';
 import '../logic/chapter.dart';
 import '../logic/chapter_engine.dart';
 import '../logic/chapter_progress.dart';
-import '../strings.dart';
+import '../data/textos.dart';
 import 'arrival.dart';
 import 'bag.dart';
 import 'found_item.dart';

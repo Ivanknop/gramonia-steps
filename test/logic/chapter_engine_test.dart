@@ -8,8 +8,18 @@ import 'package:test/test.dart';
 
 import '../fakes/fake_random.dart';
 
-ItemType _item(String id) =>
-    ItemType(id: id, name: id, foundName: id, message: 'msg $id');
+ItemType _item(String id) => ItemType(
+  id: id,
+  texto: TextoObjeto(nombre: id, conArticulo: id, mensaje: 'msg $id'),
+);
+
+const _texto = TextoEtapa(
+  nombre: 'Etapa',
+  lugar: 'lugar',
+  camino: 't',
+  tarjeta: 'i',
+  alTerminar: 'c',
+);
 
 /// Capítulo chico para probar cada mecánica por separado.
 final testChapter = Chapter(
@@ -34,42 +44,34 @@ final testChapter = Chapter(
     // 0: al azar, 3 flores, cada 10 pasos, 1 en 5 (garantía a los 150).
     Stage(
       id: 'azar',
-      name: 'Azar',
-      intro: 'i',
+      texto: _texto,
       requirements: [Requirement('flor', 3)],
       spawns: [
         RandomSpawn(items: ['flor'], every: 10, oneIn: 5),
       ],
       reward: Reward(id: 'r', name: 'r'),
-      completeMessage: 'c',
       background: 'test',
-      place: 'lugar',
       introCharacter: 'nena',
       completeCharacter: 'nena',
     ),
     // 1: fijos en orden, cada 100.
     Stage(
       id: 'fijo',
-      name: 'Fijo',
-      intro: 'i',
+      texto: _texto,
       requirements: [Requirement('pieza1'), Requirement('pieza2')],
       spawns: [
         FixedSpawn(items: ['pieza1', 'pieza2'], every: 100),
       ],
       reward: Reward(id: 'r', name: 'r'),
-      completeMessage: 'c',
       background: 'test',
-      place: 'lugar',
       introCharacter: 'nena',
       completeCharacter: 'nena',
     ),
     // 2: llegar 50, fuego muy raro, agua común; 3 aguas → 1 fuego.
     Stage(
       id: 'canje',
-      name: 'Canje',
-      intro: 'i',
+      texto: _texto,
       travelSteps: 50,
-      travelText: 't',
       requirements: [Requirement('fuego', 2)],
       spawns: [
         RandomSpawn(items: ['fuego'], every: 10, oneIn: 1000),
@@ -79,17 +81,14 @@ final testChapter = Chapter(
         Exchange(inputs: ['agua'], count: 3, outputs: ['fuego'], message: 'm'),
       ],
       reward: Reward(id: 'r', name: 'r'),
-      completeMessage: 'c',
       background: 'test',
-      place: 'lugar',
       introCharacter: 'nena',
       completeCharacter: 'nena',
     ),
     // 3: canje que da el primero que falte de varios.
     Stage(
       id: 'compra',
-      name: 'Compra',
-      intro: 'i',
+      texto: _texto,
       requirements: [Requirement('oro1'), Requirement('oro2')],
       spawns: [
         FixedSpawn(items: ['gema'], every: 10),
@@ -99,13 +98,11 @@ final testChapter = Chapter(
           inputs: ['gema'],
           count: 2,
           outputs: ['oro1', 'oro2'],
-          message: '{item}',
+          message: '{objeto}',
         ),
       ],
       reward: Reward(id: 'r', name: 'r'),
-      completeMessage: 'c',
       background: 'test',
-      place: 'lugar',
       introCharacter: 'nena',
       completeCharacter: 'nena',
     ),
@@ -381,18 +378,22 @@ void main() {
         items: const [
           ItemType(
             id: 'gema',
-            name: 'Gema',
-            foundName: 'una gema',
-            message: 'm',
+            texto: TextoObjeto(
+              nombre: 'Gema',
+              conArticulo: 'una gema',
+              mensaje: 'm',
+            ),
             notify: false,
           ),
-          ItemType(id: 'oro', name: 'Oro', foundName: 'oro', message: 'm'),
+          ItemType(
+            id: 'oro',
+            texto: TextoObjeto(nombre: 'Oro', conArticulo: 'oro', mensaje: 'm'),
+          ),
         ],
         stages: const [
           Stage(
             id: 's',
-            name: 'S',
-            intro: 'i',
+            texto: _texto,
             requirements: [Requirement('oro')],
             spawns: [
               FixedSpawn(items: ['gema'], every: 10),
@@ -406,9 +407,7 @@ void main() {
               ),
             ],
             reward: Reward(id: 'r', name: 'r'),
-            completeMessage: 'c',
             background: 'test',
-            place: 'lugar',
             introCharacter: 'nena',
             completeCharacter: 'nena',
           ),

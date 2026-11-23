@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:rpg/services/step_history_storage.dart';
-import 'package:rpg/strings.dart';
+import 'package:rpg/data/textos.dart';
 import 'package:rpg/ui/my_steps_screen.dart';
 import 'package:rpg/ui/step_controller.dart';
 

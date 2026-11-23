@@ -3,7 +3,7 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:material_ui/material_ui.dart';
 
-import '../strings.dart';
+import '../data/textos.dart';
 import 'notices.dart';
 import 'widgets.dart';
 

@@ -1,4 +1,4 @@
-import 'package:rpg/strings.dart';
+import 'package:rpg/data/textos.dart';
 import 'package:test/test.dart';
 
 void main() {
