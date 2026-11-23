@@ -246,4 +246,16 @@ void main() {
       expect(history.days['2026-11-22'], 1000);
     });
   });
+
+  test('el nombre no se pierde cuando llegan pasos', () async {
+    c = make();
+    await c.start();
+    c.setPlayerName('Regi');
+    await c.addDebugSteps(1000);
+    expect(c.playerName, 'Regi');
+    expect(storage.saved.playerName, 'Regi');
+    c.markIntroSeen();
+    await c.addDebugSteps(1000);
+    expect(storage.saved.introSeen, isTrue);
+  });
 }

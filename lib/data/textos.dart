@@ -10,6 +10,7 @@
 library;
 
 import '../logic/chapter.dart';
+import '../logic/story.dart';
 
 // ════════════════════════════════════════════════════════════════════════
 // PANTALLAS
@@ -23,6 +24,12 @@ abstract final class Strings {
   static const titleSubtitle = 'Basado en los Cuentos de Gramonia';
   static const startButton = 'Empezar';
   static const resumeButton = 'Seguir caminando';
+
+  // Diálogos.
+  static const tapForMore = 'Tocá para seguir';
+  static const dialogueNext = 'Seguir';
+  static const nameHint = 'Tu nombre';
+  static const nameButton = 'Seguir';
   static const loading = 'Cargando…';
   static const todayLabel = 'Pasos de hoy';
   static String total(int steps) => 'Total: ${formatNumber(steps)} pasos';
@@ -142,6 +149,34 @@ abstract final class Strings {
     return buffer.toString();
   }
 }
+
+// ════════════════════════════════════════════════════════════════════════
+// HISTORIA: presentación, introducción y diálogos.
+//
+// Cada línea es Linea(quién habla, 'qué dice'). Quién habla:
+// _sofia, _sofiaSinCaperuza, _hada, _rocanon, _dragones, _papa,
+// _jugador (quien juega) o _narracion (sin personaje).
+// {nombre} se reemplaza por el nombre de quien juega.
+// ════════════════════════════════════════════════════════════════════════
+
+const _sofiaSinCaperuza = 'caperucita_sin_caperuza';
+
+// ── Presentación (antes y después de escribir el nombre) ────────────────
+
+const presentacion = [
+  Linea(_sofiaSinCaperuza, '¡Hola! Soy Sofía.'),
+  Linea(_sofiaSinCaperuza, 'Vivo en Gramonia, una isla enorme llena de magia.'),
+  Linea(
+    _sofiaSinCaperuza,
+    'Hay hadas, dragones, hormigas guardianas… ¡y un Árbol Mágico que '
+    'sostiene el cielo!',
+  ),
+  Linea(_sofiaSinCaperuza, '¿Y vos? ¿Cómo te llamás?'),
+];
+
+const presentacionDespues = [
+  Linea(_sofiaSinCaperuza, '¡Qué lindo nombre, {nombre}!'),
+];
 
 // ════════════════════════════════════════════════════════════════════════
 // CAPÍTULO 1: personajes, etapas, objetos y canjes.

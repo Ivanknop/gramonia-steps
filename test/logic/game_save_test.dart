@@ -136,4 +136,23 @@ void main() {
       expect(engine.stepsToNextFixed(game.chapter, spawn), 800);
     });
   });
+
+  test('el nombre y la introducción vista se guardan', () {
+    const game = GameSave(
+      steps: steps,
+      chapter: ChapterProgress.initial(),
+      playerName: 'Regi',
+      introSeen: true,
+    );
+    expect(decode(game.encode()), game);
+  });
+
+  test('las partidas de antes no tienen nombre ni introducción vista', () {
+    const old = GameSave(steps: steps, chapter: ChapterProgress.initial());
+    final json = old.encode().replaceFirst(RegExp(r',"player":\{[^}]*\}'), '');
+    expect(json, isNot(contains('player')));
+    final game = decode(json);
+    expect(game.playerName, isNull);
+    expect(game.introSeen, isFalse);
+  });
 }

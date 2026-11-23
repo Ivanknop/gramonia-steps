@@ -7,11 +7,18 @@ import 'step_state.dart';
 
 /// Toda la partida guardada en el celular: pasos y progreso del capítulo.
 class GameSave {
-  const GameSave({required this.steps, required this.chapter});
+  const GameSave({
+    required this.steps,
+    required this.chapter,
+    this.playerName,
+    this.introSeen = false,
+  });
 
   const GameSave.initial()
     : steps = const StepState.initial(),
-      chapter = const ChapterProgress.initial();
+      chapter = const ChapterProgress.initial(),
+      playerName = null,
+      introSeen = false;
 
   /// 3: etapas con inventario por cantidades (azar, fijos, canjes).
   /// 4: se sumó una etapa al principio (el paseo por el jardín).
@@ -27,13 +34,29 @@ class GameSave {
   final StepState steps;
   final ChapterProgress chapter;
 
-  GameSave copyWith({StepState? steps, ChapterProgress? chapter}) =>
-      GameSave(steps: steps ?? this.steps, chapter: chapter ?? this.chapter);
+  /// Nombre de quien juega (lo pregunta Sofía). Nulo hasta que lo escribe.
+  final String? playerName;
+
+  /// Si ya se vio la introducción (Mututu despierta).
+  final bool introSeen;
+
+  GameSave copyWith({
+    StepState? steps,
+    ChapterProgress? chapter,
+    String? playerName,
+    bool? introSeen,
+  }) => GameSave(
+    steps: steps ?? this.steps,
+    chapter: chapter ?? this.chapter,
+    playerName: playerName ?? this.playerName,
+    introSeen: introSeen ?? this.introSeen,
+  );
 
   String encode() => jsonEncode({
     'version': version,
     'steps': steps.toJson(),
     'chapter': chapter.toJson(),
+    'player': {'name': playerName, 'introSeen': introSeen},
   });
 
   /// Lee la partida guardada.
@@ -52,10 +75,17 @@ class GameSave {
   }) {
     StepState? steps;
     ChapterProgress? chapter;
+    String? playerName;
+    var introSeen = false;
 
     final json = _tryDecodeMap(source);
     if (json != null) {
       steps = _tryParse(() => StepState.fromJson(_map(json['steps'])));
+      // Las partidas de antes no tienen nombre: Sofía lo pregunta.
+      final player = _tryParse(() => _map(json['player']));
+      playerName = _tryParse<String?>(() => player?['name'] as String?);
+      introSeen =
+          _tryParse<bool?>(() => player?['introSeen'] as bool?) ?? false;
       final saved = switch (json['version']) {
         3 || 4 || version => _tryParse(
           () => ChapterProgress.fromJson(_map(json['chapter'])),
@@ -81,7 +111,12 @@ class GameSave {
         )
         .progress;
 
-    return GameSave(steps: steps, chapter: chapter);
+    return GameSave(
+      steps: steps,
+      chapter: chapter,
+      playerName: playerName,
+      introSeen: introSeen,
+    );
   }
 
   /// Si la partida estaba en una etapa que ganó su tramo de caminata, ese
@@ -95,13 +130,18 @@ class GameSave {
 
   @override
   bool operator ==(Object other) =>
-      other is GameSave && other.steps == steps && other.chapter == chapter;
+      other is GameSave &&
+      other.steps == steps &&
+      other.chapter == chapter &&
+      other.playerName == playerName &&
+      other.introSeen == introSeen;
 
   @override
-  int get hashCode => Object.hash(steps, chapter);
+  int get hashCode => Object.hash(steps, chapter, playerName, introSeen);
 
   @override
-  String toString() => 'GameSave($steps, $chapter)';
+  String toString() =>
+      'GameSave($steps, $chapter, player: $playerName, intro: $introSeen)';
 }
 
 Map<String, dynamic>? _tryDecodeMap(String? source) {

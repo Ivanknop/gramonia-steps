@@ -76,7 +76,26 @@ class StepController extends ChangeNotifier {
   bool get loaded => _loaded;
 
   /// Ya se empezó a jugar (para "Seguir caminando" en la portada).
-  bool get hasStarted => _game.steps.totalSteps > 0;
+  bool get hasStarted => _game.playerName != null || _game.steps.totalSteps > 0;
+
+  /// Nombre de quien juega, o null si todavía no lo escribió.
+  String? get playerName => _game.playerName;
+
+  /// Guarda el nombre que se escribió en la presentación.
+  void setPlayerName(String name) {
+    if (_disposed) return;
+    _game = _game.copyWith(playerName: name);
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// Ya se vio la introducción: no se vuelve a mostrar.
+  void markIntroSeen() {
+    if (_disposed || _game.introSeen) return;
+    _game = _game.copyWith(introSeen: true);
+    notifyListeners();
+    _scheduleSave();
+  }
 
   StepStatus _status = StepStatus.loading;
   StepStatus get status => _status;
@@ -235,7 +254,7 @@ class StepController extends ChangeNotifier {
     // Los pasos nuevos (reales o de debug) avanzan el capítulo.
     final delta = next.totalSteps - state.totalSteps;
     final advance = engine.advance(_game.chapter, delta, random);
-    _game = GameSave(steps: next, chapter: advance.progress);
+    _game = _game.copyWith(steps: next, chapter: advance.progress);
     _record(next);
     if (advance.events.isNotEmpty) {
       _log('eventos: ${advance.events.length}');

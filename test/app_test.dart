@@ -4,14 +4,24 @@ import 'package:rpg/app.dart';
 import 'package:rpg/data/textos.dart';
 import 'package:rpg/logic/step_state.dart';
 import 'package:rpg/ui/step_controller.dart';
+import 'package:rpg/data/textos.dart' as t;
+import 'package:rpg/ui/dialogue.dart';
+import 'package:rpg/ui/presentation_screen.dart';
 import 'package:rpg/ui/title_screen.dart';
 
 import 'fakes/fakes.dart';
 
 void main() {
-  testWidgets('abre en la portada; "Empezar" lleva al juego', (tester) async {
+  testWidgets('portada, presentación con el nombre y después el juego', (
+    tester,
+  ) async {
     final sensor = FakeSensor();
-    final controller = StepController(sensor: sensor, storage: FakeStorage());
+    final storage = FakeStorage();
+    final controller = StepController(
+      sensor: sensor,
+      storage: storage,
+      saveDelay: Duration.zero,
+    );
     await tester.pumpWidget(GramoniaApp(controller: controller));
     await tester.pump();
     expect(find.byType(TitleScreen), findsOneWidget);
@@ -22,6 +32,32 @@ void main() {
     await tester.tap(find.text(Strings.startButton));
     await tester.pumpAndSettle();
     expect(find.byType(TitleScreen), findsNothing);
+
+    // Sofía se presenta: se toca para ver cada globo.
+    expect(find.byType(PresentationScreen), findsOneWidget);
+    expect(find.text(t.presentacion.first.texto), findsOneWidget);
+    for (var i = 1; i < t.presentacion.length; i++) {
+      await tester.tap(find.byType(DialogueView));
+      await tester.pumpAndSettle();
+    }
+    expect(find.text(t.presentacion.last.texto), findsOneWidget);
+
+    // Sin nombre no se puede seguir; con espacios de más, se limpian.
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
+    );
+    await tester.enterText(find.byType(TextField), '  Regi  ');
+    await tester.pump();
+    await tester.tap(find.text(Strings.nameButton));
+    await tester.pumpAndSettle();
+    expect(controller.playerName, 'Regi');
+    expect(storage.saved.playerName, 'Regi');
+    expect(find.text('¡Qué lindo nombre, Regi!'), findsOneWidget);
+
+    await tester.tap(find.text(Strings.dialogueNext));
+    await tester.pumpAndSettle();
+    expect(find.byType(PresentationScreen), findsNothing);
     expect(find.text(Strings.todayLabel), findsOneWidget);
 
     sensor.emit(100);
@@ -51,6 +87,21 @@ void main() {
     await tester.pumpWidget(GramoniaApp(controller: controller));
     await tester.pump();
     expect(find.text(Strings.resumeButton), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('con nombre, "Seguir caminando" va directo al juego', (
+    tester,
+  ) async {
+    final storage = FakeStorage();
+    storage.saved = storage.saved.copyWith(playerName: 'Regi');
+    final controller = StepController(sensor: FakeSensor(), storage: storage);
+    await tester.pumpWidget(GramoniaApp(controller: controller));
+    await tester.pump();
+    await tester.tap(find.text(Strings.resumeButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(PresentationScreen), findsNothing);
+    expect(find.text(Strings.todayLabel), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 }
