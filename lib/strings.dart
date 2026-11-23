@@ -18,7 +18,17 @@ abstract final class Strings {
   static String stageOf(int number, int count) => 'Etapa $number de $count';
   static String stageProgress(int steps, int goal) =>
       '${formatNumber(steps)} / ${formatNumber(goal)} pasos';
-  static String walkingTo(String place) => 'Caminando hasta $place';
+  static String walkingTo(String place, [String article = '']) =>
+      'Caminando hasta ${_withArticle(article, place)}';
+
+  /// "Llegaste al Muelle", "Llegaste a la Montaña Dragón".
+  static String arrivedAt(String place, [String article = '']) =>
+      article == 'el'
+      ? 'Llegaste al $place'
+      : 'Llegaste a ${_withArticle(article, place)}';
+  static const enterButton = 'Entrar';
+  static String _withArticle(String article, String place) =>
+      article.isEmpty ? place : '$article $place';
   static String reward(String reward) => 'Recompensa: $reward';
   static const goalsTitle = 'Para juntar';
   static String countOf(int have, int need) => '$have / $need';
@@ -98,9 +108,6 @@ abstract final class Strings {
   static String weekOfMonth(int week) => 'Sem. $week';
   static const lastSevenDays = 'Últimos 7 días';
   static String lastMonths(int count) => 'Últimos $count meses';
-
-  // Avisos.
-  static String arrived(String stage) => '¡Llegaste! $stage';
 
   /// 12345 → "12.345".
   static String formatNumber(int n) {

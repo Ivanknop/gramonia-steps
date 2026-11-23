@@ -216,6 +216,7 @@ const chapter1 = Chapter(
       completeCharacter: 'hada_madrina',
       background: 'assets/backgrounds/stage_1.webp',
       place: 'Aldea de las Caperucitas',
+      placeArticle: 'la',
       name: 'Un paseo por el jardín',
       intro:
           'Es un día de sol en la Aldea de las Caperucitas. Caperucita sale a '
@@ -238,6 +239,7 @@ const chapter1 = Chapter(
       completeCharacter: 'caperucita',
       background: 'assets/backgrounds/stage_1.webp',
       place: 'Aldea de las Caperucitas',
+      placeArticle: 'la',
       name: 'Salir de la casa de la abuelita',
       intro:
           'Antes de salir de viaje, la abuelita quiere tejerte una caperuza de '
@@ -258,6 +260,7 @@ const chapter1 = Chapter(
       completeCharacter: 'rocanron',
       background: 'assets/backgrounds/stage_2.webp',
       place: 'Árbol Mágico',
+      placeArticle: 'el',
       name: 'El nido del Rocanrón',
       travelSteps: 3000,
       travelText:
@@ -301,6 +304,7 @@ const chapter1 = Chapter(
       completeCharacter: 'hormigas',
       background: 'assets/backgrounds/stage_3.webp',
       place: 'Bosque Mágico',
+      placeArticle: 'el',
       name: 'El laberinto de las hormigas',
       travelSteps: 2000,
       travelText:
@@ -344,6 +348,7 @@ const chapter1 = Chapter(
       completeCharacter: 'caperucita',
       background: 'assets/backgrounds/stage_4.webp',
       place: 'Muelle',
+      placeArticle: 'el',
       name: 'El puerto',
       travelSteps: 10000,
       travelText:
@@ -372,6 +377,7 @@ const chapter1 = Chapter(
       completeCharacter: 'dragones',
       background: 'assets/backgrounds/stage_5.webp',
       place: 'Montaña Dragón',
+      placeArticle: 'la',
       name: 'La montaña dragón',
       travelSteps: 15000,
       travelText:
@@ -415,6 +421,7 @@ const chapter1 = Chapter(
       completeCharacter: 'papa_caperucita',
       background: 'assets/backgrounds/stage_6.webp',
       place: 'Aldea de las Caperucitas',
+      placeArticle: 'la',
       name: 'La casa de papá Caperucita',
       travelSteps: 5000,
       travelText:
@@ -446,6 +453,7 @@ const chapter1 = Chapter(
       completeCharacter: 'hada_madrina',
       background: 'assets/backgrounds/stage_7.webp',
       place: 'Muelle',
+      placeArticle: 'el',
       name: 'El barco',
       travelSteps: 5000,
       travelText:

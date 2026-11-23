@@ -32,6 +32,7 @@ void main() {
       switch (m) {
         FoundMoment(:final item, :final count) => '${item.id}×$count',
         StageMoment(:final stage) => 'fin:${stage.id}',
+        ArrivalMoment(:final stage) => 'llegada:${stage.id}',
       },
   ];
 
@@ -112,12 +113,31 @@ void main() {
     expect(stagesDone, stages);
   });
 
-  test('al terminar el tramo de llegar: aviso de llegada', () {
+  test('al terminar el tramo de llegar: pantalla de llegada', () {
     final p = at(4, 9900);
-    expect(noticeFor(events(p, 100, dice: 1)), Strings.arrived('El puerto'));
+    expect(describe(moments(p, 100)), ['llegada:puerto']);
   });
 
-  test('sin llegada no hay aviso chico', () {
-    expect(noticeFor(events(start, 50)), isNull);
+  test('la llegada va antes de los objetos que salen después', () {
+    final p = at(4, 9900);
+    expect(describe(moments(p, 150)), [
+      'llegada:puerto',
+      'pista×1',
+      'fin:puerto',
+    ]);
+  });
+
+  test('al cerrar una etapa y llegar a la siguiente, en orden', () {
+    // El laberinto termina con 7.000 pasos y el tramo al Muelle es largo.
+    final p = at(3, 7000, {
+      for (final id in ['hoja', 'gota', 'piedra', 'sol', 'luna'])
+        'pieza_$id': 1,
+    });
+    final all = describe(moments(p, 1000 + chapter1.stages[4].travelSteps));
+    expect(all.take(3), [
+      'pieza_estrella×1',
+      'fin:laberinto_hormigas',
+      'llegada:puerto',
+    ]);
   });
 }

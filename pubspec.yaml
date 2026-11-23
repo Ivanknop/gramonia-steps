@@ -69,6 +69,8 @@ flutter:
     - assets/backgrounds/
     - assets/items/
     - assets/characters/
+    # Pantallas de llegada (opcionales, pueden ser animadas): <id de etapa>.webp
+    - assets/places/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

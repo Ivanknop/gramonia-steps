@@ -6,6 +6,7 @@ import 'package:rpg/logic/game_save.dart';
 import 'package:rpg/logic/step_state.dart';
 import 'package:rpg/services/step_sensor.dart';
 import 'package:rpg/strings.dart';
+import 'package:rpg/ui/arrival.dart';
 import 'package:rpg/ui/bag.dart';
 import 'package:rpg/ui/found_item.dart';
 import 'package:rpg/ui/home_screen.dart';
@@ -78,6 +79,8 @@ void main() {
         await tester.pump(FoundItemOverlay.flyDuration);
       } else if (find.text(Strings.continueButton).evaluate().isNotEmpty) {
         await tester.tap(find.text(Strings.continueButton));
+      } else if (find.text(Strings.enterButton).evaluate().isNotEmpty) {
+        await tester.tap(find.text(Strings.enterButton));
       } else {
         break;
       }
@@ -110,13 +113,19 @@ void main() {
     expect(find.text(Strings.needsPermission), findsNothing);
   });
 
-  GameSave saveAt(int stage, int steps, Map<String, int> inventory) => GameSave(
+  GameSave saveAt(
+    int stage,
+    int steps,
+    Map<String, int> inventory, {
+    bool entered = true,
+  }) => GameSave(
     steps: savedSteps,
     chapter: ChapterProgress(
       stageIndex: stage,
       stepsInStage: steps,
       inventory: inventory,
       sinceLast: const {},
+      entered: entered,
     ),
   );
 
@@ -159,7 +168,7 @@ void main() {
   ) async {
     storage.saved = saveAt(4, 3200, const {});
     await show(tester);
-    expect(find.text(Strings.walkingTo('Muelle')), findsOneWidget);
+    expect(find.text(Strings.walkingTo('Muelle', 'el')), findsOneWidget);
     expect(find.text(chapter1.stages[4].travelText), findsOneWidget);
     expect(find.text(Strings.stageProgress(3200, 10000)), findsOneWidget);
     expect(background(chapter1.walkingBackground), findsOneWidget);
@@ -168,25 +177,66 @@ void main() {
     expect(find.text(Strings.goalsTitle), findsNothing);
   });
 
-  testWidgets('al terminar el tramo, fundido del mapa al fondo de la etapa', (
+  testWidgets('al terminar el tramo: pantalla de llegada y "Entrar"', (
     tester,
   ) async {
-    storage.saved = saveAt(4, 9500, const {});
+    storage.saved = saveAt(4, 9500, const {}, entered: false);
     // Sin suerte: la pista no sale enseguida y la etapa sigue después de llegar.
     await show(tester, dice: 1);
     expect(background(chapter1.walkingBackground), findsOneWidget);
 
     await tapText(tester, Strings.debugAdd(debugStepBonus));
-    await tester.pump(StageBackground.fadeDuration ~/ 2);
-    expect(background(chapter1.walkingBackground), findsOneWidget);
-    expect(background(chapter1.stages[4].background), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.byType(ArrivalScreen), findsOneWidget);
+    expect(find.text(Strings.arrivedAt('Muelle', 'el')), findsOneWidget);
+    expect(find.text('Llegaste al Muelle'), findsOneWidget);
+    // Sin GIF del lugar, se ve el fondo de la etapa.
+    expect(find.byKey(const ValueKey('arrival-background')), findsOneWidget);
+    // Sin paneles: no se ve lo que hay que juntar.
+    expect(find.text(Strings.goalsTitle).hitTestable(), findsNothing);
 
-    await tester.pump(StageBackground.fadeDuration);
+    await tester.tap(find.text(Strings.enterButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(ArrivalScreen), findsNothing);
+    expect(controller.game.chapter.entered, isTrue);
     expect(background(chapter1.walkingBackground), findsNothing);
     expect(background(chapter1.stages[4].background), findsOneWidget);
     expect(find.text(Strings.goalsTitle), findsOneWidget);
-    await tester.pump(const Duration(seconds: 10)); // Se va el aviso.
+  });
+
+  testWidgets('sin entrar, los pasos siguen sumando y los carteles esperan', (
+    tester,
+  ) async {
+    storage.saved = saveAt(4, 10000, const {}, entered: false);
+    await show(tester);
+    // Al abrir la app, sigue en la puerta.
+    expect(find.byType(ArrivalScreen), findsOneWidget);
+
+    // Con todo a favor, la pista sale a los 50 pasos. (El botón de debug
+    // queda tapado por la pantalla de llegada.)
+    await controller.addDebugSteps(debugStepBonus);
+    await tester.pump();
+    expect(controller.game.chapter.stageIndex, 5);
+    expect(find.byType(FoundItemOverlay), findsNothing);
+    expect(find.byType(ArrivalScreen), findsOneWidget);
+
+    // Al entrar, el cartel de la pista y el fin de la etapa.
+    await tester.tap(find.text(Strings.enterButton));
+    await tester.pump();
+    await tester.pump(StageBackground.fadeDuration);
+    expect(find.byType(FoundItemOverlay), findsOneWidget);
     await closeEverything(tester);
+    expect(find.byType(ArrivalScreen), findsNothing);
+    expect(
+      find.text(Strings.walkingTo('Montaña Dragón', 'la')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('las partidas de antes ya entraron', (tester) async {
+    storage.saved = saveAt(4, 10000, const {});
+    await show(tester);
+    expect(find.byType(ArrivalScreen), findsNothing);
   });
 
   testWidgets('al terminar las flores lilas: cartel, fin de etapa y caminata', (
@@ -216,7 +266,7 @@ void main() {
     // Y empieza el tramo de caminata hasta el Árbol Mágico, con el mapa.
     await tester.pumpAndSettle(); // Termina el fundido de salida.
     expect(find.byType(StageDoneOverlay), findsNothing);
-    expect(find.text(Strings.walkingTo('Árbol Mágico')), findsOneWidget);
+    expect(find.text(Strings.walkingTo('Árbol Mágico', 'el')), findsOneWidget);
     expect(background(chapter1.walkingBackground), findsOneWidget);
   });
 
@@ -240,7 +290,7 @@ void main() {
     await tester.pumpAndSettle(); // Termina el fundido de salida.
     expect(find.byType(FoundItemOverlay), findsNothing);
     expect(find.byType(StageDoneOverlay), findsNothing);
-    expect(find.text(Strings.walkingTo('Bosque Mágico')), findsOneWidget);
+    expect(find.text(Strings.walkingTo('Bosque Mágico', 'el')), findsOneWidget);
   });
 
   testWidgets('al terminar el laberinto empieza el tramo hasta el Muelle', (
@@ -262,7 +312,7 @@ void main() {
     expect(engineStage(), 4);
     await closeEverything(tester);
     // La etapa 4 arranca con su tramo: se ve el mapa en el fondo.
-    expect(find.text(Strings.walkingTo('Muelle')), findsOneWidget);
+    expect(find.text(Strings.walkingTo('Muelle', 'el')), findsOneWidget);
   });
 
   testWidgets('el botón de debug avanza la etapa y muestra el cartel', (
@@ -515,7 +565,7 @@ void main() {
     await tester.pumpAndSettle();
     // Mismo lugar (la Aldea): no hay tramo de caminata.
     expect(
-      find.text(Strings.walkingTo('Aldea de las Caperucitas')),
+      find.text(Strings.walkingTo('Aldea de las Caperucitas', 'la')),
       findsNothing,
     );
     expect(find.text(Strings.stageOf(2, 8)), findsOneWidget);

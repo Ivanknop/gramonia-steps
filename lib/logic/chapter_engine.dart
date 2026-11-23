@@ -74,6 +74,17 @@ class ChapterEngine {
     return stage != null && p.stepsInStage < stage.travelSteps;
   }
 
+  /// Terminó el tramo de "llegar" y todavía no se tocó "Entrar": se ve la
+  /// pantalla de llegada. Los pasos y los objetos siguen sumando igual.
+  bool needsEntering(ChapterProgress p) {
+    final stage = currentStage(p);
+    return stage != null && stage.hasTravel && !isTraveling(p) && !p.entered;
+  }
+
+  /// Botón "Entrar" de la pantalla de llegada.
+  ChapterProgress enter(ChapterProgress p) =>
+      needsEntering(p) ? p.copyWith(entered: true) : p;
+
   /// Pasos que faltan para que salga el próximo objeto fijo de [spawn]
   /// (para mostrar "Faltan X pasos").
   int stepsToNextFixed(ChapterProgress p, FixedSpawn spawn) {
@@ -96,6 +107,7 @@ class ChapterEngine {
         run.events.add(StageCompleted(stage));
         run.stageIndex++;
         run.inStage = 0;
+        run.entered = false;
         run.sinceLast.clear();
         if (run.stageIndex == chapter.stages.length) {
           run.events.add(ChapterCompleted(stage));
@@ -235,7 +247,8 @@ class _Run {
       inventory = {...p.inventory},
       sinceLast = {...p.sinceLast},
       found = {...p.found},
-      unseen = p.unseen;
+      unseen = p.unseen,
+      entered = p.entered;
 
   int stageIndex;
   int inStage;
@@ -243,6 +256,7 @@ class _Run {
   final Map<String, int> sinceLast;
   final Map<String, int> found;
   int unseen;
+  bool entered;
   final events = <ChapterEvent>[];
 
   /// Lo cuenta para la bolsa. Los objetos sin aviso (gemas) no suman al
@@ -259,5 +273,6 @@ class _Run {
     sinceLast: Map.unmodifiable(sinceLast),
     found: Map.unmodifiable(found),
     unseen: unseen,
+    entered: entered,
   );
 }

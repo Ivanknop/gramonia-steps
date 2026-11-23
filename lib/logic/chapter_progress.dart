@@ -7,6 +7,7 @@ class ChapterProgress {
     required this.sinceLast,
     this.found = const {},
     this.unseen = 0,
+    this.entered = true,
   });
 
   const ChapterProgress.initial()
@@ -15,7 +16,8 @@ class ChapterProgress {
       inventory = const {},
       sinceLast = const {},
       found = const {},
-      unseen = 0;
+      unseen = 0,
+      entered = true;
 
   /// Etapa actual (0 = la primera). Si es igual a la cantidad de etapas,
   /// el capítulo está terminado.
@@ -38,6 +40,10 @@ class ChapterProgress {
   /// Objetos nuevos que todavía no se vieron en la bolsa.
   final int unseen;
 
+  /// Si ya se tocó "Entrar" en la pantalla de llegada de la etapa actual.
+  /// Vuelve a falso al pasar a otra etapa.
+  final bool entered;
+
   int count(String itemId) => inventory[itemId] ?? 0;
 
   bool has(String itemId) => count(itemId) > 0;
@@ -52,6 +58,7 @@ class ChapterProgress {
     sinceLast: sinceLast,
     found: found,
     unseen: unseen,
+    entered: entered,
   );
 
   /// La misma partida, con otros pasos dentro de la etapa.
@@ -62,15 +69,17 @@ class ChapterProgress {
     sinceLast: sinceLast,
     found: found,
     unseen: unseen,
+    entered: entered,
   );
 
-  ChapterProgress copyWith({int? unseen}) => ChapterProgress(
+  ChapterProgress copyWith({int? unseen, bool? entered}) => ChapterProgress(
     stageIndex: stageIndex,
     stepsInStage: stepsInStage,
     inventory: inventory,
     sinceLast: sinceLast,
     found: found,
     unseen: unseen ?? this.unseen,
+    entered: entered ?? this.entered,
   );
 
   Map<String, Object?> toJson() => {
@@ -80,12 +89,14 @@ class ChapterProgress {
     'sinceLast': sinceLast,
     'found': found,
     'unseen': unseen,
+    'entered': entered,
   };
 
   /// Lanza una excepción si el JSON no tiene la forma esperada.
   ///
   /// Las partidas guardadas antes de la bolsa no tienen `found` ni `unseen`:
-  /// lo conseguido arranca igual al inventario y no hay nada sin ver.
+  /// lo conseguido arranca igual al inventario y no hay nada sin ver. Las
+  /// de antes de la pantalla de llegada cuentan como que ya entraron.
   static ChapterProgress fromJson(Map<String, dynamic> json) {
     Map<String, int> ints(Object? value) => Map.unmodifiable(
       (value as Map<String, dynamic>).map((k, v) => MapEntry(k, v as int)),
@@ -98,6 +109,7 @@ class ChapterProgress {
       sinceLast: ints(json['sinceLast']),
       found: json['found'] == null ? inventory : ints(json['found']),
       unseen: json['unseen'] as int? ?? 0,
+      entered: json['entered'] as bool? ?? true,
     );
   }
 
@@ -109,7 +121,8 @@ class ChapterProgress {
       _sameMap(other.inventory, inventory) &&
       _sameMap(other.sinceLast, sinceLast) &&
       _sameMap(other.found, found) &&
-      other.unseen == unseen;
+      other.unseen == unseen &&
+      other.entered == entered;
 
   @override
   int get hashCode => Object.hash(
@@ -123,13 +136,14 @@ class ChapterProgress {
     ),
     Object.hashAllUnordered(found.entries.map((e) => '${e.key}=${e.value}')),
     unseen,
+    entered,
   );
 
   @override
   String toString() =>
       'ChapterProgress(stage: $stageIndex, steps: $stepsInStage, '
       'inventory: $inventory, sinceLast: $sinceLast, found: $found, '
-      'unseen: $unseen)';
+      'unseen: $unseen, entered: $entered)';
 }
 
 bool _sameMap(Map<String, int> a, Map<String, int> b) {

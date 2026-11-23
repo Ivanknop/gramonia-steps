@@ -70,6 +70,11 @@ class StepController extends ChangeNotifier {
   /// Objetos conseguidos y etapas terminadas, agrupados por cada avance.
   Stream<List<ChapterEvent>> get events => _events.stream;
 
+  bool _loaded = false;
+
+  /// Ya se leyó la partida guardada.
+  bool get loaded => _loaded;
+
   StepStatus _status = StepStatus.loading;
   StepStatus get status => _status;
 
@@ -83,6 +88,7 @@ class StepController extends ChangeNotifier {
     final days = await _loadHistory();
     if (_disposed) return;
     _game = loaded;
+    _loaded = true;
     _history = StepHistory(days);
     // Lo que ya estaba guardado del día (por ejemplo, de antes de que
     // existiera el historial) pasa al historial.
@@ -127,6 +133,14 @@ class StepController extends ChangeNotifier {
   void markBagSeen() {
     if (_disposed || _game.chapter.unseen == 0) return;
     _game = _game.copyWith(chapter: engine.markSeen(_game.chapter));
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// Botón "Entrar" de la pantalla de llegada.
+  void enterStage() {
+    if (_disposed || !engine.needsEntering(_game.chapter)) return;
+    _game = _game.copyWith(chapter: engine.enter(_game.chapter));
     notifyListeners();
     _scheduleSave();
   }

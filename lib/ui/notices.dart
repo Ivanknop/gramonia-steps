@@ -27,6 +27,12 @@ class StageMoment extends Moment {
   final Stage stage;
 }
 
+/// Pantalla de llegada al final de un tramo de caminata, con "Entrar".
+class ArrivalMoment extends Moment {
+  const ArrivalMoment(this.stage);
+  final Stage stage;
+}
+
 /// Como mucho se muestran estos carteles de objetos por cada avance (por
 /// ejemplo, al abrir la app después de caminar mucho). El resto va directo
 /// a la bolsa.
@@ -51,7 +57,9 @@ List<Moment> momentsFor(Chapter chapter, List<ChapterEvent> events) {
         _add(groups, order, stage, item, message);
       case StageCompleted(:final stage):
         order.add(StageMoment(stage));
-      case ItemFound() || Arrived() || ChapterCompleted():
+      case Arrived(:final stage):
+        order.add(ArrivalMoment(stage));
+      case ItemFound() || ChapterCompleted():
         break;
     }
   }
@@ -101,12 +109,4 @@ class _Group {
   final ItemType item;
   String message;
   int count = 1;
-}
-
-/// Aviso chico (abajo de la pantalla) para lo que no tiene cartel propio:
-/// la llegada al final de un tramo de caminata.
-String? noticeFor(List<ChapterEvent> events) {
-  final arrived = events.whereType<Arrived>();
-  if (arrived.isEmpty) return null;
-  return Strings.arrived(arrived.last.stage.name);
 }

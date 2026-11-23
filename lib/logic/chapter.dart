@@ -132,6 +132,7 @@ class Stage {
     required this.completeMessage,
     required this.background,
     required this.place,
+    this.placeArticle = '',
     required this.introCharacter,
     required this.completeCharacter,
   });
@@ -145,6 +146,13 @@ class Stage {
 
   /// Lugar al que se llega en esta etapa (`Caminando hasta <lugar>`).
   final String place;
+
+  /// Artículo del lugar ("el", "la" o nada), para "Llegaste al Muelle".
+  final String placeArticle;
+
+  /// Imagen de la pantalla de llegada (puede ser animada). Si no existe, se
+  /// usa [background].
+  String get arrivalImage => 'assets/places/$id.webp';
 
   /// Texto al empezar a juntar objetos (después de llegar).
   final String intro;

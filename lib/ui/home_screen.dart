@@ -9,6 +9,7 @@ import '../logic/chapter.dart';
 import '../logic/chapter_engine.dart';
 import '../logic/chapter_progress.dart';
 import '../strings.dart';
+import 'arrival.dart';
 import 'bag.dart';
 import 'found_item.dart';
 import 'notices.dart';
@@ -47,35 +48,53 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _events = widget.controller.events.listen(_onEvents);
+    widget.controller.addListener(_onLoaded);
+    _onLoaded(building: true);
+  }
+
+  var _checkedDoor = false;
+
+  /// Al abrir la app: si había quedado en la pantalla de llegada, se vuelve
+  /// a mostrar. (Después, las llegadas vienen con los eventos, en orden.)
+  void _onLoaded({bool building = false}) {
+    final controller = widget.controller;
+    if (_checkedDoor || !controller.loaded) return;
+    _checkedDoor = true;
+    controller.removeListener(_onLoaded);
+    final chapter = controller.game.chapter;
+    if (!controller.engine.needsEntering(chapter)) return;
+    _queue.insert(0, ArrivalMoment(controller.engine.currentStage(chapter)!));
+    if (_current != null) return;
+    if (building) {
+      _current = _queue.removeAt(0); // Todavía no se dibujó nada.
+    } else {
+      _next();
+    }
   }
 
   void _onEvents(List<ChapterEvent> events) {
     if (!mounted) return;
-    _showNotice(events);
     _queue.addAll(momentsFor(widget.controller.engine.chapter, events));
     if (_current == null) _next();
     setState(() {}); // El número de la bolsa descuenta lo que está en camino.
   }
 
-  void _showNotice(List<ChapterEvent> events) {
-    final text = noticeFor(events);
-    if (text == null) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(text),
-        duration: const Duration(seconds: 4),
-        showCloseIcon: true,
-      ),
-    );
-  }
-
   /// Muestra el próximo momento de la cola (o nada, si está vacía).
+  ///
+  /// La pantalla de llegada no se cierra sola: lo que pasó después (los
+  /// objetos que siguen saliendo) espera a que se toque "Entrar".
   void _next() {
     if (!mounted) return;
     final next = _queue.isEmpty ? null : _queue.removeAt(0);
     setState(() => _current = next);
+  }
+
+  void _enter(Stage stage) {
+    final controller = widget.controller;
+    if (controller.engine.currentStage(controller.game.chapter) == stage) {
+      controller.enterStage();
+    }
+    _next();
   }
 
   void _onLanded() {
@@ -110,6 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _events?.cancel();
+    widget.controller.removeListener(_onLoaded);
     super.dispose();
   }
 
@@ -198,6 +218,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 duration: StageBackground.fadeDuration,
                 child: switch (current) {
                   null => const SizedBox.shrink(),
+                  ArrivalMoment(:final stage) => ArrivalScreen(
+                    key: ObjectKey(current),
+                    stage: stage,
+                    onEnter: () => _enter(stage),
+                  ),
                   FoundMoment() => FoundItemOverlay(
                     key: ObjectKey(current),
                     moment: current,
@@ -333,7 +358,7 @@ class _StageCard extends StatelessWidget {
             ),
             if (traveling)
               Text(
-                Strings.walkingTo(stage.place),
+                Strings.walkingTo(stage.place, stage.placeArticle),
                 style: text.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
