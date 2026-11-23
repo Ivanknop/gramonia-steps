@@ -12,6 +12,7 @@ import '../data/textos.dart';
 import 'arrival.dart';
 import 'bag.dart';
 import 'dialogue.dart';
+import 'ending.dart';
 import 'found_item.dart';
 import 'notices.dart';
 import 'stage_done.dart';
@@ -183,7 +184,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       _StatusNotice(controller: controller),
                       const SizedBox(height: 12),
                       if (stage == null)
-                        _ChapterDoneCard(engine: engine)
+                        _ChapterDoneCard(
+                          engine: engine,
+                          onSeeEnding: () =>
+                              setState(() => _current = const EndingMoment()),
+                        )
                       else ...[
                         _StageCard(
                           engine: engine,
@@ -238,6 +243,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: ObjectKey(current),
                     stage: stage,
                     onEnter: () => _enter(stage),
+                  ),
+                  EndingMoment() => EndingScreen(
+                    key: ObjectKey(current),
+                    background: engine.chapter.islandBackground,
+                    onBack: _next,
                   ),
                   DialogueMoment(:final stage) => DialogueView(
                     key: ObjectKey(current),
@@ -653,9 +663,10 @@ class _JourneyCard extends StatelessWidget {
 }
 
 class _ChapterDoneCard extends StatelessWidget {
-  const _ChapterDoneCard({required this.engine});
+  const _ChapterDoneCard({required this.engine, required this.onSeeEnding});
 
   final ChapterEngine engine;
+  final VoidCallback onSeeEnding;
 
   @override
   Widget build(BuildContext context) {
@@ -680,6 +691,11 @@ class _ChapterDoneCard extends StatelessWidget {
             Text(Strings.chapterDoneTitle, style: text.headlineSmall),
             const SizedBox(height: 8),
             Text(last.completeMessage, textAlign: TextAlign.center),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: onSeeEnding,
+              child: const Text(Strings.seeEnding),
+            ),
           ],
         ),
       ),

@@ -34,6 +34,7 @@ void main() {
         StageMoment(:final stage) => 'fin:${stage.id}',
         ArrivalMoment(:final stage) => 'llegada:${stage.id}',
         DialogueMoment(:final stage) => 'diálogo:${stage.id}',
+        EndingMoment() => 'continuará',
       },
   ];
 
@@ -113,6 +114,14 @@ void main() {
       1000000,
     ).whereType<StageMoment>().map((m) => m.stage).toList();
     expect(stagesDone, stages);
+  });
+
+  test('al zarpar el barco: fin de etapa y después "Continuará..."', () {
+    final p = at(7, 5000, {
+      for (final id in ['madera', 'clavos', 'cuerdas', 'bandera']) id: 1,
+    });
+    final all = describe(moments(p, 100));
+    expect(all.reversed.take(2), ['continuará', 'fin:barco']);
   });
 
   test('al terminar el tramo de llegar: pantalla de llegada', () {

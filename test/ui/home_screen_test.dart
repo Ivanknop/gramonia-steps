@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' hide StepState;
 import 'package:rpg/data/chapter1.dart';
+import 'package:rpg/data/textos.dart' as t;
 import 'package:rpg/logic/chapter_progress.dart';
 import 'package:rpg/logic/game_save.dart';
 import 'package:rpg/logic/step_state.dart';
@@ -9,6 +10,7 @@ import 'package:rpg/data/textos.dart';
 import 'package:rpg/ui/arrival.dart';
 import 'package:rpg/ui/bag.dart';
 import 'package:rpg/ui/dialogue.dart';
+import 'package:rpg/ui/ending.dart';
 import 'package:rpg/ui/found_item.dart';
 import 'package:rpg/ui/home_screen.dart';
 import 'package:rpg/ui/stage_done.dart';
@@ -408,6 +410,58 @@ void main() {
     storage.saved = saveAt(8, 0, const {});
     await show(tester);
     expect(background(chapter1.stages.last.background), findsOneWidget);
+  });
+
+  testWidgets('al zarpar el barco: la Isla Negra y "Continuará..."', (
+    tester,
+  ) async {
+    storage.saved = saveAt(7, 5000, {
+      for (final id in ['madera', 'clavos', 'cuerdas', 'bandera']) id: 1,
+    });
+    await show(tester);
+    // Con todo a favor, el ancla sale a los 100 pasos y el barco zarpa.
+    await tapText(tester, Strings.debugAdd(debugStepBonus));
+    await tester.pump();
+    // Primero, los carteles (monedas y el ancla).
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(StageBackground.fadeDuration);
+      final found = find.byType(FoundItemOverlay).hitTestable();
+      if (found.evaluate().isEmpty) break;
+      await tester.tap(found.first);
+      await tester.pump(FoundItemOverlay.flyDuration);
+    }
+    expect(find.byType(StageDoneOverlay), findsOneWidget);
+    await tester.tap(find.text(Strings.continueButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EndingScreen), findsOneWidget);
+    expect(find.text(t.continuara), findsOneWidget);
+    expect(find.text(t.cierre.first), findsOneWidget);
+    await tester.tap(find.text(Strings.backButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(EndingScreen), findsNothing);
+
+    // Se puede volver a ver desde la tarjeta del final.
+    await tapText(tester, Strings.seeEnding);
+    await tester.pumpAndSettle();
+    expect(find.byType(EndingScreen), findsOneWidget);
+  });
+
+  testWidgets('sin la imagen de la Isla Negra, un fondo oscuro', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: EndingScreen(
+          background: 'assets/backgrounds/no_existe.webp',
+          onBack: () {},
+        ),
+      ),
+    );
+    await tester.runAsync(() => Future<void>.delayed(Durations.long2));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('ending-fallback')), findsWidgets);
+    expect(find.text(t.continuara), findsOneWidget);
   });
 
   testWidgets('sin debug no aparece el botón', (tester) async {

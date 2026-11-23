@@ -32,6 +32,11 @@ abstract final class Strings {
   static const nameButton = 'Seguir';
   static const introButton = '¡Vamos!';
   static const stageDialogueButton = '¡Vamos!';
+
+  // Cierre del capítulo.
+  static const backButton = 'Volver';
+  static const seeEnding = 'Ver el final';
+  static const creditsButton = 'Créditos';
   static const loading = 'Cargando…';
   static const todayLabel = 'Pasos de hoy';
   static String total(int steps) => 'Total: ${formatNumber(steps)} pasos';
@@ -339,6 +344,11 @@ const dialogoBarco = [
   ),
   Linea(_jugador, '¡Manos a la obra!'),
 ];
+
+// ── Cierre: después de que zarpa el barco ───────────────────────────────
+
+const cierre = ['El barco navega hacia la Isla Negra.', '¿Qué esconde Mututu?'];
+const continuara = 'Continuará...';
 
 // ════════════════════════════════════════════════════════════════════════
 // CAPÍTULO 1: personajes, etapas, objetos y canjes.

@@ -39,6 +39,11 @@ class DialogueMoment extends Moment {
   final Stage stage;
 }
 
+/// Cierre del capítulo: la Isla Negra y "Continuará...".
+class EndingMoment extends Moment {
+  const EndingMoment();
+}
+
 /// Como mucho se muestran estos carteles de objetos por cada avance (por
 /// ejemplo, al abrir la app después de caminar mucho). El resto va directo
 /// a la bolsa.
@@ -74,7 +79,9 @@ List<Moment> momentsFor(Chapter chapter, List<ChapterEvent> events) {
         }
       case Arrived(:final stage):
         order.add(ArrivalMoment(stage));
-      case ItemFound() || ChapterCompleted():
+      case ChapterCompleted():
+        order.add(const EndingMoment());
+      case ItemFound():
         break;
     }
   }
