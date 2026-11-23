@@ -8,6 +8,7 @@ import 'package:rpg/services/step_sensor.dart';
 import 'package:rpg/data/textos.dart';
 import 'package:rpg/ui/arrival.dart';
 import 'package:rpg/ui/bag.dart';
+import 'package:rpg/ui/dialogue.dart';
 import 'package:rpg/ui/found_item.dart';
 import 'package:rpg/ui/home_screen.dart';
 import 'package:rpg/ui/stage_done.dart';
@@ -70,6 +71,17 @@ void main() {
     await tester.pump(FoundItemOverlay.flyDuration);
   }
 
+  /// Toca el diálogo hasta el último globo y después "¡Vamos!".
+  Future<void> finishDialogue(WidgetTester tester) async {
+    for (var i = 0; i < 20; i++) {
+      if (find.text(Strings.stageDialogueButton).evaluate().isNotEmpty) break;
+      await tester.tap(find.byType(DialogueView));
+      await tester.pump();
+    }
+    await tester.tap(find.text(Strings.stageDialogueButton));
+    await tester.pump();
+  }
+
   /// Cierra todos los carteles y ventanas que haya, tocándolos.
   Future<void> closeEverything(WidgetTester tester) async {
     for (var i = 0; i < 20; i++) {
@@ -81,6 +93,8 @@ void main() {
         await tester.tap(find.text(Strings.continueButton));
       } else if (find.text(Strings.enterButton).evaluate().isNotEmpty) {
         await tester.tap(find.text(Strings.enterButton));
+      } else if (find.byType(DialogueView).evaluate().isNotEmpty) {
+        await finishDialogue(tester);
       } else {
         break;
       }
@@ -206,6 +220,14 @@ void main() {
     await tester.tap(find.text(Strings.enterButton));
     await tester.pumpAndSettle();
     expect(find.byType(ArrivalScreen), findsNothing);
+
+    // Después de "Entrar", el diálogo: Sofía y quien juega, con su nombre.
+    expect(find.byType(DialogueView), findsOneWidget);
+    expect(find.text(chapter1.stages[4].dialogue.first.texto), findsOneWidget);
+    expect(controller.game.chapter.entered, isFalse);
+    await finishDialogue(tester);
+    await tester.pumpAndSettle();
+    expect(find.byType(DialogueView), findsNothing);
     expect(controller.game.chapter.entered, isTrue);
     expect(background(chapter1.walkingBackground), findsNothing);
     expect(background(chapter1.stages[4].background), findsOneWidget);
@@ -228,9 +250,13 @@ void main() {
     expect(find.byType(FoundItemOverlay), findsNothing);
     expect(find.byType(ArrivalScreen), findsOneWidget);
 
-    // Al entrar, el cartel de la pista y el fin de la etapa.
+    // Al entrar (y después del diálogo), el cartel de la pista y el fin de
+    // la etapa.
     await tester.tap(find.text(Strings.enterButton));
     await tester.pump();
+    await tester.pump(StageBackground.fadeDuration);
+    expect(find.byType(FoundItemOverlay), findsNothing);
+    await finishDialogue(tester);
     await tester.pump(StageBackground.fadeDuration);
     expect(find.byType(FoundItemOverlay), findsOneWidget);
     await closeEverything(tester);
@@ -566,14 +592,24 @@ void main() {
   });
 
   testWidgets('si falta un dibujo, se ve un ícono genérico', (tester) async {
-    // En el laberinto faltan las hormigas, la salida a la costa, el ramo y
-    // la pluma.
+    // En el laberinto faltan la salida a la costa, el ramo y la pluma.
     storage.saved = saveAt(3, 2000, const {});
     await show(tester);
     await tester.runAsync(() => Future<void>.delayed(Durations.long2));
     await tester.pump();
-    expect(find.byKey(const ValueKey('missing-art')), findsNWidgets(4));
-    // Para los personajes, el ícono genérico es una persona.
+    expect(find.byKey(const ValueKey('missing-art')), findsNWidgets(3));
+  });
+
+  testWidgets('si falta el dibujo de un personaje, se ve una persona', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GameImage.character('assets/characters/no_existe.webp', size: 80),
+      ),
+    );
+    await tester.runAsync(() => Future<void>.delayed(Durations.long2));
+    await tester.pump();
     expect(find.byIcon(Icons.face), findsOneWidget);
   });
 

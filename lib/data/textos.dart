@@ -31,6 +31,7 @@ abstract final class Strings {
   static const nameHint = 'Tu nombre';
   static const nameButton = 'Seguir';
   static const introButton = '¡Vamos!';
+  static const stageDialogueButton = '¡Vamos!';
   static const loading = 'Cargando…';
   static const todayLabel = 'Pasos de hoy';
   static String total(int steps) => 'Total: ${formatNumber(steps)} pasos';
@@ -157,10 +158,17 @@ abstract final class Strings {
 // Cada línea es Linea(quién habla, 'qué dice'). Quién habla:
 // _sofia, _sofiaSinCaperuza, _hada, _rocanon, _dragones, _papa,
 // _jugador (quien juega) o _narracion (sin personaje).
+// Sofía habla desde la izquierda; los demás, desde la derecha.
 // {nombre} se reemplaza por el nombre de quien juega.
 // ════════════════════════════════════════════════════════════════════════
 
+const _sofia = 'caperucita';
 const _sofiaSinCaperuza = 'caperucita_sin_caperuza';
+const _hada = 'hada_madrina';
+const _rocanon = 'rocanon';
+const _dragones = 'dragones';
+const _papa = 'papa';
+const _jugador = Linea.jugador;
 
 // ── Presentación (antes y después de escribir el nombre) ────────────────
 
@@ -204,6 +212,132 @@ const introduccion = [
     '{nombre}, ¿me ayudás? Cada paso que des, lo damos juntos.',
   ),
   Linea(_sofiaSinCaperuza, 'Empecemos por el jardín de mi abuelita. ¡Vamos!'),
+];
+
+// ── Diálogos entre etapas ───────────────────────────────────────────────
+// Se ven al entrar a cada etapa. Explican a dónde ir y qué juntar.
+
+/// Etapa 2: al terminar el jardín, aparece el Hada Madrina.
+const dialogoHada = [
+  Linea(_hada, 'Hola, Sofía. Hola, {nombre}. Soy el Hada Madrina.'),
+  Linea(_hada, 'Mututu despertó. Su furia trae una gran tormenta.'),
+  Linea(
+    _hada,
+    'Solo una pluma del Rocanón puede calmarlo. Hay que llevarla hasta la '
+    'Isla Negra.',
+  ),
+  Linea(
+    _sofiaSinCaperuza,
+    '¿Una pluma del Rocanón? ¡Pero vive arriba de todo el Árbol Mágico!',
+  ),
+  Linea(
+    _hada,
+    'Para un viaje así, necesitás una caperuza. Pedile una a tu abuelita.',
+  ),
+  Linea(
+    _sofiaSinCaperuza,
+    '{nombre}, juntemos 15 flores lilas. ¡Con ellas la abuelita tiñe la '
+    'caperuza!',
+  ),
+];
+
+/// Etapa 3: en el Árbol Mágico, el Rocanón.
+const dialogoRocanon = [
+  Linea(_sofia, '¡Mirá, {nombre}! ¡Es el Rocanón!'),
+  Linea(
+    _rocanon,
+    'Hola, Sofía. Me acuerdo de vos, del CATAM. Te quedaste dormida junto a '
+    'mi Árbol.',
+  ),
+  Linea(_sofia, 'Necesitamos una de tus plumas. Es para calmar a Mututu.'),
+  Linea(_rocanon, '¿Mututu? Hmm… Hace mucho que no sé de Mututu.'),
+  Linea(
+    _rocanon,
+    'Les doy una pluma. Pero tráiganme 3 semillas de fuego. ¡Son mi comida '
+    'favorita!',
+  ),
+  Linea(
+    _sofia,
+    'Son difíciles de encontrar. Pero 10 semillas de agua o de hielo se '
+    'vuelven una de fuego. ¡A buscar!',
+  ),
+];
+
+/// Etapa 4: en el Bosque, pensando cómo salir del laberinto.
+const dialogoLaberinto = [
+  Linea(
+    _sofia,
+    'Uy, {nombre}. En el Bosque todo se parece. Este árbol es igual a aquel.',
+  ),
+  Linea(_jugador, '¿Y si estamos caminando en círculos?'),
+  Linea(
+    _sofia,
+    '¡Mirá! Las hormigas guardianas. Ellas conocen todos los caminos.',
+  ),
+  Linea(_jugador, 'Dicen que dejan pasar a quien arma su acertijo.'),
+  Linea(
+    _sofia,
+    'Son 6 piezas, escondidas entre los caminos. ¡Juntémoslas y salimos '
+    'hacia la costa!',
+  ),
+];
+
+/// Etapa 5: en el Muelle, frente a la tormenta.
+const dialogoTormenta = [
+  Linea(_sofia, '¡Qué viento! El mar está negro y ruge.'),
+  Linea(_jugador, 'Con esta tormenta no sale ningún barco.'),
+  Linea(_sofia, 'Alguien en el Muelle tiene que saber cómo calmarla.'),
+  Linea(_jugador, 'Busquemos una pista entre redes, cajones y gaviotas.'),
+];
+
+/// Etapa 6: en la Montaña Dragón.
+const dialogoDragones = [
+  Linea(
+    _dragones,
+    '¿Quién sube a la Montaña Dragón con este viento? *Sale un poco de humo*',
+  ),
+  Linea(
+    _sofia,
+    'Soy Sofía, y vengo con {nombre}. ¿Pueden calmar la tormenta con sus '
+    'alas?',
+  ),
+  Linea(
+    _dragones,
+    'Podemos. Pero queremos 4 ofrendas: piedra de fuego, agua de la cascada, '
+    'una escama brillante y una flor de las nubes.',
+  ),
+  Linea(
+    _dragones,
+    'Y si encuentran gemas… ¡nos encantan! Por 100 gemas, les damos una '
+    'ofrenda.',
+  ),
+];
+
+/// Etapa 7: en la Ciudad, con papá.
+const dialogoPapa = [
+  Linea(_papa, '¡Sofía! ¡Y vos debés ser {nombre}! Pasen, pasen.'),
+  Linea(_sofia, 'Papá, ¡nos vamos en barco a la Isla Negra!'),
+  Linea(
+    _papa,
+    'Entonces hay que preparar la mochila: un farol, una manta, pan y '
+    'mermelada.',
+  ),
+  Linea(_sofia, '¡La mermelada de frutillas no puede faltar!'),
+];
+
+/// Etapa 8: en el Muelle, buscando los materiales para zarpar.
+const dialogoBarco = [
+  Linea(_sofia, 'Ahí está nuestro barco. Es viejito… y tiene agujeros.'),
+  Linea(
+    _jugador,
+    'Necesita madera, clavos, cuerdas, una bandera pirata y un ancla.',
+  ),
+  Linea(
+    _sofia,
+    'Si juntamos monedas de oro, el vendedor del puerto nos vende lo que '
+    'falte.',
+  ),
+  Linea(_jugador, '¡Manos a la obra!'),
 ];
 
 // ════════════════════════════════════════════════════════════════════════

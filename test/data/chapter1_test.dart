@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:rpg/data/chapter1.dart';
+import 'package:rpg/data/textos.dart' as t;
 import 'package:rpg/logic/chapter.dart';
 import 'package:test/test.dart';
 
@@ -68,6 +69,30 @@ void main() {
     for (final c in chapter1.characters) {
       final path = c.animatedImage;
       if (path != null) expect(File(path).existsSync(), isTrue, reason: path);
+    }
+  });
+
+  test('en los diálogos hablan personajes que existen', () {
+    final all = [
+      ...t.presentacion,
+      ...t.presentacionDespues,
+      ...t.introduccion,
+      for (final stage in chapter1.stages) ...stage.dialogue,
+    ];
+    for (final line in all) {
+      expect(line.texto.trim(), isNotEmpty);
+      if (line.esJugador || line.esNarracion) continue;
+      expect(
+        chapter1.characters.map((c) => c.id),
+        contains(line.quien),
+        reason: line.texto,
+      );
+    }
+  });
+
+  test('todas las etapas, menos el jardín, tienen su diálogo', () {
+    for (final stage in chapter1.stages.skip(1)) {
+      expect(stage.hasDialogue, isTrue, reason: stage.id);
     }
   });
 

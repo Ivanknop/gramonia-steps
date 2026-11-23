@@ -11,6 +11,7 @@ import '../logic/chapter_progress.dart';
 import '../data/textos.dart';
 import 'arrival.dart';
 import 'bag.dart';
+import 'dialogue.dart';
 import 'found_item.dart';
 import 'notices.dart';
 import 'stage_done.dart';
@@ -54,8 +55,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   var _checkedDoor = false;
 
-  /// Al abrir la app: si había quedado en la pantalla de llegada, se vuelve
-  /// a mostrar. (Después, las llegadas vienen con los eventos, en orden.)
+  /// Al abrir la app: si había quedado en la pantalla de llegada o en el
+  /// diálogo, se vuelve a mostrar. (Después, vienen con los eventos, en
+  /// orden.)
   void _onLoaded({bool building = false}) {
     final controller = widget.controller;
     if (_checkedDoor || !controller.loaded) return;
@@ -63,7 +65,11 @@ class _HomeScreenState extends State<HomeScreen> {
     controller.removeListener(_onLoaded);
     final chapter = controller.game.chapter;
     if (!controller.engine.needsEntering(chapter)) return;
-    _queue.insert(0, ArrivalMoment(controller.engine.currentStage(chapter)!));
+    final stage = controller.engine.currentStage(chapter)!;
+    _queue.insert(
+      0,
+      stage.hasTravel ? ArrivalMoment(stage) : DialogueMoment(stage),
+    );
     if (_current != null) return;
     if (building) {
       _current = _queue.removeAt(0); // Todavía no se dibujó nada.
@@ -89,7 +95,17 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _current = next);
   }
 
+  /// "Entrar" en la pantalla de llegada: el diálogo, si la etapa tiene.
   void _enter(Stage stage) {
+    if (stage.hasDialogue) {
+      setState(() => _current = DialogueMoment(stage));
+    } else {
+      _entered(stage);
+    }
+  }
+
+  /// Ya se entró a la etapa: los objetos empiezan a mostrarse.
+  void _entered(Stage stage) {
     final controller = widget.controller;
     if (controller.engine.currentStage(controller.game.chapter) == stage) {
       controller.enterStage();
@@ -222,6 +238,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: ObjectKey(current),
                     stage: stage,
                     onEnter: () => _enter(stage),
+                  ),
+                  DialogueMoment(:final stage) => DialogueView(
+                    key: ObjectKey(current),
+                    chapter: engine.chapter,
+                    lines: stage.dialogue,
+                    playerName: controller.playerName ?? '',
+                    background: stage.background,
+                    doneLabel: Strings.stageDialogueButton,
+                    onDone: () => _entered(stage),
                   ),
                   FoundMoment() => FoundItemOverlay(
                     key: ObjectKey(current),

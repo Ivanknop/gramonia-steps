@@ -2,6 +2,8 @@
 /// Los valores concretos están en `lib/data/`.
 library;
 
+import 'story.dart';
+
 /// Textos de un objeto (se escriben en lib/data/textos.dart).
 class TextoObjeto {
   const TextoObjeto({
@@ -176,6 +178,7 @@ class Stage {
   const Stage({
     required this.id,
     required this.texto,
+    this.dialogue = const [],
     this.travelSteps = 0,
     required this.requirements,
     required this.spawns,
@@ -204,6 +207,15 @@ class Stage {
   /// Imagen de la pantalla de llegada (puede ser animada). Si no existe, se
   /// usa [background].
   String get arrivalImage => 'assets/places/$id.webp';
+
+  /// Diálogo al entrar a la etapa (después de llegar). Puede no haber.
+  final List<Linea> dialogue;
+
+  bool get hasDialogue => dialogue.isNotEmpty;
+
+  /// Al terminar la etapa anterior hay que "entrar" a esta: con la pantalla
+  /// de llegada (si hay tramo) y el diálogo (si hay).
+  bool get hasEntrance => hasTravel || hasDialogue;
 
   /// Recordatorio de qué juntar (en la tarjeta de la etapa).
   String get intro => texto.tarjeta;

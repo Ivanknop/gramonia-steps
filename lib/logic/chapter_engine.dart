@@ -74,14 +74,15 @@ class ChapterEngine {
     return stage != null && p.stepsInStage < stage.travelSteps;
   }
 
-  /// Terminó el tramo de "llegar" y todavía no se tocó "Entrar": se ve la
-  /// pantalla de llegada. Los pasos y los objetos siguen sumando igual.
+  /// Terminó el tramo de "llegar" (si hay) y todavía no se entró a la
+  /// etapa: falta la pantalla de llegada y/o el diálogo. Los pasos y los
+  /// objetos siguen sumando igual.
   bool needsEntering(ChapterProgress p) {
     final stage = currentStage(p);
-    return stage != null && stage.hasTravel && !isTraveling(p) && !p.entered;
+    return stage != null && stage.hasEntrance && !isTraveling(p) && !p.entered;
   }
 
-  /// Botón "Entrar" de la pantalla de llegada.
+  /// Ya se entró a la etapa (después de "Entrar" y del diálogo).
   ChapterProgress enter(ChapterProgress p) =>
       needsEntering(p) ? p.copyWith(entered: true) : p;
 

@@ -33,6 +33,12 @@ class ArrivalMoment extends Moment {
   final Stage stage;
 }
 
+/// Diálogo al entrar a una etapa (tipo historieta).
+class DialogueMoment extends Moment {
+  const DialogueMoment(this.stage);
+  final Stage stage;
+}
+
 /// Como mucho se muestran estos carteles de objetos por cada avance (por
 /// ejemplo, al abrir la app después de caminar mucho). El resto va directo
 /// a la bolsa.
@@ -57,6 +63,15 @@ List<Moment> momentsFor(Chapter chapter, List<ChapterEvent> events) {
         _add(groups, order, stage, item, message);
       case StageCompleted(:final stage):
         order.add(StageMoment(stage));
+        // La etapa siguiente no tiene tramo pero sí diálogo: va enseguida.
+        // (Si tiene tramo, el diálogo viene después de "Entrar".)
+        final i = chapter.stages.indexOf(stage) + 1;
+        if (i < chapter.stages.length) {
+          final next = chapter.stages[i];
+          if (!next.hasTravel && next.hasDialogue) {
+            order.add(DialogueMoment(next));
+          }
+        }
       case Arrived(:final stage):
         order.add(ArrivalMoment(stage));
       case ItemFound() || ChapterCompleted():

@@ -45,7 +45,7 @@ const chapter1 = Chapter(
     Character(id: 'rocanon', name: t.rocanon, animation: 'rocanon_animado'),
     Character(id: 'hormigas', name: t.hormigas),
     Character(id: 'dragones', name: t.dragones),
-    Character(id: 'papa_caperucita', name: t.papa),
+    Character(id: 'papa', name: t.papa),
   ],
   items: [
     // Etapa 1.
@@ -100,6 +100,7 @@ const chapter1 = Chapter(
     Stage(
       id: 'casa_abuelita',
       texto: t.caperuza,
+      dialogue: t.dialogoHada,
       introCharacter: 'caperucita_sin_caperuza',
       completeCharacter: 'caperucita',
       background: 'assets/backgrounds/stage_1.webp',
@@ -113,6 +114,7 @@ const chapter1 = Chapter(
       // El id conserva la grafía vieja: se guarda en el celular.
       id: 'nido_rocanron',
       texto: t.nido,
+      dialogue: t.dialogoRocanon,
       introCharacter: 'rocanon',
       completeCharacter: 'rocanon',
       background: 'assets/backgrounds/stage_2.webp',
@@ -139,6 +141,7 @@ const chapter1 = Chapter(
     Stage(
       id: 'laberinto_hormigas',
       texto: t.laberinto,
+      dialogue: t.dialogoLaberinto,
       introCharacter: 'hormigas',
       completeCharacter: 'hormigas',
       background: 'assets/backgrounds/stage_3.webp',
@@ -169,6 +172,7 @@ const chapter1 = Chapter(
     Stage(
       id: 'puerto',
       texto: t.puerto,
+      dialogue: t.dialogoTormenta,
       introCharacter: 'caperucita',
       completeCharacter: 'caperucita',
       background: 'assets/backgrounds/stage_4.webp',
@@ -187,6 +191,7 @@ const chapter1 = Chapter(
     Stage(
       id: 'montana_dragon',
       texto: t.montana,
+      dialogue: t.dialogoDragones,
       introCharacter: 'dragones',
       completeCharacter: 'dragones',
       background: 'assets/backgrounds/stage_5.webp',
@@ -214,8 +219,9 @@ const chapter1 = Chapter(
     Stage(
       id: 'casa_papa',
       texto: t.casaPapa,
-      introCharacter: 'papa_caperucita',
-      completeCharacter: 'papa_caperucita',
+      dialogue: t.dialogoPapa,
+      introCharacter: 'papa',
+      completeCharacter: 'papa',
       background: 'assets/backgrounds/stage_6.webp',
       travelSteps: 5000,
       requirements: [
@@ -235,6 +241,7 @@ const chapter1 = Chapter(
     Stage(
       id: 'barco',
       texto: t.barco,
+      dialogue: t.dialogoBarco,
       introCharacter: 'caperucita',
       completeCharacter: 'hada_madrina',
       background: 'assets/backgrounds/stage_7.webp',

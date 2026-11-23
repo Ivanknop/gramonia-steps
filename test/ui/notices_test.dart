@@ -33,6 +33,7 @@ void main() {
         FoundMoment(:final item, :final count) => '${item.id}×$count',
         StageMoment(:final stage) => 'fin:${stage.id}',
         ArrivalMoment(:final stage) => 'llegada:${stage.id}',
+        DialogueMoment(:final stage) => 'diálogo:${stage.id}',
       },
   ];
 
@@ -50,11 +51,12 @@ void main() {
     expect(found.title, Strings.foundMany('Flor amarilla', 3));
   });
 
-  test('terminar el jardín: fin de etapa, sin caminata (mismo lugar)', () {
+  test('terminar el jardín: fin de etapa y enseguida el diálogo del Hada', () {
     final p = at(0, 1400, {'flor_amarilla': 14});
     expect(describe(moments(p, 100)), [
       'flor_amarilla×1',
       'fin:jardin_abuelita',
+      'diálogo:casa_abuelita',
     ]);
   });
 

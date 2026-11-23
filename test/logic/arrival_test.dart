@@ -30,9 +30,16 @@ void main() {
     expect(engine.needsEntering(entered), isFalse);
   });
 
-  test('las etapas sin tramo no tienen pantalla de llegada', () {
-    expect(engine.needsEntering(at(1, 500)), isFalse);
-    expect(engine.enter(at(1, 500)), at(1, 500));
+  test('el jardín no tiene tramo ni diálogo: no hay que entrar', () {
+    expect(engine.needsEntering(at(0, 500)), isFalse);
+    expect(engine.enter(at(0, 500)), at(0, 500));
+  });
+
+  test('sin tramo pero con diálogo, también hay que entrar', () {
+    expect(chapter1.stages[1].hasTravel, isFalse);
+    expect(chapter1.stages[1].hasDialogue, isTrue);
+    expect(engine.needsEntering(at(1, 0)), isTrue);
+    expect(engine.enter(at(1, 0)).entered, isTrue);
   });
 
   test('sin entrar, los pasos siguen sumando y salen objetos', () {
