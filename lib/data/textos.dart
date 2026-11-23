@@ -20,7 +20,7 @@ abstract final class Strings {
   static const appTitle = 'Caminando por Gramonia';
 
   /// Nombre corto debajo del ícono, en el celular (el largo se corta). Si se
-  /// cambia, cambiar también android:label en AndroidManifest.xml.
+  /// cambia, cambiar también appLabel en android/app/build.gradle.kts.
   static const launcherName = 'Gramonia';
 
   // Portada.

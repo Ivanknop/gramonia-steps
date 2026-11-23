@@ -51,6 +51,8 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Nombre debajo del ícono (AndroidManifest.xml usa ${appLabel}).
+        manifestPlaceholders["appLabel"] = "Gramonia"
     }
 
     signingConfigs {
@@ -65,6 +67,12 @@ android {
     }
 
     buildTypes {
+        // La de debug es otra app (ar.gramonia.rpg.debug, "Gramonia DEV"): se
+        // instala al lado de la de release sin pisarla, con su propia partida.
+        debug {
+            applicationIdSuffix = ".debug"
+            manifestPlaceholders["appLabel"] = "Gramonia DEV"
+        }
         release {
             // Solo con la clave de release. Si falta, el release falla
             // (ver abajo): así nunca se reparte un APK firmado con debug.
