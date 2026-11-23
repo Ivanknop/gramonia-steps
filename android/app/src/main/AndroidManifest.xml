@@ -6,7 +6,7 @@
     <!-- La app se instala aunque el celular no tenga sensor de pasos. -->
     <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
     <application
-        android:label="Gramonia"
+        android:label="Caminando por Gramonia"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
