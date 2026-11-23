@@ -30,6 +30,7 @@ abstract final class Strings {
   static const dialogueNext = 'Seguir';
   static const nameHint = 'Tu nombre';
   static const nameButton = 'Seguir';
+  static const introButton = '¡Vamos!';
   static const loading = 'Cargando…';
   static const todayLabel = 'Pasos de hoy';
   static String total(int steps) => 'Total: ${formatNumber(steps)} pasos';
@@ -176,6 +177,33 @@ const presentacion = [
 
 const presentacionDespues = [
   Linea(_sofiaSinCaperuza, '¡Qué lindo nombre, {nombre}!'),
+];
+
+// ── Introducción: Mututu despierta ──────────────────────────────────────
+
+const _narracion = Linea.narracion;
+
+const introduccion = [
+  Linea(
+    _narracion,
+    'Lejos, muy lejos, más allá de las Islas Arcoíris, está la Isla Negra.',
+  ),
+  Linea(_narracion, 'Ahí dormía Mututu. Dormía hacía miles y miles de años.'),
+  Linea(
+    _narracion,
+    'Pero una noche, Mututu se despertó. ¡Y se despertó furioso!',
+  ),
+  Linea(
+    _narracion,
+    'Quiere destruir Gramonia. Sobre el mar ya se ven nubes negras.',
+  ),
+  Linea(_narracion, 'Hace falta una heroína que salve la isla.'),
+  Linea(_sofiaSinCaperuza, '¡Yo quiero ser esa heroína! Pero sola no puedo.'),
+  Linea(
+    _sofiaSinCaperuza,
+    '{nombre}, ¿me ayudás? Cada paso que des, lo damos juntos.',
+  ),
+  Linea(_sofiaSinCaperuza, 'Empecemos por el jardín de mi abuelita. ¡Vamos!'),
 ];
 
 // ════════════════════════════════════════════════════════════════════════

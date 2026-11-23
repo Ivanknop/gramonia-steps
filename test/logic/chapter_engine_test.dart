@@ -25,6 +25,7 @@ const _texto = TextoEtapa(
 final testChapter = Chapter(
   name: 'Prueba',
   walkingBackground: 'test',
+  islandBackground: 'test',
   walkingCharacter: 'nena',
   characters: const [Character(id: 'nena', name: 'Nena')],
   items: [
@@ -373,6 +374,7 @@ void main() {
       final quiet = Chapter(
         name: 'Gemas',
         walkingBackground: 'test',
+        islandBackground: 'test',
         walkingCharacter: 'nena',
         characters: const [Character(id: 'nena', name: 'Nena')],
         items: const [

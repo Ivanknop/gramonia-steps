@@ -30,6 +30,10 @@ void main() {
     }
   });
 
+  test('el fondo de la Isla Negra existe', () {
+    expect(File(chapter1.islandBackground).existsSync(), isTrue);
+  });
+
   test('el fondo de caminata existe y está declarado', () {
     final path = chapter1.walkingBackground;
     expect(File(path).existsSync(), isTrue);

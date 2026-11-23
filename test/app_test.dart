@@ -4,6 +4,7 @@ import 'package:rpg/app.dart';
 import 'package:rpg/data/textos.dart';
 import 'package:rpg/logic/step_state.dart';
 import 'package:rpg/ui/step_controller.dart';
+import 'package:rpg/ui/story_screens.dart';
 import 'package:rpg/data/textos.dart' as t;
 import 'package:rpg/ui/dialogue.dart';
 import 'package:rpg/ui/presentation_screen.dart';
@@ -58,6 +59,21 @@ void main() {
     await tester.tap(find.text(Strings.dialogueNext));
     await tester.pumpAndSettle();
     expect(find.byType(PresentationScreen), findsNothing);
+
+    // Introducción: Mututu despierta y Sofía pide ayuda por el nombre.
+    expect(find.byType(IntroScreen), findsOneWidget);
+    for (var i = 1; i < t.introduccion.length; i++) {
+      await tester.tap(find.byType(DialogueView));
+      await tester.pumpAndSettle();
+    }
+    expect(
+      find.text('Regi, ¿me ayudás? Cada paso que des, lo damos juntos.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text(Strings.introButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(IntroScreen), findsNothing);
+    expect(controller.game.introSeen, isTrue);
     expect(find.text(Strings.todayLabel), findsOneWidget);
 
     sensor.emit(100);
@@ -90,7 +106,22 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('con nombre, "Seguir caminando" va directo al juego', (
+  testWidgets('con nombre e intro vista, "Seguir caminando" va al juego', (
+    tester,
+  ) async {
+    final storage = FakeStorage();
+    storage.saved = storage.saved.copyWith(playerName: 'Regi', introSeen: true);
+    final controller = StepController(sensor: FakeSensor(), storage: storage);
+    await tester.pumpWidget(GramoniaApp(controller: controller));
+    await tester.pump();
+    await tester.tap(find.text(Strings.resumeButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(PresentationScreen), findsNothing);
+    expect(find.text(Strings.todayLabel), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('con nombre pero sin la intro vista, se ve la intro', (
     tester,
   ) async {
     final storage = FakeStorage();
@@ -100,8 +131,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.text(Strings.resumeButton));
     await tester.pumpAndSettle();
-    expect(find.byType(PresentationScreen), findsNothing);
-    expect(find.text(Strings.todayLabel), findsOneWidget);
+    expect(find.byType(IntroScreen), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 }

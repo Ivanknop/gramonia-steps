@@ -240,6 +240,7 @@ class Chapter {
     required this.items,
     required this.stages,
     required this.walkingBackground,
+    required this.islandBackground,
     required this.characters,
     required this.walkingCharacter,
   });
@@ -251,6 +252,9 @@ class Chapter {
 
   /// Fondo de los tramos de caminata (el mapa).
   final String walkingBackground;
+
+  /// La Isla Negra: introducción y cierre del capítulo.
+  final String islandBackground;
 
   /// Personaje (por id) que se ve mientras se camina hasta un lugar.
   final String walkingCharacter;

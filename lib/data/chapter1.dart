@@ -24,6 +24,8 @@ const _bienes = ['madera', 'clavos', 'cuerdas', 'bandera', 'ancla'];
 const chapter1 = Chapter(
   name: t.capitulo1,
   walkingBackground: 'assets/backgrounds/walking.webp',
+  // La Isla Negra (el barco frente a la isla de Mututu).
+  islandBackground: 'assets/backgrounds/isla_negra.webp',
   walkingCharacter: 'caperucita_espalda',
   characters: [
     Character(id: 'caperucita_sin_caperuza', name: t.sofia),
