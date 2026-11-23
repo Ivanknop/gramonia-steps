@@ -12,6 +12,9 @@
     "source=gramonia-claude,target=/home/vscode/.claude,type=volume",
     "source=gramonia-android,target=/home/vscode/.android,type=volume"
   ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
