@@ -16,7 +16,13 @@ import '../logic/chapter.dart';
 // ════════════════════════════════════════════════════════════════════════
 
 abstract final class Strings {
-  static const appTitle = 'Gramonia';
+  static const appTitle = 'Caminando por Gramonia';
+
+  // Portada.
+  static const titleLogo = 'Caminando por Gramonia';
+  static const titleSubtitle = 'Basado en los Cuentos de Gramonia';
+  static const startButton = 'Empezar';
+  static const resumeButton = 'Seguir caminando';
   static const loading = 'Cargando…';
   static const todayLabel = 'Pasos de hoy';
   static String total(int steps) => 'Total: ${formatNumber(steps)} pasos';

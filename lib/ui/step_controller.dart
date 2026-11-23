@@ -75,6 +75,9 @@ class StepController extends ChangeNotifier {
   /// Ya se leyó la partida guardada.
   bool get loaded => _loaded;
 
+  /// Ya se empezó a jugar (para "Seguir caminando" en la portada).
+  bool get hasStarted => _game.steps.totalSteps > 0;
+
   StepStatus _status = StepStatus.loading;
   StepStatus get status => _status;
 

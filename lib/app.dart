@@ -4,8 +4,7 @@ import 'services/step_sensor.dart';
 import 'services/game_storage.dart';
 import 'services/step_history_storage.dart';
 import 'data/textos.dart';
-import 'ui/home_screen.dart';
-import 'ui/my_steps_screen.dart';
+import 'ui/game_flow.dart';
 import 'ui/step_controller.dart';
 
 class GramoniaApp extends StatefulWidget {
@@ -59,52 +58,7 @@ class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
     return MaterialApp(
       title: Strings.appTitle,
       theme: ThemeData(colorSchemeSeed: Colors.teal),
-      home: MainScreen(controller: _controller),
-    );
-  }
-}
-
-/// Las dos pestañas: el juego y "Mis pasos".
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key, required this.controller});
-
-  final StepController controller;
-
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  var _tab = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // IndexedStack: el juego sigue vivo (avisos en cola) al cambiar de
-      // pestaña.
-      body: IndexedStack(
-        index: _tab,
-        children: [
-          HomeScreen(controller: widget.controller),
-          MyStepsScreen(controller: widget.controller),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: Strings.tabGame,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: Strings.tabSteps,
-          ),
-        ],
-      ),
+      home: GameFlow(controller: _controller),
     );
   }
 }
