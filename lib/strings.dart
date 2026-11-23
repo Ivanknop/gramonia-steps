@@ -69,6 +69,36 @@ abstract final class Strings {
       'Recompensa de la etapa $number: $stage.';
   static const close = 'Cerrar';
 
+  // Pestañas.
+  static const tabGame = 'Juego';
+  static const tabSteps = 'Mis pasos';
+
+  // Mis pasos.
+  static const historyTitle = 'Mis pasos';
+  static const periodWeek = 'Semana';
+  static const periodMonth = 'Mes';
+  static const periodMonths = 'Meses';
+  static const historySince =
+      'El historial empieza el día que instalaste esta versión.';
+  static String periodTotal(int steps) =>
+      'En total: ${formatNumber(steps)} pasos';
+  static const _weekdays = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
+  static const _months = [
+    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', //
+    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+  ];
+
+  /// 1 = lunes … 7 = domingo (como [DateTime.weekday]).
+  static String weekdayShort(int weekday) => _weekdays[weekday - 1];
+  static String monthName(int month) => _months[month - 1];
+  static String monthShort(int month) => _months[month - 1].substring(0, 3);
+  static String monthTitle(int month, int year) =>
+      '${monthName(month)[0].toUpperCase()}${monthName(month).substring(1)} '
+      '$year';
+  static String weekOfMonth(int week) => 'Sem. $week';
+  static const lastSevenDays = 'Últimos 7 días';
+  static String lastMonths(int count) => 'Últimos $count meses';
+
   // Avisos.
   static String arrived(String stage) => '¡Llegaste! $stage';
 

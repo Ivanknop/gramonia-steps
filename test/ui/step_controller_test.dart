@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rpg/logic/chapter_engine.dart';
 import 'package:rpg/logic/step_state.dart';
+import 'package:rpg/services/step_history_storage.dart';
 import 'package:rpg/services/step_sensor.dart';
 import 'package:rpg/ui/step_controller.dart';
 
@@ -11,11 +12,13 @@ void main() {
   late FakeSensor sensor;
   late FakeStorage storage;
   late FakeClock clock;
+  late MemoryStepHistoryStorage history;
   late StepController c;
 
   StepController make() => StepController(
     sensor: sensor,
     storage: storage,
+    historyStorage: history,
     clock: clock,
     saveDelay: Duration.zero,
     random: FixedRandom(0), // todas las tiradas al azar salen
@@ -26,6 +29,7 @@ void main() {
   setUp(() {
     sensor = FakeSensor();
     storage = FakeStorage();
+    history = MemoryStepHistoryStorage();
     clock = FakeClock(DateTime(2026, 11, 22, 10));
   });
 
@@ -178,5 +182,68 @@ void main() {
     await settle();
     expect(storage.saved.chapter.unseen, 0);
     expect(storage.saved.chapter.foundCount('flor_amarilla'), 1);
+  });
+
+  group('historial', () {
+    test(
+      'al arrancar pasa al historial los pasos ya guardados de hoy',
+      () async {
+        storage = FakeStorage(
+          const StepState(
+            lastReading: 500,
+            totalSteps: 8000,
+            todaySteps: 300,
+            todayDate: '2026-11-22',
+          ),
+        );
+        c = make();
+        await c.start();
+        expect(history.days, {'2026-11-22': 300});
+        expect(c.history.stepsOn(clock.time), 300);
+      },
+    );
+
+    test(
+      'los pasos guardados de otro día también pasan, y hoy arranca en 0',
+      () async {
+        storage = FakeStorage(
+          const StepState(
+            lastReading: 500,
+            totalSteps: 8000,
+            todaySteps: 300,
+            todayDate: '2026-11-21',
+          ),
+        );
+        c = make();
+        await c.start();
+        expect(history.days, {'2026-11-21': 300, '2026-11-22': 0});
+      },
+    );
+
+    test('suma los pasos al día y guarda al cambiar de día', () async {
+      history = MemoryStepHistoryStorage({'2026-11-20': 4000});
+      c = make();
+      await c.start();
+      expect(c.history.days['2026-11-20'], 4000);
+      sensor.emit(100);
+      sensor.emit(350);
+      await settle();
+      await settle();
+      expect(history.days['2026-11-22'], 250);
+
+      clock.time = DateTime(2026, 11, 23, 8);
+      sensor.emit(400);
+      await settle();
+      await settle();
+      expect(history.days['2026-11-22'], 250);
+      expect(history.days['2026-11-23'], 50);
+    });
+
+    test('el botón de debug también suma al día', () async {
+      c = make();
+      await c.start();
+      await c.addDebugSteps(1000);
+      expect(history.days['2026-11-22'], 1000);
+    });
   });
 }
