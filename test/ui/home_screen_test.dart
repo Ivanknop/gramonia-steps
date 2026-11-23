@@ -9,6 +9,7 @@ import 'package:rpg/services/step_sensor.dart';
 import 'package:rpg/data/textos.dart';
 import 'package:rpg/ui/arrival.dart';
 import 'package:rpg/ui/bag.dart';
+import 'package:rpg/ui/credits_screen.dart';
 import 'package:rpg/ui/dialogue.dart';
 import 'package:rpg/ui/ending.dart';
 import 'package:rpg/ui/found_item.dart';
@@ -445,6 +446,11 @@ void main() {
     await tapText(tester, Strings.seeEnding);
     await tester.pumpAndSettle();
     expect(find.byType(EndingScreen), findsOneWidget);
+
+    // Y desde el final, los créditos.
+    await tester.tap(find.text(Strings.creditsButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(CreditsScreen), findsOneWidget);
   });
 
   testWidgets('sin la imagen de la Isla Negra, un fondo oscuro', (

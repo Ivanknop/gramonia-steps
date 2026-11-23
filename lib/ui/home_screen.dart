@@ -11,6 +11,7 @@ import '../logic/chapter_progress.dart';
 import '../data/textos.dart';
 import 'arrival.dart';
 import 'bag.dart';
+import 'credits_screen.dart';
 import 'dialogue.dart';
 import 'ending.dart';
 import 'found_item.dart';
@@ -248,6 +249,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: ObjectKey(current),
                     background: engine.chapter.islandBackground,
                     onBack: _next,
+                    onCredits: () => CreditsScreen.show(
+                      context,
+                      engine.chapter.walkingBackground,
+                    ),
                   ),
                   DialogueMoment(:final stage) => DialogueView(
                     key: ObjectKey(current),

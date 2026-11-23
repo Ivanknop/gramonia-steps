@@ -350,6 +350,22 @@ const dialogoBarco = [
 const cierre = ['El barco navega hacia la Isla Negra.', '¿Qué esconde Mututu?'];
 const continuara = 'Continuará...';
 
+// ── Créditos ────────────────────────────────────────────────────────────
+
+const creditosTitulo = 'Caminando por Gramonia';
+const creditosSubtitulo = 'Basado en los Cuentos de Gramonia';
+
+/// Cada renglón: qué se hizo y quiénes.
+const creditos = [
+  ('Historia y personajes', 'Iván y Regina Knopoff'),
+  (
+    'Ilustraciones y música',
+    'Generadas con Google Gemini a partir de los cuentos',
+  ),
+];
+const creditosBlog = 'https://cuentosdegramonia.substack.com/';
+const creditosBlogBoton = 'Leer los cuentos';
+
 // ════════════════════════════════════════════════════════════════════════
 // CAPÍTULO 1: personajes, etapas, objetos y canjes.
 //

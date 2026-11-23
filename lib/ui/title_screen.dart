@@ -9,6 +9,7 @@ class TitleScreen extends StatelessWidget {
     required this.background,
     required this.started,
     required this.onStart,
+    this.onCredits,
   });
 
   /// El mapa de la isla.
@@ -17,6 +18,7 @@ class TitleScreen extends StatelessWidget {
   /// Si ya se empezó a jugar ("Seguir caminando" en vez de "Empezar").
   final bool started;
   final VoidCallback onStart;
+  final VoidCallback? onCredits;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,7 @@ class TitleScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(24, 48, 24, 40),
               child: Column(
                 children: [
-                  const GameLogo(),
+                  const GameLogo(text: Strings.titleLogo),
                   const SizedBox(height: 12),
                   Text(
                     Strings.titleSubtitle,
@@ -65,6 +67,16 @@ class TitleScreen extends StatelessWidget {
                       started ? Strings.resumeButton : Strings.startButton,
                     ),
                   ),
+                  if (onCredits != null) ...[
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: onCredits,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text(Strings.creditsButton),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -78,7 +90,9 @@ class TitleScreen extends StatelessWidget {
 /// El título "Caminando por Gramonia" como logo: letras grandes con borde
 /// y sombra.
 class GameLogo extends StatelessWidget {
-  const GameLogo({super.key});
+  const GameLogo({super.key, required this.text});
+
+  final String text;
 
   static const shadows = [
     Shadow(blurRadius: 12, color: Colors.black87),
@@ -94,7 +108,7 @@ class GameLogo extends StatelessWidget {
       children: [
         // Borde: el mismo texto, solo con trazo.
         Text(
-          Strings.titleLogo,
+          text,
           textAlign: TextAlign.center,
           style: base.copyWith(
             shadows: shadows,
@@ -106,7 +120,7 @@ class GameLogo extends StatelessWidget {
           ),
         ),
         Text(
-          Strings.titleLogo,
+          text,
           textAlign: TextAlign.center,
           style: base.copyWith(color: const Color(0xFFFFE08A)),
         ),

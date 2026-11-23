@@ -6,6 +6,7 @@ import 'package:rpg/logic/step_state.dart';
 import 'package:rpg/ui/step_controller.dart';
 import 'package:rpg/ui/story_screens.dart';
 import 'package:rpg/data/textos.dart' as t;
+import 'package:rpg/ui/credits_screen.dart';
 import 'package:rpg/ui/dialogue.dart';
 import 'package:rpg/ui/presentation_screen.dart';
 import 'package:rpg/ui/title_screen.dart';
@@ -132,6 +133,22 @@ void main() {
     await tester.tap(find.text(Strings.resumeButton));
     await tester.pumpAndSettle();
     expect(find.byType(IntroScreen), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('desde la portada se abren los créditos', (tester) async {
+    final controller = StepController(
+      sensor: FakeSensor(),
+      storage: FakeStorage(),
+    );
+    await tester.pumpWidget(GramoniaApp(controller: controller));
+    await tester.pump();
+    await tester.tap(find.text(Strings.creditsButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(CreditsScreen), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(TitleScreen), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 }

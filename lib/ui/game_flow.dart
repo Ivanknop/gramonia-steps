@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'credits_screen.dart';
 import 'main_screen.dart';
 import 'presentation_screen.dart';
 import 'story_screens.dart';
@@ -52,6 +53,10 @@ class _GameFlowState extends State<GameFlow> {
             background: controller.engine.chapter.walkingBackground,
             started: controller.hasStarted,
             onStart: _start,
+            onCredits: () => CreditsScreen.show(
+              context,
+              controller.engine.chapter.walkingBackground,
+            ),
           ),
           FlowScreen.presentation => PresentationScreen(
             key: const ValueKey(FlowScreen.presentation),
