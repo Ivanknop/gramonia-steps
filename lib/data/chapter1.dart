@@ -259,6 +259,11 @@ const chapter1 = Chapter(
       background: 'assets/backgrounds/stage_2.webp',
       place: 'Árbol Mágico',
       name: 'El nido del Rocanrón',
+      travelSteps: 3000,
+      travelText:
+          'El Árbol Mágico está en el centro de la isla, donde vive el Hada '
+          'Madrina. Hay que cruzar los prados y un puentecito de madera. '
+          '¡A caminar!',
       intro:
           'En la copa del Árbol Mágico tiene su nido el Rocanrón, un pájaro '
           'enorme que canta como una guitarra eléctrica. Te va a regalar una pluma si le '
@@ -297,6 +302,11 @@ const chapter1 = Chapter(
       background: 'assets/backgrounds/stage_3.webp',
       place: 'Bosque Mágico',
       name: 'El laberinto de las hormigas',
+      travelSteps: 2000,
+      travelText:
+          'Desde el Árbol Mágico, un sendero se mete entre los árboles más '
+          'viejos del Bosque Mágico. Al fondo, las hormigas guardianas cuidan '
+          'la entrada del laberinto.',
       intro:
           'Para salir del Bosque Mágico hay que cruzar el laberinto de las '
           'hormigas '

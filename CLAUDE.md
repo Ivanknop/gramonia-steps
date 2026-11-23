@@ -33,7 +33,7 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 - El azar usa un `Random` con semilla inyectable para los tests.
 - Al completar una etapa se entrega la recompensa y los pasos que sobran pasan a la siguiente (un salto grande puede completar varias).
 - No hay que mirar el celular mientras se camina: los objetos se juntan solos.
-- Capítulo 1: 8 etapas, unos 105.000 pasos en promedio (unas 3 semanas). Empieza en el jardín de la abuelita y termina cuando el barco zarpa. Al cambiar números, repetir la simulación de `docs/diseno.md`.
+- Capítulo 1: 8 etapas, unos 110.000 pasos en promedio (unas 3 semanas y media). Todo cambio de lugar es un tramo de caminata. Empieza en el jardín de la abuelita y termina cuando el barco zarpa. Al cambiar números, repetir la simulación de `docs/diseno.md`.
 - Los `id` de objetos y etapas y el número de etapa quedan guardados en el celular: no se cambian (ni se agregan etapas antes de otras) sin migrar la partida vieja en `lib/logic/game_save.dart`.
 - Monedas, tienda (mejoras para conseguir más objetos) y experiencia quedan para más adelante.
 

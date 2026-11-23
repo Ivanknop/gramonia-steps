@@ -32,7 +32,6 @@ void main() {
       switch (m) {
         FoundMoment(:final item, :final count) => '${item.id}×$count',
         StageMoment(:final stage) => 'fin:${stage.id}',
-        TravelMoment(:final stage) => 'camino:${stage.id}',
       },
   ];
 
@@ -60,15 +59,11 @@ void main() {
 
   test('terminar las flores lilas: cartel, fin de etapa y caminata', () {
     final p = at(1, 700, {'flor_lila': 14});
-    expect(describe(moments(p, 50)), [
-      'flor_lila×1',
-      'fin:casa_abuelita',
-      'camino:nido_rocanron',
-    ]);
+    expect(describe(moments(p, 50)), ['flor_lila×1', 'fin:casa_abuelita']);
   });
 
   test('sin caminata si la etapa siguiente tiene su tramo de llegar', () {
-    final p = at(3, 5000, {
+    final p = at(3, 7000, {
       for (final id in ['hoja', 'gota', 'piedra', 'sol', 'luna'])
         'pieza_$id': 1,
     });
@@ -79,7 +74,7 @@ void main() {
   });
 
   test('un canje: el cartel del objeto lleva el texto del canje', () {
-    final p = at(2, 0, {'semilla_agua': 9});
+    final p = at(2, 3000, {'semilla_agua': 9});
     // A los 50 pasos sale una semilla común (no la de fuego, que es cada 200).
     final found = moments(p, 50).whereType<FoundMoment>().toList();
     expect(found.last.item.id, 'semilla_fuego');
@@ -101,9 +96,10 @@ void main() {
   });
 
   test('como mucho 3 carteles, primero los objetos que pide la etapa', () {
-    // Con todo a favor, 3.500 pasos pasan por el jardín, las flores lilas y
-    // el nido: flores, semillas comunes y semillas de fuego.
-    final found = moments(start, 3500).whereType<FoundMoment>().toList();
+    // Con todo a favor, 6.500 pasos pasan por el jardín, las flores lilas,
+    // el tramo hasta el Árbol Mágico y el nido: flores, semillas comunes y
+    // semillas de fuego.
+    final found = moments(start, 6500).whereType<FoundMoment>().toList();
     expect(found, hasLength(maxFoundMoments));
     expect(found.map((m) => m.item.id), isNot(contains('semilla_agua')));
   });

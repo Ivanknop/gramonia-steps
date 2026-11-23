@@ -39,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Carteles, ventanas de fin de etapa y caminatas, uno después del otro.
   final _queue = <Moment>[];
   Moment? _current;
-  Timer? _travelTimer;
 
   final _stackKey = GlobalKey();
   final _bagKey = GlobalKey<BagButtonState>();
@@ -74,13 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Muestra el próximo momento de la cola (o nada, si está vacía).
   void _next() {
-    _travelTimer?.cancel();
-    _travelTimer = null;
     if (!mounted) return;
     final next = _queue.isEmpty ? null : _queue.removeAt(0);
-    if (next is TravelMoment) {
-      _travelTimer = Timer(WalkingTransition.duration, _next);
-    }
     setState(() => _current = next);
   }
 
@@ -116,7 +110,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _events?.cancel();
-    _travelTimer?.cancel();
     super.dispose();
   }
 
@@ -217,15 +210,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     stage: stage,
                     onDone: _next,
                   ),
-                  TravelMoment(:final stage) => WalkingTransition(
-                    key: ObjectKey(current),
-                    background: engine.chapter.walkingBackground,
-                    character: engine.chapter
-                        .character(engine.chapter.walkingCharacter)
-                        .image,
-                    place: stage.place,
-                    onDone: _next,
-                  ),
                 },
               ),
             ],
@@ -254,75 +238,6 @@ class _HomeScreenState extends State<HomeScreen> {
         precacheImage(image, context);
       }
     });
-  }
-}
-
-/// Pantalla de unos segundos con el mapa y `Caminando hasta <lugar>`, para
-/// las etapas que no tienen tramo de "llegar". Se cierra sola o tocándola.
-class WalkingTransition extends StatelessWidget {
-  const WalkingTransition({
-    super.key,
-    required this.background,
-    required this.character,
-    required this.place,
-    required this.onDone,
-  });
-
-  final String background;
-  final String character;
-  final String place;
-  final VoidCallback onDone;
-
-  static const duration = Duration(seconds: 4);
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onDone,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(background, fit: BoxFit.cover, gaplessPlayback: true),
-          SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Panel(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GameImage.character(character, size: 140),
-                      const SizedBox(height: 8),
-                      Text(
-                        Strings.walkingTo(place),
-                        textAlign: TextAlign.center,
-                        style: text.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // La barra se llena sola mientras dura la transición.
-                      TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0, end: 1),
-                        duration: duration,
-                        builder: (context, value, _) => LinearProgressIndicator(
-                          value: value,
-                          minHeight: 12,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

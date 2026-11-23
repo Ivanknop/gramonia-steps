@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:rpg/data/chapter1.dart';
+import 'package:rpg/logic/chapter.dart';
 import 'package:rpg/logic/chapter_engine.dart';
 import 'package:rpg/logic/chapter_progress.dart';
 import 'package:rpg/logic/game_save.dart';
@@ -92,12 +93,47 @@ void main() {
         '"inventory":{"flor_lila":15,"semilla_agua":4},'
         '"sinceLast":{"semilla_fuego":200}}}';
     final game = decode(v3);
-    // Sigue en el nido del Rocanrón, que ahora es la etapa 3.
+    // Sigue en el nido del Rocanrón, que ahora es la etapa 3, y el tramo
+    // de caminata hasta el Árbol Mágico (de la versión 5) ya está hecho.
     expect(game.chapter.stageIndex, 2);
-    expect(engine.currentStage(game.chapter)!.id, 'nido_rocanron');
-    expect(game.chapter.stepsInStage, 300);
+    final nido = engine.currentStage(game.chapter)!;
+    expect(nido.id, 'nido_rocanron');
+    expect(game.chapter.stepsInStage, nido.travelSteps + 300);
+    expect(engine.isTraveling(game.chapter), isFalse);
     expect(game.chapter.count('semilla_agua'), 4);
     expect(game.chapter.sinceLast, {'semilla_fuego': 200});
     expect(game.chapter.foundCount('flor_lila'), 15);
+  });
+
+  group('partida v4: el tramo nuevo de la etapa cuenta como caminado', () {
+    String v4(int stageIndex, int stepsInStage) =>
+        '{"version":4,"steps":${steps.encode()},'
+        '"chapter":{"stageIndex":$stageIndex,"stepsInStage":$stepsInStage,'
+        '"inventory":{"pieza_hoja":1},"sinceLast":{}}}';
+
+    for (final id in ['nido_rocanron', 'laberinto_hormigas']) {
+      test(id, () {
+        final index = chapter1.stages.indexWhere((s) => s.id == id);
+        final game = decode(v4(index, 1200));
+        final stage = chapter1.stages[index];
+        expect(game.chapter.stageIndex, index);
+        expect(game.chapter.stepsInStage, stage.travelSteps + 1200);
+        expect(engine.isTraveling(game.chapter), isFalse);
+        expect(game.chapter.count('pieza_hoja'), 1);
+      });
+    }
+
+    test('las demás etapas no cambian', () {
+      for (final index in [0, 1, 4, 5, 6, 7]) {
+        expect(decode(v4(index, 1200)).chapter.stepsInStage, 1200);
+      }
+    });
+
+    test('en el laberinto, el próximo objeto fijo sale donde salía', () {
+      final game = decode(v4(3, 1200));
+      final spawn = chapter1.stages[3].spawns.single as FixedSpawn;
+      // Con 1.200 pasos caminados en el laberinto, faltan 800 para la pieza.
+      expect(engine.stepsToNextFixed(game.chapter, spawn), 800);
+    });
   });
 }

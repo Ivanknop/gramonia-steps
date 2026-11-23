@@ -78,8 +78,6 @@ void main() {
         await tester.pump(FoundItemOverlay.flyDuration);
       } else if (find.text(Strings.continueButton).evaluate().isNotEmpty) {
         await tester.tap(find.text(Strings.continueButton));
-      } else if (find.byType(WalkingTransition).evaluate().isNotEmpty) {
-        await tester.tap(find.byType(WalkingTransition));
       } else {
         break;
       }
@@ -123,7 +121,7 @@ void main() {
   );
 
   testWidgets('etapa con objetos al azar y canje', (tester) async {
-    storage.saved = saveAt(2, 300, {'flor_lila': 15, 'semilla_agua': 4});
+    storage.saved = saveAt(2, 3300, {'flor_lila': 15, 'semilla_agua': 4});
     await show(tester);
     expect(find.text(Strings.stageOf(3, 8)), findsOneWidget);
     expect(find.text('El nido del Rocanrón'), findsOneWidget);
@@ -150,7 +148,7 @@ void main() {
   });
 
   testWidgets('etapa con objetos fijos: cuántos pasos faltan', (tester) async {
-    storage.saved = saveAt(3, 1200, {'pieza_hoja': 1});
+    storage.saved = saveAt(3, 3200, {'pieza_hoja': 1});
     await show(tester);
     expect(find.text('Pieza de la gota'), findsOneWidget);
     expect(find.text(Strings.stepsToNext(800)), findsOneWidget);
@@ -215,20 +213,15 @@ void main() {
     await tester.pump();
     await tester.pump(StageBackground.fadeDuration);
 
-    // Y la caminata hasta el Árbol Mágico, que se cierra sola.
-    expect(find.byType(WalkingTransition), findsOneWidget);
-    expect(find.text(Strings.walkingTo('Árbol Mágico')), findsOneWidget);
-    await tester.pump(WalkingTransition.duration);
+    // Y empieza el tramo de caminata hasta el Árbol Mágico, con el mapa.
     await tester.pumpAndSettle(); // Termina el fundido de salida.
-    expect(find.byType(WalkingTransition), findsNothing);
     expect(find.byType(StageDoneOverlay), findsNothing);
-    expect(background(chapter1.stages[2].background), findsOneWidget);
+    expect(find.text(Strings.walkingTo('Árbol Mágico')), findsOneWidget);
+    expect(background(chapter1.walkingBackground), findsOneWidget);
   });
 
-  testWidgets('los carteles y la caminata se cierran antes tocándolos', (
-    tester,
-  ) async {
-    storage.saved = saveAt(2, 0, {'flor_lila': 15, 'semilla_fuego': 2});
+  testWidgets('los carteles se cierran antes tocándolos', (tester) async {
+    storage.saved = saveAt(2, 3000, {'flor_lila': 15, 'semilla_fuego': 2});
     await show(tester);
     // Con todo a favor, la tercera semilla de fuego sale a los 200 pasos.
     await tapText(tester, Strings.debugAdd(debugStepBonus));
@@ -244,18 +237,16 @@ void main() {
     await tester.tap(find.text(Strings.continueButton));
     await tester.pump();
     await tester.pump(StageBackground.fadeDuration);
-    expect(find.text(Strings.walkingTo('Bosque Mágico')), findsOneWidget);
-
-    await tester.tap(find.byType(WalkingTransition));
     await tester.pumpAndSettle(); // Termina el fundido de salida.
-    expect(find.byType(WalkingTransition), findsNothing);
     expect(find.byType(FoundItemOverlay), findsNothing);
+    expect(find.byType(StageDoneOverlay), findsNothing);
+    expect(find.text(Strings.walkingTo('Bosque Mágico')), findsOneWidget);
   });
 
-  testWidgets('sin transición si la etapa nueva tiene su tramo de llegar', (
+  testWidgets('al terminar el laberinto empieza el tramo hasta el Muelle', (
     tester,
   ) async {
-    storage.saved = saveAt(3, 5500, {
+    storage.saved = saveAt(3, 7500, {
       'flor_lila': 15,
       'semilla_fuego': 3,
       'pieza_hoja': 1,
@@ -270,7 +261,6 @@ void main() {
     await tester.pump(StageBackground.fadeDuration);
     expect(engineStage(), 4);
     await closeEverything(tester);
-    expect(find.byType(WalkingTransition), findsNothing);
     // La etapa 4 arranca con su tramo: se ve el mapa en el fondo.
     expect(find.text(Strings.walkingTo('Muelle')), findsOneWidget);
   });
@@ -300,7 +290,7 @@ void main() {
   });
 
   testWidgets('se ve el fondo de la etapa actual', (tester) async {
-    storage.saved = saveAt(3, 0, const {});
+    storage.saved = saveAt(3, 2000, const {});
     await show(tester);
     expect(background(chapter1.stages[3].background), findsOneWidget);
     expect(background(chapter1.stages[2].background), findsNothing);
@@ -312,7 +302,8 @@ void main() {
     storage.saved = saveAt(1, 0, const {}); // Las flores lilas.
     await show(tester);
     final first = chapter1.stages[1].background;
-    final second = chapter1.stages[2].background;
+    // La etapa siguiente empieza con su tramo de caminata: el mapa.
+    final second = chapter1.walkingBackground;
     expect(background(first), findsOneWidget);
 
     await tapText(tester, Strings.debugAdd(debugStepBonus));
@@ -393,7 +384,7 @@ void main() {
   });
 
   testWidgets('canje: el contador va junto a los dibujos', (tester) async {
-    storage.saved = saveAt(2, 300, {'flor_lila': 15, 'semilla_agua': 4});
+    storage.saved = saveAt(2, 3300, {'flor_lila': 15, 'semilla_agua': 4});
     await show(tester);
     expect(gameImage('assets/items/semilla_agua.webp'), findsOneWidget);
     expect(gameImage('assets/items/semilla_hielo.webp'), findsOneWidget);
@@ -490,7 +481,7 @@ void main() {
   testWidgets('si falta un dibujo, se ve un ícono genérico', (tester) async {
     // En el laberinto faltan las hormigas, la salida a la costa, el ramo y
     // la pluma.
-    storage.saved = saveAt(3, 0, const {});
+    storage.saved = saveAt(3, 2000, const {});
     await show(tester);
     await tester.runAsync(() => Future<void>.delayed(Durations.long2));
     await tester.pump();
@@ -522,8 +513,11 @@ void main() {
 
     await tester.tap(find.text(Strings.continueButton));
     await tester.pumpAndSettle();
-    // Mismo lugar (la Aldea): no hay caminata.
-    expect(find.byType(WalkingTransition), findsNothing);
+    // Mismo lugar (la Aldea): no hay tramo de caminata.
+    expect(
+      find.text(Strings.walkingTo('Aldea de las Caperucitas')),
+      findsNothing,
+    );
     expect(find.text(Strings.stageOf(2, 8)), findsOneWidget);
   });
 }

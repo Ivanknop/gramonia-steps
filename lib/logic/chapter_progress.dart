@@ -54,6 +54,16 @@ class ChapterProgress {
     unseen: unseen,
   );
 
+  /// La misma partida, con otros pasos dentro de la etapa.
+  ChapterProgress withStepsInStage(int steps) => ChapterProgress(
+    stageIndex: stageIndex,
+    stepsInStage: steps,
+    inventory: inventory,
+    sinceLast: sinceLast,
+    found: found,
+    unseen: unseen,
+  );
+
   ChapterProgress copyWith({int? unseen}) => ChapterProgress(
     stageIndex: stageIndex,
     stepsInStage: stepsInStage,

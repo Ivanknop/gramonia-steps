@@ -15,10 +15,14 @@ class GameSave {
 
   /// 3: etapas con inventario por cantidades (azar, fijos, canjes).
   /// 4: se sumó una etapa al principio (el paseo por el jardín).
-  static const int version = 4;
+  /// 5: el nido y el laberinto empiezan con un tramo de caminata.
+  static const int version = 5;
 
   /// Etapas que se agregaron al principio del capítulo en la versión 4.
   static const int _stagesAddedInV4 = 1;
+
+  /// Etapas que en la versión 4 no tenían tramo de caminata y en la 5 sí.
+  static const _travelAddedInV5 = {'nido_rocanron', 'laberinto_hormigas'};
 
   final StepState steps;
   final ChapterProgress chapter;
@@ -52,19 +56,20 @@ class GameSave {
     final json = _tryDecodeMap(source);
     if (json != null) {
       steps = _tryParse(() => StepState.fromJson(_map(json['steps'])));
-      if (json['version'] == version) {
-        chapter = _tryParse(
+      final saved = switch (json['version']) {
+        3 || 4 || version => _tryParse(
           () => ChapterProgress.fromJson(_map(json['chapter'])),
-        );
-      } else if (json['version'] == 3) {
+        ),
+        _ => null,
+      };
+      chapter = switch ((json['version'], saved)) {
+        (_, null) => null,
+        (version, final p?) => p,
+        (4, final p?) => _addTravelV5(p, engine),
         // La partida ya había empezado: el paseo por el jardín cuenta como
         // hecho y sigue en la misma etapa que tenía.
-        chapter = _tryParse(
-          () =>
-              ChapterProgress.fromJson(_map(json['chapter']))
-                  .shiftStages(_stagesAddedInV4),
-        );
-      }
+        (_, final p?) => _addTravelV5(p.shiftStages(_stagesAddedInV4), engine),
+      };
     }
 
     steps ??= StepState.decode(legacySource);
@@ -77,6 +82,15 @@ class GameSave {
         .progress;
 
     return GameSave(steps: steps, chapter: chapter);
+  }
+
+  /// Si la partida estaba en una etapa que ganó su tramo de caminata, ese
+  /// tramo ya se caminó: se suma a los pasos de la etapa (así sigue juntando
+  /// objetos donde estaba).
+  static ChapterProgress _addTravelV5(ChapterProgress p, ChapterEngine engine) {
+    final stage = engine.currentStage(p);
+    if (stage == null || !_travelAddedInV5.contains(stage.id)) return p;
+    return p.withStepsInStage(p.stepsInStage + stage.travelSteps);
   }
 
   @override

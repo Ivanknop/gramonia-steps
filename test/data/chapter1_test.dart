@@ -50,6 +50,15 @@ void main() {
     ]);
   });
 
+  test('todo cambio de lugar es un tramo de caminata', () {
+    final stages = chapter1.stages;
+    for (var i = 1; i < stages.length; i++) {
+      if (stages[i].place != stages[i - 1].place) {
+        expect(stages[i].hasTravel, isTrue, reason: stages[i].id);
+      }
+    }
+  });
+
   test('ningún texto está vacío', () {
     for (final item in chapter1.items) {
       expect(item.name.trim(), isNotEmpty, reason: item.id);

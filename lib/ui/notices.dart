@@ -27,13 +27,6 @@ class StageMoment extends Moment {
   final Stage stage;
 }
 
-/// Pantalla de unos segundos `Caminando hasta <lugar>`, para las etapas que
-/// no tienen tramo de "llegar" (sin pasos extra: no cambia el balance).
-class TravelMoment extends Moment {
-  const TravelMoment(this.stage);
-  final Stage stage;
-}
-
 /// Como mucho se muestran estos carteles de objetos por cada avance (por
 /// ejemplo, al abrir la app después de caminar mucho). El resto va directo
 /// a la bolsa.
@@ -45,8 +38,6 @@ const maxFoundMoments = 3;
 /// - Los objetos sin aviso (gemas) no tienen cartel.
 /// - Si hay más de [maxFoundMoments] carteles, quedan primero los objetos
 ///   que pide la etapa.
-/// - Después de terminar una etapa, si la siguiente es en otro lugar y no
-///   tiene tramo de "llegar", va la pantalla de caminata.
 List<Moment> momentsFor(Chapter chapter, List<ChapterEvent> events) {
   // Carteles agrupados por etapa y objeto, en orden de aparición.
   final groups = <(Stage, String), _Group>{};
@@ -60,12 +51,6 @@ List<Moment> momentsFor(Chapter chapter, List<ChapterEvent> events) {
         _add(groups, order, stage, item, message);
       case StageCompleted(:final stage):
         order.add(StageMoment(stage));
-        final i = chapter.stages.indexOf(stage) + 1;
-        final next = i < chapter.stages.length ? chapter.stages[i] : null;
-        // Sin tramo de "llegar" y en otro lugar: se muestra la caminata.
-        if (next != null && !next.hasTravel && next.place != stage.place) {
-          order.add(TravelMoment(next));
-        }
       case ItemFound() || Arrived() || ChapterCompleted():
         break;
     }
