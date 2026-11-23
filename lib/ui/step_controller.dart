@@ -103,6 +103,14 @@ class StepController extends ChangeNotifier {
     }
   }
 
+  /// Al abrir la bolsa, el número de objetos nuevos vuelve a 0.
+  void markBagSeen() {
+    if (_disposed || _game.chapter.unseen == 0) return;
+    _game = _game.copyWith(chapter: engine.markSeen(_game.chapter));
+    notifyListeners();
+    _scheduleSave();
+  }
+
   Future<void> addDebugSteps(int steps) async {
     _update(tracker.addDebugSteps(state, steps, clock.now()));
     await _flush();

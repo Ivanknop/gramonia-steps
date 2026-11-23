@@ -7,19 +7,52 @@ class ItemType {
   const ItemType({
     required this.id,
     required this.name,
+    required this.foundName,
     required this.message,
     this.notify = true,
+    this._image,
   });
 
   /// Se guarda en el celular: no cambiarlo sin migrar la partida.
   final String id;
   final String name;
 
+  /// Nombre con artículo, para "¡Encontraste `foundName`!".
+  final String foundName;
+
+  final String? _image;
+
+  /// Dibujo (ruta del asset). Por defecto, `assets/items/<id>.webp`.
+  String get image => _image ?? 'assets/items/$id.webp';
+
   /// Texto del aviso al conseguirlo.
   final String message;
 
   /// Si es falso, no hay aviso propio (objetos muy frecuentes, como gemas).
   final bool notify;
+}
+
+/// Lo que se gana al terminar una etapa. No se guarda en el celular: se
+/// deduce de la etapa en la que va la partida.
+class Reward {
+  const Reward({required this.id, required this.name, this._image});
+
+  final String id;
+  final String name;
+  final String? _image;
+
+  /// Dibujo (ruta del asset). Por defecto, `assets/items/<id>.webp`.
+  String get image => _image ?? 'assets/items/$id.webp';
+}
+
+/// Un personaje que aparece junto a los textos de la historia.
+class Character {
+  const Character({required this.id, required this.name});
+
+  final String id;
+  final String name;
+
+  String get image => 'assets/characters/$id.webp';
 }
 
 /// Cómo aparece un objeto mientras se camina.
@@ -99,6 +132,8 @@ class Stage {
     required this.completeMessage,
     required this.background,
     required this.place,
+    required this.introCharacter,
+    required this.completeCharacter,
   });
 
   /// Se guarda en el celular: no cambiarlo sin migrar la partida.
@@ -121,8 +156,12 @@ class Stage {
   final List<Requirement> requirements;
   final List<Spawn> spawns;
   final List<Exchange> exchanges;
-  final String reward;
+  final Reward reward;
   final String completeMessage;
+
+  /// Personajes (por id) junto a la intro y en la ventana de fin de etapa.
+  final String introCharacter;
+  final String completeCharacter;
 
   bool get hasTravel => travelSteps > 0;
 
@@ -142,17 +181,69 @@ class Chapter {
     required this.items,
     required this.stages,
     required this.walkingBackground,
+    required this.characters,
+    required this.walkingCharacter,
   });
 
   final String name;
   final List<ItemType> items;
   final List<Stage> stages;
+  final List<Character> characters;
 
   /// Fondo de los tramos de caminata (el mapa).
   final String walkingBackground;
+
+  /// Personaje (por id) que se ve mientras se camina hasta un lugar.
+  final String walkingCharacter;
+
+  Character character(String id) => characters.firstWhere(
+    (c) => c.id == id,
+    orElse: () => throw ArgumentError('Personaje desconocido: $id'),
+  );
+
+  /// Etapa (índice) donde aparece el objeto, o null si no aparece en
+  /// ninguna.
+  int? stageWhereFound(String itemId) {
+    for (var i = 0; i < stages.length; i++) {
+      final stage = stages[i];
+      if (stage.spawns.any((s) => s.items.contains(itemId)) ||
+          stage.exchanges.any((e) => e.outputs.contains(itemId))) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  /// Para qué sirve un objeto (en la bolsa).
+  List<ItemUse> usesOf(String itemId) => [
+    for (final stage in stages) ...[
+      if (stage.isRequired(itemId))
+        NeededFor(stage, stage.requiredCount(itemId)),
+      for (final exchange in stage.exchanges)
+        if (exchange.inputs.contains(itemId)) TradedIn(stage, exchange),
+    ],
+  ];
 
   ItemType item(String id) => items.firstWhere(
     (i) => i.id == id,
     orElse: () => throw ArgumentError('Objeto desconocido: $id'),
   );
+}
+
+/// Para qué sirve un objeto.
+sealed class ItemUse {
+  const ItemUse(this.stage);
+  final Stage stage;
+}
+
+/// La etapa pide [count] de este objeto.
+class NeededFor extends ItemUse {
+  const NeededFor(super.stage, this.count);
+  final int count;
+}
+
+/// Se junta para un canje de la etapa.
+class TradedIn extends ItemUse {
+  const TradedIn(super.stage, this.exchange);
+  final Exchange exchange;
 }

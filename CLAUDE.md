@@ -33,8 +33,8 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 - El azar usa un `Random` con semilla inyectable para los tests.
 - Al completar una etapa se entrega la recompensa y los pasos que sobran pasan a la siguiente (un salto grande puede completar varias).
 - No hay que mirar el celular mientras se camina: los objetos se juntan solos.
-- Capítulo 1: 7 etapas, unos 100.000 pasos en promedio (unas 3 semanas). Termina cuando el barco zarpa. Al cambiar números, repetir la simulación de `docs/diseno.md`.
-- Los `id` de objetos y etapas quedan guardados en el celular: no se cambian sin migrar la partida vieja.
+- Capítulo 1: 8 etapas, unos 105.000 pasos en promedio (unas 3 semanas). Empieza en el jardín de la abuelita y termina cuando el barco zarpa. Al cambiar números, repetir la simulación de `docs/diseno.md`.
+- Los `id` de objetos y etapas y el número de etapa quedan guardados en el celular: no se cambian (ni se agregan etapas antes de otras) sin migrar la partida vieja en `lib/logic/game_save.dart`.
 - Monedas, tienda (mejoras para conseguir más objetos) y experiencia quedan para más adelante.
 
 ## Plan de desarrollo
@@ -51,4 +51,6 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 - Conectar el celular por WiFi (depuración inalámbrica): `adb pair IP:PUERTO` y después `adb connect IP:PUERTO`; verificar con `adb devices`.
 - Correr en el celular: `flutter run`
 - Simular el balance del capítulo (1.000 partidas): `dart run tool/simulate.dart`
+- Convertir dibujos de `arte/` a WebP: `python3 tool/convert_art.py` (el nombre del archivo es el `id`).
+- Ver qué dibujos faltan o sobran: `dart run tool/check_art.dart`
 - APK de release: `flutter build apk --release` (sale en `build/app/outputs/flutter-apk/`).

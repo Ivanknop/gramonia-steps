@@ -75,7 +75,7 @@ void main() {
 
   test('si el capítulo guardado está roto, se rehace con los pasos', () {
     final source =
-        '{"version":3,"steps":${steps.encode()},"chapter":{"stageIndex":"x"}}';
+        '{"version":4,"steps":${steps.encode()},"chapter":{"stageIndex":"x"}}';
     final game = decode(source);
     expect(game.steps, steps);
     expect(game.chapter.stepsInStage, 64);
@@ -83,5 +83,21 @@ void main() {
 
   test('todo roto arranca de cero sin romperse', () {
     expect(decode('{roto', legacy: 'roto'), const GameSave.initial());
+  });
+
+  test('partida v3: el paseo por el jardín cuenta como hecho', () {
+    final v3 =
+        '{"version":3,"steps":${steps.encode()},'
+        '"chapter":{"stageIndex":1,"stepsInStage":300,'
+        '"inventory":{"flor_lila":15,"semilla_agua":4},'
+        '"sinceLast":{"semilla_fuego":200}}}';
+    final game = decode(v3);
+    // Sigue en el nido del Rocanrón, que ahora es la etapa 3.
+    expect(game.chapter.stageIndex, 2);
+    expect(engine.currentStage(game.chapter)!.id, 'nido_rocanron');
+    expect(game.chapter.stepsInStage, 300);
+    expect(game.chapter.count('semilla_agua'), 4);
+    expect(game.chapter.sinceLast, {'semilla_fuego': 200});
+    expect(game.chapter.foundCount('flor_lila'), 15);
   });
 }

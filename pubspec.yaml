@@ -66,6 +66,8 @@ flutter:
   # Fondos de las etapas (WebP, convertidos desde arte/, que no va a git).
   assets:
     - assets/backgrounds/
+    - assets/items/
+    - assets/characters/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

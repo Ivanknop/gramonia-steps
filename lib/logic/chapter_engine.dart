@@ -60,6 +60,14 @@ class ChapterEngine {
     return StageStatus.locked;
   }
 
+  /// Recompensas de las etapas ya terminadas.
+  List<Reward> rewardsEarned(ChapterProgress p) => [
+    for (final stage in chapter.stages.take(p.stageIndex)) stage.reward,
+  ];
+
+  /// Al abrir la bolsa: ya no hay nada nuevo sin ver.
+  ChapterProgress markSeen(ChapterProgress p) => p.copyWith(unseen: 0);
+
   /// Si la etapa actual todavía está en el tramo de "llegar".
   bool isTraveling(ChapterProgress p) {
     final stage = currentStage(p);
@@ -165,8 +173,10 @@ class ChapterEngine {
   }
 
   void _give(Stage stage, String itemId, _Run run) {
+    final item = chapter.item(itemId);
     run.inventory[itemId] = (run.inventory[itemId] ?? 0) + 1;
-    run.events.add(ItemFound(stage, chapter.item(itemId)));
+    run.addFound(item);
+    run.events.add(ItemFound(stage, item));
     _applyExchanges(stage, run);
   }
 
@@ -185,8 +195,10 @@ class ChapterEngine {
           run.inventory[id] = (run.inventory[id] ?? 0) - take;
           toTake -= take;
         }
+        final item = chapter.item(output);
         run.inventory[output] = (run.inventory[output] ?? 0) + 1;
-        run.events.add(ExchangeMade(stage, exchange, chapter.item(output)));
+        run.addFound(item);
+        run.events.add(ExchangeMade(stage, exchange, item));
       }
     }
   }
@@ -221,18 +233,31 @@ class _Run {
     : stageIndex = p.stageIndex,
       inStage = p.stepsInStage,
       inventory = {...p.inventory},
-      sinceLast = {...p.sinceLast};
+      sinceLast = {...p.sinceLast},
+      found = {...p.found},
+      unseen = p.unseen;
 
   int stageIndex;
   int inStage;
   final Map<String, int> inventory;
   final Map<String, int> sinceLast;
+  final Map<String, int> found;
+  int unseen;
   final events = <ChapterEvent>[];
+
+  /// Lo cuenta para la bolsa. Los objetos sin aviso (gemas) no suman al
+  /// número de "nuevos".
+  void addFound(ItemType item) {
+    found[item.id] = (found[item.id] ?? 0) + 1;
+    if (item.notify) unseen++;
+  }
 
   ChapterProgress toProgress() => ChapterProgress(
     stageIndex: stageIndex,
     stepsInStage: inStage,
     inventory: Map.unmodifiable(inventory),
     sinceLast: Map.unmodifiable(sinceLast),
+    found: Map.unmodifiable(found),
+    unseen: unseen,
   );
 }

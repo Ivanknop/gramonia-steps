@@ -132,13 +132,13 @@ void main() {
     final received = <List<ChapterEvent>>[];
     c.events.listen(received.add);
     await c.start();
-    // Con todo a favor, 1.000 pasos dan 15 flores (a los 750) y pasan
-    // a la etapa 2 con 250 pasos.
-    await c.addDebugSteps(1000);
+    // 2.000 pasos dan 15 flores amarillas (una cada 100, a los 1.500) y
+    // pasan a la etapa 2 con 500 pasos.
+    await c.addDebugSteps(2000);
     await settle();
-    expect(c.game.chapter.count('flor_lila'), 15);
+    expect(c.game.chapter.count('flor_amarilla'), 15);
     expect(c.game.chapter.stageIndex, 1);
-    expect(c.game.chapter.stepsInStage, 250);
+    expect(c.game.chapter.stepsInStage, 500);
     expect(received, hasLength(1));
     expect(received.single.whereType<StageCompleted>(), hasLength(1));
     expect(storage.saved.chapter, c.game.chapter);
@@ -150,13 +150,13 @@ void main() {
     c.events.listen(received.addAll);
     await c.start();
     sensor.emit(5000); // base
-    sensor.emit(5060); // +60: una tirada de flor (cada 50)
+    sensor.emit(5120); // +120: una flor amarilla (cada 100)
     await settle();
     await settle();
-    expect(c.game.chapter.stepsInStage, 60);
-    expect(c.game.chapter.count('flor_lila'), 1);
+    expect(c.game.chapter.stepsInStage, 120);
+    expect(c.game.chapter.count('flor_amarilla'), 1);
     expect(received.single, isA<ItemFound>());
-    expect(storage.saved.chapter.count('flor_lila'), 1);
+    expect(storage.saved.chapter.count('flor_amarilla'), 1);
   });
 
   test('el cambio de día no avanza el capítulo', () async {
@@ -166,5 +166,17 @@ void main() {
     clock.time = DateTime(2026, 11, 23, 8);
     c.refreshDay();
     expect(c.game.chapter.stepsInStage, 100);
+  });
+
+  test('al abrir la bolsa, lo nuevo sin ver vuelve a 0 y se guarda', () async {
+    c = make();
+    await c.start();
+    await c.addDebugSteps(100); // Sale una flor.
+    expect(c.game.chapter.unseen, 1);
+    c.markBagSeen();
+    expect(c.game.chapter.unseen, 0);
+    await settle();
+    expect(storage.saved.chapter.unseen, 0);
+    expect(storage.saved.chapter.foundCount('flor_amarilla'), 1);
   });
 }

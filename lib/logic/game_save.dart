@@ -14,7 +14,11 @@ class GameSave {
       chapter = const ChapterProgress.initial();
 
   /// 3: etapas con inventario por cantidades (azar, fijos, canjes).
-  static const int version = 3;
+  /// 4: se sumó una etapa al principio (el paseo por el jardín).
+  static const int version = 4;
+
+  /// Etapas que se agregaron al principio del capítulo en la versión 4.
+  static const int _stagesAddedInV4 = 1;
 
   final StepState steps;
   final ChapterProgress chapter;
@@ -51,6 +55,14 @@ class GameSave {
       if (json['version'] == version) {
         chapter = _tryParse(
           () => ChapterProgress.fromJson(_map(json['chapter'])),
+        );
+      } else if (json['version'] == 3) {
+        // La partida ya había empezado: el paseo por el jardín cuenta como
+        // hecho y sigue en la misma etapa que tenía.
+        chapter = _tryParse(
+          () =>
+              ChapterProgress.fromJson(_map(json['chapter']))
+                  .shiftStages(_stagesAddedInV4),
         );
       }
     }

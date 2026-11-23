@@ -8,12 +8,15 @@ import 'package:test/test.dart';
 
 import '../fakes/fake_random.dart';
 
-ItemType _item(String id) => ItemType(id: id, name: id, message: 'msg $id');
+ItemType _item(String id) =>
+    ItemType(id: id, name: id, foundName: id, message: 'msg $id');
 
 /// Capítulo chico para probar cada mecánica por separado.
 final testChapter = Chapter(
   name: 'Prueba',
   walkingBackground: 'test',
+  walkingCharacter: 'nena',
+  characters: const [Character(id: 'nena', name: 'Nena')],
   items: [
     for (final id in [
       'flor',
@@ -37,10 +40,12 @@ final testChapter = Chapter(
       spawns: [
         RandomSpawn(items: ['flor'], every: 10, oneIn: 5),
       ],
-      reward: 'r',
+      reward: Reward(id: 'r', name: 'r'),
       completeMessage: 'c',
       background: 'test',
       place: 'lugar',
+      introCharacter: 'nena',
+      completeCharacter: 'nena',
     ),
     // 1: fijos en orden, cada 100.
     Stage(
@@ -51,10 +56,12 @@ final testChapter = Chapter(
       spawns: [
         FixedSpawn(items: ['pieza1', 'pieza2'], every: 100),
       ],
-      reward: 'r',
+      reward: Reward(id: 'r', name: 'r'),
       completeMessage: 'c',
       background: 'test',
       place: 'lugar',
+      introCharacter: 'nena',
+      completeCharacter: 'nena',
     ),
     // 2: llegar 50, fuego muy raro, agua común; 3 aguas → 1 fuego.
     Stage(
@@ -71,10 +78,12 @@ final testChapter = Chapter(
       exchanges: [
         Exchange(inputs: ['agua'], count: 3, outputs: ['fuego'], message: 'm'),
       ],
-      reward: 'r',
+      reward: Reward(id: 'r', name: 'r'),
       completeMessage: 'c',
       background: 'test',
       place: 'lugar',
+      introCharacter: 'nena',
+      completeCharacter: 'nena',
     ),
     // 3: canje que da el primero que falte de varios.
     Stage(
@@ -93,10 +102,12 @@ final testChapter = Chapter(
           message: '{item}',
         ),
       ],
-      reward: 'r',
+      reward: Reward(id: 'r', name: 'r'),
       completeMessage: 'c',
       background: 'test',
       place: 'lugar',
+      introCharacter: 'nena',
+      completeCharacter: 'nena',
     ),
   ],
 );
@@ -337,6 +348,93 @@ void main() {
       }
       final average = total / 300;
       expect(average, inInclusiveRange(90000, 120000));
+    });
+  });
+
+  group('bolsa', () {
+    test('cada objeto suma a lo conseguido y a lo nuevo sin ver', () {
+      final p = engine.advance(start, 30, FixedRandom(0)).progress;
+      expect(p.foundCount('flor'), 3);
+      expect(p.unseen, 3);
+    });
+
+    test('los canjes descuentan del inventario pero no de lo conseguido', () {
+      const p = ChapterProgress(
+        stageIndex: 2,
+        stepsInStage: 50,
+        inventory: {},
+        sinceLast: {},
+      );
+      final after = engine.advance(p, 30, FixedRandom(1)).progress;
+      expect(after.count('agua'), 0);
+      expect(after.foundCount('agua'), 3);
+      expect(after.foundCount('fuego'), 1); // El del canje también cuenta.
+      expect(after.unseen, 4);
+    });
+
+    test('los objetos sin aviso no suman a lo nuevo sin ver', () {
+      final quiet = Chapter(
+        name: 'Gemas',
+        walkingBackground: 'test',
+        walkingCharacter: 'nena',
+        characters: const [Character(id: 'nena', name: 'Nena')],
+        items: const [
+          ItemType(
+            id: 'gema',
+            name: 'Gema',
+            foundName: 'una gema',
+            message: 'm',
+            notify: false,
+          ),
+          ItemType(id: 'oro', name: 'Oro', foundName: 'oro', message: 'm'),
+        ],
+        stages: const [
+          Stage(
+            id: 's',
+            name: 'S',
+            intro: 'i',
+            requirements: [Requirement('oro')],
+            spawns: [
+              FixedSpawn(items: ['gema'], every: 10),
+            ],
+            exchanges: [
+              Exchange(
+                inputs: ['gema'],
+                count: 5,
+                outputs: ['oro'],
+                message: 'm',
+              ),
+            ],
+            reward: Reward(id: 'r', name: 'r'),
+            completeMessage: 'c',
+            background: 'test',
+            place: 'lugar',
+            introCharacter: 'nena',
+            completeCharacter: 'nena',
+          ),
+        ],
+      );
+      final p = ChapterEngine(quiet)
+          .advance(start, 50, FixedRandom(0))
+          .progress;
+      expect(p.foundCount('gema'), 5);
+      expect(p.unseen, 1); // Solo el oro del canje.
+    });
+
+    test('al abrir la bolsa, no queda nada nuevo', () {
+      final p = engine.advance(start, 30, FixedRandom(0)).progress;
+      final seen = engine.markSeen(p);
+      expect(seen.unseen, 0);
+      expect(seen.found, p.found);
+    });
+
+    test('las recompensas son las de las etapas terminadas', () {
+      expect(engine.rewardsEarned(start), isEmpty);
+      final p = engine.advance(start, 1000000, FixedRandom(0)).progress;
+      expect(
+        engine.rewardsEarned(p),
+        testChapter.stages.map((s) => s.reward).toList(),
+      );
     });
   });
 }

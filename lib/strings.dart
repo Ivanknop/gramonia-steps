@@ -36,14 +36,41 @@ abstract final class Strings {
   static const journeyTitle = 'El viaje';
   static const chapterDoneTitle = '¡El barco zarpó!';
 
+  // Objetos conseguidos.
+  static String found(String foundName) => '¡Encontraste $foundName!';
+  static String foundMany(String name, int count) =>
+      '¡Encontraste $name ×$count!';
+  static const tapToContinue = 'Tocá para seguir';
+
+  // Fin de etapa.
+  static const stageDoneTitle = '¡Etapa completada!';
+  static String youGot(String reward) => 'Conseguiste: $reward';
+  static const continueButton = '¡Seguir!';
+
+  // Bolsa.
+  static const bagTitle = 'Tu bolsa';
+  static const bagButton = 'Abrir la bolsa';
+  static const bagItems = 'Objetos';
+  static const bagRewards = 'Recompensas';
+  static const bagEmpty = 'Todavía no conseguiste nada. ¡A caminar!';
+  static const noRewardsYet = 'Las recompensas llegan al terminar cada etapa.';
+  static String times(int count) => '×$count';
+  static String neededFor(int count, String stage) => count == 1
+      ? 'Lo pide la etapa «$stage».'
+      : 'Hay que juntar $count para la etapa «$stage».';
+  static String tradedFor(int count, String output, String? together) =>
+      together == null
+      ? 'Juntá $count y se cambian por $output.'
+      : 'Junto con $together, juntá $count y se cambian por $output.';
+  static String whatIsMissing(String stage) => 'lo que falte para «$stage»';
+  static String foundIn(int number, String stage) =>
+      'Se consigue en la etapa $number: $stage.';
+  static String rewardOf(int number, String stage) =>
+      'Recompensa de la etapa $number: $stage.';
+  static const close = 'Cerrar';
+
   // Avisos.
   static String arrived(String stage) => '¡Llegaste! $stage';
-  static String collectedSummary(int items, int stages) {
-    final itemsText = items == 1 ? '1 objeto' : '$items objetos';
-    if (stages == 0) return '¡Conseguiste $itemsText!';
-    final stagesText = stages == 1 ? '1 etapa' : '$stages etapas';
-    return '¡Conseguiste $itemsText y terminaste $stagesText!';
-  }
 
   /// 12345 → "12.345".
   static String formatNumber(int n) {

@@ -9,8 +9,12 @@ import '../logic/chapter.dart';
 import '../logic/chapter_engine.dart';
 import '../logic/chapter_progress.dart';
 import '../strings.dart';
+import 'bag.dart';
+import 'found_item.dart';
 import 'notices.dart';
+import 'stage_done.dart';
 import 'step_controller.dart';
+import 'widgets.dart';
 
 /// Pantalla única: pasos, etapa actual con lo que hay que juntar y el viaje.
 class HomeScreen extends StatefulWidget {
@@ -32,6 +36,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<List<ChapterEvent>>? _events;
 
+  /// Carteles, ventanas de fin de etapa y caminatas, uno después del otro.
+  final _queue = <Moment>[];
+  Moment? _current;
+  Timer? _travelTimer;
+
+  final _stackKey = GlobalKey();
+  final _bagKey = GlobalKey<BagButtonState>();
+
   @override
   void initState() {
     super.initState();
@@ -40,8 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onEvents(List<ChapterEvent> events) {
     if (!mounted) return;
-    _maybeStartTransition(events);
     _showNotice(events);
+    _queue.addAll(momentsFor(widget.controller.engine.chapter, events));
+    if (_current == null) _next();
+    setState(() {}); // El número de la bolsa descuenta lo que está en camino.
   }
 
   void _showNotice(List<ChapterEvent> events) {
@@ -52,9 +66,49 @@ class _HomeScreenState extends State<HomeScreen> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(text),
-        // Los textos largos (fin de etapa) quedan más tiempo.
-        duration: Duration(seconds: max(4, text.length ~/ 15)),
+        duration: const Duration(seconds: 4),
         showCloseIcon: true,
+      ),
+    );
+  }
+
+  /// Muestra el próximo momento de la cola (o nada, si está vacía).
+  void _next() {
+    _travelTimer?.cancel();
+    _travelTimer = null;
+    if (!mounted) return;
+    final next = _queue.isEmpty ? null : _queue.removeAt(0);
+    if (next is TravelMoment) {
+      _travelTimer = Timer(WalkingTransition.duration, _next);
+    }
+    setState(() => _current = next);
+  }
+
+  void _onLanded() {
+    _bagKey.currentState?.bounce();
+    _next();
+  }
+
+  /// Objetos que todavía están por volar a la bolsa: no cuentan como nuevos
+  /// hasta que llegan.
+  int get _inFlight => [
+    ?_current,
+    ..._queue,
+  ].whereType<FoundMoment>().fold(0, (sum, m) => sum + m.count);
+
+  /// Centro de la bolsa, en coordenadas de la pantalla.
+  Offset _bagCenter() {
+    final bag = _bagKey.currentContext?.findRenderObject() as RenderBox?;
+    final stack = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+    if (bag == null || stack == null) return Offset.zero;
+    return stack.globalToLocal(bag.localToGlobal(bag.size.center(Offset.zero)));
+  }
+
+  void _openBag() {
+    widget.controller.markBagSeen();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => BagScreen(controller: widget.controller),
       ),
     );
   }
@@ -62,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _events?.cancel();
-    _transitionTimer?.cancel();
+    _travelTimer?.cancel();
     super.dispose();
   }
 
@@ -84,8 +138,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ? engine.chapter.walkingBackground
               : (stage ?? engine.chapter.stages.last).background;
           _precacheNext(chapter.stageIndex);
-          final transition = _transitionTo;
+          final current = _current;
           return Stack(
+            key: _stackKey,
             fit: StackFit.expand,
             children: [
               StageBackground(asset: background),
@@ -120,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _JourneyCard(engine: engine, progress: chapter),
                       if (widget.showDebug) ...[
                         const SizedBox(height: 12),
-                        _Panel(
+                        Panel(
                           padding: const EdgeInsets.all(8),
                           child: OutlinedButton(
                             onPressed: () =>
@@ -133,47 +188,51 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              // Transición a una etapa sin tramo de "llegar" (2 y 3).
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: BagButton(
+                      key: _bagKey,
+                      unseen: max(0, chapter.unseen - _inFlight),
+                      onTap: _openBag,
+                    ),
+                  ),
+                ),
+              ),
               AnimatedSwitcher(
                 duration: StageBackground.fadeDuration,
-                child: transition == null
-                    ? const SizedBox.shrink()
-                    : WalkingTransition(
-                        key: ValueKey(transition.id),
-                        background: engine.chapter.walkingBackground,
-                        place: transition.place,
-                        onDone: _endTransition,
-                      ),
+                child: switch (current) {
+                  null => const SizedBox.shrink(),
+                  FoundMoment() => FoundItemOverlay(
+                    key: ObjectKey(current),
+                    moment: current,
+                    target: _bagCenter,
+                    onLanded: _onLanded,
+                  ),
+                  StageMoment(:final stage) => StageDoneOverlay(
+                    key: ObjectKey(current),
+                    chapter: engine.chapter,
+                    stage: stage,
+                    onDone: _next,
+                  ),
+                  TravelMoment(:final stage) => WalkingTransition(
+                    key: ObjectKey(current),
+                    background: engine.chapter.walkingBackground,
+                    character: engine.chapter
+                        .character(engine.chapter.walkingCharacter)
+                        .image,
+                    place: stage.place,
+                    onDone: _next,
+                  ),
+                },
               ),
             ],
           );
         },
       ),
     );
-  }
-
-  /// Etapa hacia la que se muestra la pantalla de transición, si hay una.
-  Stage? _transitionTo;
-  Timer? _transitionTimer;
-
-  /// Al terminar una etapa, si la nueva no tiene tramo de "llegar", se
-  /// muestra la caminata unos segundos (sin pasos extra: no cambia el balance).
-  void _maybeStartTransition(List<ChapterEvent> events) {
-    if (!events.any((e) => e is StageCompleted)) return;
-    final engine = widget.controller.engine;
-    final stage = engine.currentStage(widget.controller.game.chapter);
-    if (stage == null || stage.hasTravel) return;
-    _transitionTimer?.cancel();
-    _transitionTimer = Timer(WalkingTransition.duration, _endTransition);
-    setState(() => _transitionTo = stage);
-  }
-
-  void _endTransition() {
-    _transitionTimer?.cancel();
-    _transitionTimer = null;
-    if (mounted && _transitionTo != null) {
-      setState(() => _transitionTo = null);
-    }
   }
 
   int? _precached;
@@ -204,11 +263,13 @@ class WalkingTransition extends StatelessWidget {
   const WalkingTransition({
     super.key,
     required this.background,
+    required this.character,
     required this.place,
     required this.onDone,
   });
 
   final String background;
+  final String character;
   final String place;
   final VoidCallback onDone;
 
@@ -228,11 +289,13 @@ class WalkingTransition extends StatelessWidget {
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: _Panel(
+                child: Panel(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      GameImage.character(character, size: 140),
+                      const SizedBox(height: 8),
                       Text(
                         Strings.walkingTo(place),
                         textAlign: TextAlign.center,
@@ -288,26 +351,6 @@ class StageBackground extends StatelessWidget {
   }
 }
 
-/// Panel semitransparente con bordes redondeados, para que el texto se lea
-/// bien sobre la ilustración.
-class _Panel extends StatelessWidget {
-  const _Panel({required this.child, this.padding = EdgeInsets.zero});
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Padding(padding: padding, child: child),
-    );
-  }
-}
-
 class _StepsHeader extends StatelessWidget {
   const _StepsHeader({required this.controller});
 
@@ -317,7 +360,7 @@ class _StepsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final state = controller.state;
-    return _Panel(
+    return Panel(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Column(
         children: [
@@ -363,7 +406,7 @@ class _StageCard extends StatelessWidget {
       value = have / need;
     }
 
-    return _Panel(
+    return Panel(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -383,7 +426,25 @@ class _StageCard extends StatelessWidget {
             else
               Text(stage.name, style: text.headlineSmall),
             const SizedBox(height: 8),
-            Text(traveling ? stage.travelText : stage.intro),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GameImage.character(
+                  engine.chapter
+                      .character(
+                        traveling
+                            ? engine.chapter.walkingCharacter
+                            : stage.introCharacter,
+                      )
+                      .image,
+                  size: 88,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(traveling ? stage.travelText : stage.intro),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
               value: value,
@@ -397,7 +458,18 @@ class _StageCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 6),
-            Text(Strings.reward(stage.reward), style: text.bodySmall),
+            Row(
+              children: [
+                GameImage(stage.reward.image, size: 32, dimmed: true),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    Strings.reward(stage.reward.name),
+                    style: text.bodySmall,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -443,7 +515,7 @@ class _GoalsCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final chapter = engine.chapter;
     final traveling = engine.isTraveling(progress);
-    return _Panel(
+    return Panel(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
@@ -458,41 +530,41 @@ class _GoalsCard extends StatelessWidget {
             ),
             for (final r in stage.requirements)
               ListTile(
-                dense: true,
-                leading: progress.count(r.item) >= r.count
-                    ? Icon(Icons.check_circle, color: colors.primary)
-                    : Icon(Icons.radio_button_unchecked, color: colors.outline),
+                leading: GameImage(
+                  chapter.item(r.item).image,
+                  size: 48,
+                  dimmed: progress.count(r.item) == 0,
+                ),
                 title: Text(chapter.item(r.item).name),
                 subtitle: switch (_hint(r, traveling)) {
                   final hint? => Text(hint),
                   null => null,
                 },
-                trailing: r.count > 1
+                trailing: progress.count(r.item) >= r.count
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (r.count > 1)
+                            Text(Strings.countOf(r.count, r.count)),
+                          Icon(Icons.check_circle, color: colors.primary),
+                        ],
+                      )
+                    : r.count > 1
                     ? Text(
-                        Strings.countOf(
-                          min(progress.count(r.item), r.count),
-                          r.count,
-                        ),
+                        Strings.countOf(progress.count(r.item), r.count),
+                        style: Theme.of(context).textTheme.titleMedium,
                       )
                     : null,
               ),
             for (final exchange in stage.exchanges)
               if (_firstMissingOutput(exchange) case final output?)
-                ListTile(
-                  dense: true,
-                  leading: Icon(Icons.swap_horiz, color: colors.tertiary),
-                  title: Text(
-                    Strings.exchangeProgress(
-                      exchange.inputs
-                          .map((id) => chapter.item(id).name)
-                          .join(Strings.or),
-                      exchange.inputs.fold(
-                        0,
-                        (s, id) => s + progress.count(id),
-                      ),
-                      exchange.count,
-                      chapter.item(output).name,
-                    ),
+                _ExchangeRow(
+                  chapter: chapter,
+                  exchange: exchange,
+                  output: output,
+                  have: exchange.inputs.fold(
+                    0,
+                    (s, id) => s + progress.count(id),
                   ),
                 ),
           ],
@@ -509,6 +581,61 @@ class _GoalsCard extends StatelessWidget {
   }
 }
 
+/// Canje: dibujos de los objetos comunes con su contador → lo que se recibe.
+class _ExchangeRow extends StatelessWidget {
+  const _ExchangeRow({
+    required this.chapter,
+    required this.exchange,
+    required this.output,
+    required this.have,
+  });
+
+  final Chapter chapter;
+  final Exchange exchange;
+  final String output;
+  final int have;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              for (final id in exchange.inputs)
+                GameImage(chapter.item(id).image, size: 40, dimmed: have == 0),
+              const SizedBox(width: 6),
+              Text(
+                Strings.countOf(have, exchange.count),
+                style: text.titleMedium,
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.arrow_forward, color: colors.tertiary),
+              const SizedBox(width: 6),
+              GameImage(chapter.item(output).image, size: 40, dimmed: true),
+            ],
+          ),
+          Text(
+            Strings.exchangeProgress(
+              exchange.inputs
+                  .map((id) => chapter.item(id).name)
+                  .join(Strings.or),
+              have,
+              exchange.count,
+              chapter.item(output).name,
+            ),
+            style: text.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _JourneyCard extends StatelessWidget {
   const _JourneyCard({required this.engine, required this.progress});
 
@@ -519,7 +646,7 @@ class _JourneyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final stages = engine.chapter.stages;
-    return _Panel(
+    return Panel(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
@@ -548,7 +675,10 @@ class _JourneyCard extends StatelessWidget {
                 },
                 title: Text('${i + 1}. ${stages[i].name}'),
                 subtitle: engine.statusOf(i, progress) == StageStatus.done
-                    ? Text(Strings.reward(stages[i].reward))
+                    ? Text(Strings.reward(stages[i].reward.name))
+                    : null,
+                trailing: engine.statusOf(i, progress) == StageStatus.done
+                    ? GameImage(stages[i].reward.image, size: 36)
                     : null,
               ),
           ],
@@ -566,18 +696,26 @@ class _ChapterDoneCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return _Panel(
+    final last = engine.chapter.stages.last;
+    return Panel(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Icon(Icons.sailing, size: 48),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                GameImage.character(
+                  engine.chapter.character(last.completeCharacter).image,
+                  size: 110,
+                ),
+                GameImage(last.reward.image, size: 130),
+              ],
+            ),
             Text(Strings.chapterDoneTitle, style: text.headlineSmall),
             const SizedBox(height: 8),
-            Text(
-              engine.chapter.stages.last.completeMessage,
-              textAlign: TextAlign.center,
-            ),
+            Text(last.completeMessage, textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -608,7 +746,7 @@ class _StatusNotice extends StatelessWidget {
     if (message == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 16),
-      child: _Panel(
+      child: Panel(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
