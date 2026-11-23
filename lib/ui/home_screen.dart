@@ -14,6 +14,7 @@ import 'bag.dart';
 import 'credits_screen.dart';
 import 'dialogue.dart';
 import 'ending.dart';
+import 'music_controller.dart';
 import 'found_item.dart';
 import 'notices.dart';
 import 'stage_done.dart';
@@ -25,10 +26,14 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.controller,
+    this.music,
     this.showDebug = kDebugMode,
   });
 
   final StepController controller;
+
+  /// Si es nulo (tests), no hay botón de música.
+  final MusicController? music;
 
   /// El botón "+1.000 pasos" solo aparece en builds de debug.
   final bool showDebug;
@@ -170,6 +175,11 @@ class _HomeScreenState extends State<HomeScreen> {
               : (stage ?? engine.chapter.stages.last).background;
           _precacheNext(chapter.stageIndex);
           final current = _current;
+          // Con el cierre ("Continuará...") suena el tema del final.
+          final ending = current is EndingMoment;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => widget.music?.setEnding(ending),
+          );
           return Stack(
             key: _stackKey,
             fit: StackFit.expand,
@@ -228,10 +238,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   alignment: Alignment.topRight,
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: BagButton(
-                      key: _bagKey,
-                      unseen: max(0, chapter.unseen - _inFlight),
-                      onTap: _openBag,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.music case final music?) ...[
+                          MusicButton(music: music),
+                          const SizedBox(width: 8),
+                        ],
+                        BagButton(
+                          key: _bagKey,
+                          unseen: max(0, chapter.unseen - _inFlight),
+                          onTap: _openBag,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -252,6 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onCredits: () => CreditsScreen.show(
                       context,
                       engine.chapter.walkingBackground,
+                      music: widget.music,
                     ),
                   ),
                   DialogueMoment(:final stage) => DialogueView(
@@ -746,6 +766,31 @@ class _StatusNotice extends StatelessWidget {
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Botón redondo para silenciar o activar la música (se guarda).
+class MusicButton extends StatelessWidget {
+  const MusicButton({super.key, required this.music});
+
+  final MusicController music;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return ListenableBuilder(
+      listenable: music,
+      builder: (context, _) => Material(
+        color: colors.surface.withValues(alpha: 0.85),
+        shape: const CircleBorder(),
+        child: IconButton(
+          iconSize: 28,
+          tooltip: music.muted ? Strings.musicOn : Strings.musicOff,
+          icon: Icon(music.muted ? Icons.volume_off : Icons.volume_up),
+          onPressed: music.toggleMuted,
         ),
       ),
     );

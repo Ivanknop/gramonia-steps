@@ -2,15 +2,19 @@ import 'package:material_ui/material_ui.dart';
 
 import '../logic/step_history.dart';
 import '../data/textos.dart';
+import 'music_controller.dart';
 import 'step_controller.dart';
 
 enum StepPeriod { week, month, months }
 
 /// Pestaña "Mis pasos": gráficos de barras de la semana, el mes y los meses.
 class MyStepsScreen extends StatefulWidget {
-  const MyStepsScreen({super.key, required this.controller});
+  const MyStepsScreen({super.key, required this.controller, this.music});
 
   final StepController controller;
+
+  /// Si es nulo (tests), no se ve la opción de silenciar.
+  final MusicController? music;
 
   @override
   State<MyStepsScreen> createState() => _MyStepsScreenState();
@@ -77,6 +81,20 @@ class _MyStepsScreenState extends State<MyStepsScreen> {
               StepBarChart(bars: bars, label: labels),
               const SizedBox(height: 24),
               Text(Strings.historySince, style: text.bodySmall),
+              if (widget.music case final music?) ...[
+                const Divider(height: 32),
+                ListenableBuilder(
+                  listenable: music,
+                  builder: (context, _) => SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: const Icon(Icons.music_off),
+                    title: const Text(Strings.muteMusic),
+                    subtitle: const Text(Strings.muteMusicHint),
+                    value: music.muted,
+                    onChanged: music.setMuted,
+                  ),
+                ),
+              ],
             ],
           );
         },

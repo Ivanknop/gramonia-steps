@@ -2,6 +2,7 @@
 /// Los valores concretos están en `lib/data/`.
 library;
 
+import 'music.dart';
 import 'story.dart';
 
 /// Textos de un objeto (se escriben en lib/data/textos.dart).
@@ -179,6 +180,7 @@ class Stage {
     required this.id,
     required this.texto,
     this.dialogue = const [],
+    this.music = MusicTrack.aventura,
     this.travelSteps = 0,
     required this.requirements,
     required this.spawns,
@@ -212,6 +214,9 @@ class Stage {
   final List<Linea> dialogue;
 
   bool get hasDialogue => dialogue.isNotEmpty;
+
+  /// Música de la etapa, también durante su tramo de caminata.
+  final MusicTrack music;
 
   /// Al terminar la etapa anterior hay que "entrar" a esta: con la pantalla
   /// de llegada (si hay tramo) y el diálogo (si hay).

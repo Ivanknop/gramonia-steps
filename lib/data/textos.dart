@@ -115,6 +115,12 @@ abstract final class Strings {
       'Recompensa de la etapa $number: $stage.';
   static const close = 'Cerrar';
 
+  // Música.
+  static const muteMusic = 'Silenciar música';
+  static const muteMusicHint = 'Se guarda para la próxima vez.';
+  static const musicOff = 'Silenciar la música';
+  static const musicOn = 'Activar la música';
+
   // Pestañas.
   static const tabGame = 'Juego';
   static const tabSteps = 'Mis pasos';

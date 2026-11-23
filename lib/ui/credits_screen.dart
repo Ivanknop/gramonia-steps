@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../data/textos.dart' as t;
 import '../data/textos.dart' show Strings;
+import 'music_controller.dart';
 import 'title_screen.dart';
 
 /// Abre un link afuera de la app (en el navegador).
@@ -26,12 +27,20 @@ class CreditsScreen extends StatelessWidget {
   final LinkOpener openLink;
 
   /// Abre la pantalla de créditos encima de la actual.
-  static void show(BuildContext context, String background) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => CreditsScreen(background: background),
-      ),
-    );
+  /// Mientras se ven, suena el tema del final.
+  static void show(
+    BuildContext context,
+    String background, {
+    MusicController? music,
+  }) {
+    music?.openCredits();
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute<void>(
+            builder: (_) => CreditsScreen(background: background),
+          ),
+        )
+        .whenComplete(() => music?.closeCredits());
   }
 
   @override

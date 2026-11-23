@@ -9,6 +9,7 @@
 library;
 
 import '../logic/chapter.dart';
+import '../logic/music.dart';
 import 'textos.dart' as t;
 
 /// Pasos que suma el botón de debug.
@@ -17,6 +18,20 @@ const int debugStepBonus = 1000;
 /// Si una lectura del sensor trae más pasos que esto de golpe, se considera
 /// absurda: no se suma y solo se toma como base nueva.
 const int maxStepsPerReading = 50000;
+
+/// Archivo de cada tema (loops de tool/make_loops.py).
+const musicAssets = {
+  MusicTrack.intro: 'assets/music/intro.ogg',
+  MusicTrack.aventura: 'assets/music/aventura.ogg',
+  MusicTrack.tension: 'assets/music/tension.ogg',
+  MusicTrack.finale: 'assets/music/final.ogg',
+};
+
+/// Volumen de la música (1 = el volumen multimedia del celular).
+const double musicVolume = 0.5;
+
+/// Fundido al cambiar de tema.
+const musicFade = Duration(milliseconds: 1500);
 
 const _ofrendas = ['piedra_fuego', 'agua_cascada', 'escama', 'flor_nubes'];
 const _bienes = ['madera', 'clavos', 'cuerdas', 'bandera', 'ancla'];
@@ -173,6 +188,7 @@ const chapter1 = Chapter(
       id: 'puerto',
       texto: t.puerto,
       dialogue: t.dialogoTormenta,
+      music: MusicTrack.tension,
       introCharacter: 'caperucita',
       completeCharacter: 'caperucita',
       background: 'assets/backgrounds/stage_4.webp',
@@ -192,6 +208,7 @@ const chapter1 = Chapter(
       id: 'montana_dragon',
       texto: t.montana,
       dialogue: t.dialogoDragones,
+      music: MusicTrack.tension,
       introCharacter: 'dragones',
       completeCharacter: 'dragones',
       background: 'assets/backgrounds/stage_5.webp',

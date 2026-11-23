@@ -20,7 +20,7 @@ ENV PATH=${FLUTTER_HOME}/bin:${PUB_CACHE}/bin:${ANDROID_HOME}/cmdline-tools/late
 RUN apt-get update && apt-get install -y --no-install-recommends \
         openjdk-17-jdk-headless curl git unzip xz-utils zip ca-certificates \
         libglu1-mesa clang cmake ninja-build pkg-config libgtk-3-dev \
-        python3-pil python3-numpy python3-scipy webp \
+        python3-pil python3-numpy python3-scipy webp ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools \
