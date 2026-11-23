@@ -48,7 +48,7 @@ class StageDoneOverlay extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        GameImage.character(character.image, size: 110),
+                        GameImage.of(character, size: 110),
                         const SizedBox(width: 8),
                         GameImage(stage.reward.image, size: 150),
                       ],

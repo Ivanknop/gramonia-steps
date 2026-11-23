@@ -59,6 +59,15 @@ void main() {
     }
   });
 
+  test('las animaciones de los diálogos existen', () {
+    for (final c in chapter1.characters) {
+      // La de caminar todavía no está (se ve el dibujo quieto).
+      if (c.id == chapter1.walkingCharacter) continue;
+      final path = c.animatedImage;
+      if (path != null) expect(File(path).existsSync(), isTrue, reason: path);
+    }
+  });
+
   test('ningún texto está vacío', () {
     for (final item in chapter1.items) {
       expect(item.name.trim(), isNotEmpty, reason: item.id);

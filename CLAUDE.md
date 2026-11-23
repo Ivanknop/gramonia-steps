@@ -51,6 +51,6 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 - Conectar el celular por WiFi (depuración inalámbrica): `adb pair IP:PUERTO` y después `adb connect IP:PUERTO`; verificar con `adb devices`.
 - Correr en el celular: `flutter run`
 - Simular el balance del capítulo (1.000 partidas): `dart run tool/simulate.dart`
-- Convertir dibujos de `arte/` a WebP: `python3 tool/convert_art.py` (el nombre del archivo es el `id`).
+- Convertir dibujos de `arte/` a WebP: `python3 tool/convert_art.py` (el nombre del archivo es el `id`). Los GIF de `arte/personajes/` pasan a WebP animado; los de `arte/lugares/<id de etapa>.gif`, a pantallas de llegada. Se puede pasar solo algunos `id` para no convertir todo (los animados tardan).
 - Ver qué dibujos faltan o sobran: `dart run tool/check_art.dart`
 - APK de release: `flutter build apk --release` (sale en `build/app/outputs/flutter-apk/`).

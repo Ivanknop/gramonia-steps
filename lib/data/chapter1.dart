@@ -25,10 +25,25 @@ const chapter1 = Chapter(
   walkingCharacter: 'caperucita_espalda',
   characters: [
     Character(id: 'caperucita_sin_caperuza', name: 'Caperucita'),
-    Character(id: 'caperucita', name: 'Caperucita'),
-    Character(id: 'caperucita_espalda', name: 'Caperucita'),
-    Character(id: 'hada_madrina', name: 'Hada Madrina'),
-    Character(id: 'rocanron', name: 'Rocanrón'),
+    // Caperucita (Sofía) saluda en los diálogos.
+    Character(
+      id: 'caperucita',
+      name: 'Caperucita',
+      animation: 'caperucita_animada',
+    ),
+    // Todavía no hay GIF de Caperucita caminando: hasta que esté
+    // (arte/personajes/caperucita_caminando.gif) se ve el dibujo quieto.
+    Character(
+      id: 'caperucita_espalda',
+      name: 'Caperucita',
+      animation: 'caperucita_caminando',
+    ),
+    Character(
+      id: 'hada_madrina',
+      name: 'Hada Madrina',
+      animation: 'hada_madrina_animada',
+    ),
+    Character(id: 'rocanron', name: 'Rocanrón', animation: 'rocanron_animado'),
     Character(id: 'hormigas', name: 'Hormigas guardianas'),
     Character(id: 'dragones', name: 'Dragones'),
     Character(id: 'papa_caperucita', name: 'Papá Caperucita'),

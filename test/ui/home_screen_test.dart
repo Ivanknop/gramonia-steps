@@ -91,6 +91,14 @@ void main() {
   Finder gameImage(String asset) =>
       find.byWidgetPredicate((w) => w is GameImage && w.asset == asset);
 
+  /// Una imagen dibujada en pantalla con ese archivo.
+  Finder assetImage(String asset) => find.byWidgetPredicate(
+    (w) =>
+        w is Image &&
+        w.image is AssetImage &&
+        (w.image as AssetImage).assetName == asset,
+  );
+
   bool isDimmed(WidgetTester tester, String asset) =>
       tester.widget<GameImage>(gameImage(asset).first).dimmed;
 
@@ -447,10 +455,35 @@ void main() {
   ) async {
     storage.saved = saveAt(4, 3200, const {});
     await show(tester);
-    expect(
+    final walking = tester.widget<GameImage>(
       gameImage('assets/characters/caperucita_espalda.webp'),
+    );
+    // Caminando, la animación de caminar (todavía no está el GIF: se ve el
+    // dibujo quieto).
+    expect(walking.animated, 'assets/characters/caperucita_caminando.webp');
+    await tester.runAsync(() => Future<void>.delayed(Durations.long2));
+    await tester.pump();
+    expect(
+      assetImage('assets/characters/caperucita_espalda.webp'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('en los diálogos, los personajes animados se mueven', (
+    tester,
+  ) async {
+    // El nido: el Rocanrón en la intro.
+    storage.saved = saveAt(2, 3000, {'flor_lila': 15});
+    await show(tester);
+    final rocanron = tester.widget<GameImage>(
+      gameImage('assets/characters/rocanron.webp'),
+    );
+    expect(rocanron.animated, 'assets/characters/rocanron_animado.webp');
+    await tester.runAsync(() => Future<void>.delayed(Durations.long2));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('animated-art')), findsOneWidget);
+    // Cargó la animación: el dibujo quieto no hizo falta.
+    expect(assetImage('assets/characters/rocanron.webp'), findsNothing);
   });
 
   testWidgets('el objeto vuela a la bolsa y suma al número de nuevos', (

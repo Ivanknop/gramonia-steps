@@ -47,12 +47,20 @@ class Reward {
 
 /// Un personaje que aparece junto a los textos de la historia.
 class Character {
-  const Character({required this.id, required this.name});
+  const Character({required this.id, required this.name, this.animation});
 
   final String id;
   final String name;
 
+  /// Nombre del dibujo animado (sale de un GIF de arte/personajes/). Se usa
+  /// en los diálogos y, el del personaje que camina, en la caminata. Si no
+  /// hay, se ve el dibujo quieto.
+  final String? animation;
+
   String get image => 'assets/characters/$id.webp';
+
+  String? get animatedImage =>
+      animation == null ? null : 'assets/characters/$animation.webp';
 }
 
 /// Cómo aparece un objeto mientras se camina.

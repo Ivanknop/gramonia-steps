@@ -369,14 +369,13 @@ class _StageCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GameImage.character(
-                  engine.chapter
-                      .character(
-                        traveling
-                            ? engine.chapter.walkingCharacter
-                            : stage.introCharacter,
-                      )
-                      .image,
+                // Caminando, el personaje que camina; si no, el del diálogo.
+                GameImage.of(
+                  engine.chapter.character(
+                    traveling
+                        ? engine.chapter.walkingCharacter
+                        : stage.introCharacter,
+                  ),
                   size: 88,
                 ),
                 const SizedBox(width: 12),
@@ -646,8 +645,8 @@ class _ChapterDoneCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                GameImage.character(
-                  engine.chapter.character(last.completeCharacter).image,
+                GameImage.of(
+                  engine.chapter.character(last.completeCharacter),
                   size: 110,
                 ),
                 GameImage(last.reward.image, size: 130),

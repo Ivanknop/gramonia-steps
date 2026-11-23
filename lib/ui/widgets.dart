@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../logic/chapter.dart';
+
 /// Panel semitransparente con bordes redondeados, para que el texto se lea
 /// bien sobre la ilustración.
 class Panel extends StatelessWidget {
@@ -31,14 +33,31 @@ class GameImage extends StatelessWidget {
     required this.size,
     this.dimmed = false,
     this.fallback = Icons.auto_awesome,
-  });
+  }) : animated = null;
 
-  /// Para personajes: el ícono genérico es una persona.
-  const GameImage.character(this.asset, {super.key, required this.size})
-    : dimmed = false,
-      fallback = Icons.face;
+  /// Para personajes: el ícono genérico es una persona. Si hay [animated]
+  /// se muestra ese, y si su archivo no existe, el dibujo quieto.
+  const GameImage.character(
+    this.asset, {
+    super.key,
+    required this.size,
+    this.animated,
+  }) : dimmed = false,
+       fallback = Icons.face;
+
+  /// Un personaje, animado si tiene animación.
+  GameImage.of(Character character, {Key? key, required double size})
+    : this.character(
+        character.image,
+        key: key,
+        size: size,
+        animated: character.animatedImage,
+      );
 
   final String asset;
+
+  /// Versión animada del dibujo (opcional).
+  final String? animated;
   final double size;
   final bool dimmed;
   final IconData fallback;
@@ -52,7 +71,29 @@ class GameImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget image = Image.asset(
+    final animated = this.animated;
+    Widget image = animated == null
+        ? _still(context)
+        : Image.asset(
+            animated,
+            key: const ValueKey('animated-art'),
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stack) => _still(context),
+          );
+    if (dimmed) {
+      image = Opacity(
+        opacity: 0.45,
+        child: ColorFiltered(colorFilter: _grey, child: image),
+      );
+    }
+    return image;
+  }
+
+  Widget _still(BuildContext context) {
+    return Image.asset(
       asset,
       width: size,
       height: size,
@@ -69,12 +110,5 @@ class GameImage extends StatelessWidget {
         ),
       ),
     );
-    if (dimmed) {
-      image = Opacity(
-        opacity: 0.45,
-        child: ColorFiltered(colorFilter: _grey, child: image),
-      );
-    }
-    return image;
   }
 }
