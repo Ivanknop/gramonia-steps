@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/textos.dart' as t;
 import '../data/textos.dart' show Strings;
+import 'theme.dart';
 
 /// Cierre del capítulo: la Isla Negra y "Continuará...". Si falta la
 /// imagen, un fondo oscuro de reemplazo.
@@ -63,15 +64,9 @@ class EndingScreen extends StatelessWidget {
                     ),
                   ),
                 const Spacer(),
-                Text(
+                OutlinedText(
                   t.continuara,
-                  textAlign: TextAlign.center,
-                  style: text.displaySmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontStyle: FontStyle.italic,
-                    shadows: _shadows,
-                  ),
+                  style: text.displaySmall!.copyWith(color: Colors.white),
                 ),
                 const SizedBox(height: 32),
                 Wrap(

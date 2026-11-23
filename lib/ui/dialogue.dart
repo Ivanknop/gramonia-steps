@@ -197,7 +197,6 @@ class _Bubble extends StatelessWidget {
           playerName.isEmpty ? '?' : playerName.characters.first.toUpperCase(),
           style: text.headlineMedium?.copyWith(
             color: colors.onTertiaryContainer,
-            fontWeight: FontWeight.bold,
           ),
         ),
       );

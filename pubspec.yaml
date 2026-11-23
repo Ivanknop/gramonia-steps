@@ -76,6 +76,26 @@ flutter:
     - assets/places/
     # Música en loop (tool/make_loops.py).
     - assets/music/
+    # Licencias de las tipografías (se ven en Créditos → Licencias).
+    - assets/fonts/Nunito/OFL.txt
+    - assets/fonts/LuckiestGuy/LICENSE.txt
+
+  # Tipografías, incluidas en la app (funcionan sin conexión).
+  # - Luckiest Guy: títulos, logo, lugares y "Continuará...".
+  # - Nunito (400, 700 y 800): textos, diálogos, botones y números.
+  fonts:
+    - family: LuckiestGuy
+      fonts:
+        - asset: assets/fonts/LuckiestGuy/LuckiestGuy-Regular.ttf
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito/static/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito/static/Nunito-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Nunito/static/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito/static/Nunito-ExtraBold.ttf
+          weight: 800
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

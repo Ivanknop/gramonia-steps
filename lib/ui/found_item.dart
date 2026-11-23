@@ -132,9 +132,7 @@ class _FoundItemOverlayState extends State<FoundItemOverlay>
                               Text(
                                 moment.title,
                                 textAlign: TextAlign.center,
-                                style: text.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: text.headlineSmall,
                               ),
                               const SizedBox(height: 8),
                               Text(moment.message, textAlign: TextAlign.center),

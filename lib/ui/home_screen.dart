@@ -19,6 +19,7 @@ import 'found_item.dart';
 import 'notices.dart';
 import 'stage_done.dart';
 import 'step_controller.dart';
+import 'theme.dart';
 import 'widgets.dart';
 
 /// Pantalla única: pasos, etapa actual con lo que hay que juntar y el viaje.
@@ -367,7 +368,11 @@ class _StepsHeader extends StatelessWidget {
           Text(Strings.todayLabel, style: text.titleMedium),
           Text(
             Strings.formatNumber(state.todaySteps),
-            style: text.displayMedium?.copyWith(fontWeight: FontWeight.bold),
+            // Los números van en Nunito, no en la letra de títulos.
+            style: text.displayMedium?.copyWith(
+              fontFamily: textFont,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           Text(Strings.total(state.totalSteps), style: text.bodyLarge),
         ],
@@ -419,9 +424,7 @@ class _StageCard extends StatelessWidget {
             if (traveling)
               Text(
                 Strings.walkingTo(stage.place, stage.placeArticle),
-                style: text.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: text.headlineMedium,
               )
             else
               Text(stage.name, style: text.headlineSmall),

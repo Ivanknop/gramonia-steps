@@ -368,7 +368,14 @@ const creditos = [
     'Ilustraciones y música',
     'Generadas con Google Gemini a partir de los cuentos',
   ),
+  (
+    'Tipografías',
+    'Luckiest Guy, de Astigmatic (licencia Apache 2.0)\n'
+        'Nunito, de The Nunito Project Authors (licencia SIL Open Font '
+        'License 1.1)',
+  ),
 ];
+const creditosLicencias = 'Ver las licencias';
 const creditosBlog = 'https://cuentosdegramonia.substack.com/';
 const creditosBlogBoton = 'Leer los cuentos';
 

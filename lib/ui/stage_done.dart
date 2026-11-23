@@ -39,9 +39,7 @@ class StageDoneOverlay extends StatelessWidget {
                     Text(
                       Strings.stageDoneTitle,
                       textAlign: TextAlign.center,
-                      style: text.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: text.headlineSmall,
                     ),
                     const SizedBox(height: 12),
                     Row(

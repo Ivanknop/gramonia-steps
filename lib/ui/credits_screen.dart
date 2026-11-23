@@ -106,6 +106,17 @@ class CreditsScreen extends StatelessWidget {
                     label: const Text(t.creditosBlogBoton),
                   ),
                 ),
+                const SizedBox(height: 12),
+                Center(
+                  child: TextButton(
+                    style: TextButton.styleFrom(foregroundColor: Colors.white),
+                    onPressed: () => showLicensePage(
+                      context: context,
+                      applicationName: t.creditosTitulo,
+                    ),
+                    child: const Text(t.creditosLicencias),
+                  ),
+                ),
               ],
             ),
           ),

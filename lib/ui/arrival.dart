@@ -1,7 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../logic/chapter.dart';
 import '../data/textos.dart';
+import '../logic/chapter.dart';
+import 'theme.dart';
 
 /// Pantalla de llegada: solo la imagen del lugar (animada, si hay), el
 /// título grande "Llegaste a …" y el botón "Entrar".
@@ -14,11 +15,6 @@ class ArrivalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    // Sombra para que el título se lea sobre cualquier dibujo, sin panel.
-    const shadows = [
-      Shadow(blurRadius: 12, color: Colors.black87),
-      Shadow(blurRadius: 4, color: Colors.black54),
-    ];
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -43,21 +39,16 @@ class ArrivalScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
             child: Column(
               children: [
-                Text(
+                OutlinedText(
                   Strings.arrivedAt(stage.place, stage.placeArticle),
-                  textAlign: TextAlign.center,
-                  style: text.displaySmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    shadows: shadows,
-                  ),
+                  style: text.displaySmall!.copyWith(color: Colors.white),
                 ),
                 const Spacer(),
                 FilledButton(
                   onPressed: onEnter,
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(220, 64),
-                    textStyle: text.headlineSmall,
+                    textStyle: text.titleLarge,
                   ),
                   child: const Text(Strings.enterButton),
                 ),

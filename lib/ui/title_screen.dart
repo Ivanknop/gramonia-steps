@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../data/textos.dart';
+import 'theme.dart';
 
 /// Portada: el mapa de la isla, el título y el botón para empezar.
 class TitleScreen extends StatelessWidget {
@@ -61,7 +62,7 @@ class TitleScreen extends StatelessWidget {
                     onPressed: onStart,
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(240, 64),
-                      textStyle: text.headlineSmall,
+                      textStyle: text.titleLarge,
                     ),
                     child: Text(
                       started ? Strings.resumeButton : Strings.startButton,
@@ -87,44 +88,22 @@ class TitleScreen extends StatelessWidget {
   }
 }
 
-/// El título "Caminando por Gramonia" como logo: letras grandes con borde
-/// y sombra.
+/// El título como logo: Luckiest Guy grande, con contorno y sombra.
 class GameLogo extends StatelessWidget {
   const GameLogo({super.key, required this.text});
 
   final String text;
 
-  static const shadows = [
-    Shadow(blurRadius: 12, color: Colors.black87),
-    Shadow(blurRadius: 4, color: Colors.black54),
-  ];
+  /// Sombra para los textos chicos sobre el mapa.
+  static const shadows = OutlinedText.shadows;
 
   @override
   Widget build(BuildContext context) {
-    final base = Theme.of(context).textTheme.displayMedium!
-        .copyWith(fontWeight: FontWeight.w900, height: 1.05, letterSpacing: 1);
-    const border = Color(0xFF3B2A14);
-    return Stack(
-      children: [
-        // Borde: el mismo texto, solo con trazo.
-        Text(
-          text,
-          textAlign: TextAlign.center,
-          style: base.copyWith(
-            shadows: shadows,
-            foreground: Paint()
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 8
-              ..strokeJoin = StrokeJoin.round
-              ..color = border,
-          ),
-        ),
-        Text(
-          text,
-          textAlign: TextAlign.center,
-          style: base.copyWith(color: const Color(0xFFFFE08A)),
-        ),
-      ],
+    return OutlinedText(
+      text,
+      strokeWidth: 8,
+      style: Theme.of(context).textTheme.displayMedium!
+          .copyWith(color: const Color(0xFFFFE08A), height: 1.1),
     );
   }
 }

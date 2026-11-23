@@ -9,6 +9,7 @@ import 'data/textos.dart';
 import 'ui/game_flow.dart';
 import 'ui/music_controller.dart';
 import 'ui/step_controller.dart';
+import 'ui/theme.dart';
 
 class GramoniaApp extends StatefulWidget {
   const GramoniaApp({super.key, this.controller, this.music});
@@ -80,7 +81,7 @@ class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: Strings.appTitle,
-      theme: ThemeData(colorSchemeSeed: Colors.teal),
+      theme: gameTheme(),
       home: GameFlow(controller: _controller, music: _music),
     );
   }

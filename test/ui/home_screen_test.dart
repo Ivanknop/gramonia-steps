@@ -213,8 +213,8 @@ void main() {
     await tapText(tester, Strings.debugAdd(debugStepBonus));
     await tester.pumpAndSettle();
     expect(find.byType(ArrivalScreen), findsOneWidget);
-    expect(find.text(Strings.arrivedAt('Muelle', 'el')), findsOneWidget);
-    expect(find.text('Llegaste al Muelle'), findsOneWidget);
+    expect(find.text(Strings.arrivedAt('Muelle', 'el')), findsWidgets);
+    expect(find.text('Llegaste al Muelle'), findsWidgets); // Borde y relleno.
     // Sin GIF del lugar, se ve el fondo de la etapa.
     expect(find.byKey(const ValueKey('arrival-background')), findsOneWidget);
     // Sin paneles: no se ve lo que hay que juntar.
@@ -436,7 +436,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(EndingScreen), findsOneWidget);
-    expect(find.text(t.continuara), findsOneWidget);
+    expect(find.text(t.continuara), findsWidgets); // Borde y relleno.
     expect(find.text(t.cierre.first), findsOneWidget);
     await tester.tap(find.text(Strings.backButton));
     await tester.pumpAndSettle();
@@ -467,7 +467,7 @@ void main() {
     await tester.runAsync(() => Future<void>.delayed(Durations.long2));
     await tester.pump();
     expect(find.byKey(const ValueKey('ending-fallback')), findsWidgets);
-    expect(find.text(t.continuara), findsOneWidget);
+    expect(find.text(t.continuara), findsWidgets); // Borde y relleno.
   });
 
   testWidgets('sin debug no aparece el botón', (tester) async {
