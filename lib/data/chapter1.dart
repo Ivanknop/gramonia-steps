@@ -15,9 +15,11 @@ import 'textos.dart' as t;
 /// Pasos que suma el botón de debug.
 const int debugStepBonus = 1000;
 
-/// Si una lectura del sensor trae más pasos que esto de golpe, se considera
-/// absurda: no se suma y solo se toma como base nueva.
-const int maxStepsPerReading = 50000;
+/// Tope de pasos por día transcurrido desde la última lectura del sensor.
+/// Si una lectura trae más que eso de golpe, se considera absurda: no se suma
+/// y solo se toma como base nueva. Como depende del tiempo, no se pierden
+/// pasos reales si la app no se abre por varios días.
+const int maxStepsPerDay = 30000;
 
 /// Archivo de cada tema (loops de tool/make_loops.py).
 const musicAssets = {

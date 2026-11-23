@@ -7,6 +7,7 @@ class StepState {
     required this.totalSteps,
     required this.todaySteps,
     required this.todayDate,
+    this.lastReadingAt,
   });
 
   /// Estado de una instalación nueva.
@@ -14,7 +15,8 @@ class StepState {
     : lastReading = null,
       totalSteps = 0,
       todaySteps = 0,
-      todayDate = '';
+      todayDate = '',
+      lastReadingAt = null;
 
   /// Última lectura del sensor (pasos desde el último reinicio del celular).
   /// Es nula si todavía no llegó ninguna lectura.
@@ -25,17 +27,22 @@ class StepState {
   /// Fecha (aaaa-mm-dd) a la que corresponde [todaySteps].
   final String todayDate;
 
+  /// Cuándo llegó [lastReading]. Nula en las partidas de antes.
+  final DateTime? lastReadingAt;
+
   StepState copyWith({
     int? lastReading,
     int? totalSteps,
     int? todaySteps,
     String? todayDate,
+    DateTime? lastReadingAt,
   }) {
     return StepState(
       lastReading: lastReading ?? this.lastReading,
       totalSteps: totalSteps ?? this.totalSteps,
       todaySteps: todaySteps ?? this.todaySteps,
       todayDate: todayDate ?? this.todayDate,
+      lastReadingAt: lastReadingAt ?? this.lastReadingAt,
     );
   }
 
@@ -44,6 +51,7 @@ class StepState {
     'totalSteps': totalSteps,
     'todaySteps': todaySteps,
     'todayDate': todayDate,
+    'lastReadingAt': lastReadingAt?.toIso8601String(),
   };
 
   String encode() => jsonEncode(toJson());
@@ -65,6 +73,10 @@ class StepState {
       totalSteps: json['totalSteps'] as int,
       todaySteps: json['todaySteps'] as int,
       todayDate: json['todayDate'] as String,
+      lastReadingAt: switch (json['lastReadingAt']) {
+        final String at => DateTime.parse(at),
+        _ => null,
+      },
     );
   }
 
@@ -74,14 +86,20 @@ class StepState {
       other.lastReading == lastReading &&
       other.totalSteps == totalSteps &&
       other.todaySteps == todaySteps &&
-      other.todayDate == todayDate;
+      other.todayDate == todayDate &&
+      other.lastReadingAt == lastReadingAt;
 
   @override
-  int get hashCode =>
-      Object.hash(lastReading, totalSteps, todaySteps, todayDate);
+  int get hashCode => Object.hash(
+    lastReading,
+    totalSteps,
+    todaySteps,
+    todayDate,
+    lastReadingAt,
+  );
 
   @override
   String toString() =>
       'StepState(lastReading: $lastReading, total: $totalSteps, '
-      'today: $todaySteps, date: $todayDate)';
+      'today: $todaySteps, date: $todayDate, at: $lastReadingAt)';
 }

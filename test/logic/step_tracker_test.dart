@@ -60,25 +60,74 @@ void main() {
 
   test('una lectura absurda no suma pasos y queda como base nueva', () {
     var s = tracker.applyReading(started(100), 200, day1);
-    s = tracker.applyReading(s, 200 + maxStepsPerReading + 1, day1);
+    s = tracker.applyReading(s, 200 + maxStepsPerDay + 1, day1);
     expect(s.totalSteps, 100);
     expect(s.todaySteps, 100);
-    expect(s.lastReading, 200 + maxStepsPerReading + 1);
+    expect(s.lastReading, 200 + maxStepsPerDay + 1);
     // La siguiente lectura normal se cuenta desde la base nueva.
-    s = tracker.applyReading(s, 200 + maxStepsPerReading + 11, day1);
+    s = tracker.applyReading(s, 200 + maxStepsPerDay + 11, day1);
     expect(s.totalSteps, 110);
   });
 
-  test('justo en el máximo, la lectura sí se suma', () {
-    final s = tracker.applyReading(started(0), maxStepsPerReading, day1);
-    expect(s.totalSteps, maxStepsPerReading);
+  test('justo en el tope de un día, la lectura sí se suma', () {
+    final s = tracker.applyReading(started(0), maxStepsPerDay, day1);
+    expect(s.totalSteps, maxStepsPerDay);
   });
 
   test('un reinicio con lectura absurda tampoco suma', () {
     var s = started(900000);
-    s = tracker.applyReading(s, maxStepsPerReading + 1, day1);
+    s = tracker.applyReading(s, maxStepsPerDay + 1, day1);
     expect(s.totalSteps, 0);
-    expect(s.lastReading, maxStepsPerReading + 1);
+    expect(s.lastReading, maxStepsPerDay + 1);
+  });
+
+  test('10 días sin abrir la app: los 50.000 pasos se suman (A2)', () {
+    var s = started(1000);
+    s = tracker.applyReading(s, 51000, day1.add(const Duration(days: 10)));
+    expect(s.totalSteps, 50000);
+    expect(s.todaySteps, 50000); // Van al día en que se abre la app.
+  });
+
+  test('el tope crece con los días: 3 días, hasta 3 veces el tope', () {
+    final later = day1.add(const Duration(days: 3));
+    final ok = tracker.applyReading(started(0), 3 * maxStepsPerDay, later);
+    expect(ok.totalSteps, 3 * maxStepsPerDay);
+    final tooMany = tracker.applyReading(
+      started(0),
+      3 * maxStepsPerDay + 1,
+      later,
+    );
+    expect(tooMany.totalSteps, 0);
+  });
+
+  test('aunque pase poco tiempo, el tope es de al menos un día', () {
+    final s = started(0);
+    expect(
+      tracker.maxStepsFor(s, day1.add(const Duration(minutes: 5))),
+      maxStepsPerDay,
+    );
+  });
+
+  test('cada lectura guarda su hora; el botón de debug no', () {
+    var s = started(0);
+    expect(s.lastReadingAt, day1);
+    s = tracker.applyReading(s, 50, day1Later);
+    expect(s.lastReadingAt, day1Later);
+    s = tracker.addDebugSteps(s, 1000, day2);
+    expect(s.lastReadingAt, day1Later);
+  });
+
+  test('partidas de antes (sin hora): se cuenta desde el día guardado', () {
+    const old = StepState(
+      lastReading: 1000,
+      totalSteps: 0,
+      todaySteps: 0,
+      todayDate: '2026-11-12',
+    );
+    // Del 12 al 22 a las 10: 10 días y 10 horas.
+    expect(tracker.maxStepsFor(old, day1), greaterThan(10 * maxStepsPerDay));
+    final s = tracker.applyReading(old, 51000, day1);
+    expect(s.totalSteps, 50000);
   });
 
   test('debug suma a hoy y al total sin tocar la lectura del sensor', () {

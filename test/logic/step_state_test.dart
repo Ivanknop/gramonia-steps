@@ -26,4 +26,24 @@ void main() {
       const StepState.initial(),
     );
   });
+
+  test('la hora de la última lectura se guarda', () {
+    final s = StepState(
+      lastReading: 10,
+      totalSteps: 5,
+      todaySteps: 5,
+      todayDate: '2026-11-23',
+      lastReadingAt: DateTime(2026, 11, 23, 12, 30),
+    );
+    expect(StepState.decode(s.encode()), s);
+  });
+
+  test('las partidas de antes no tienen la hora de la última lectura', () {
+    final s = StepState.decode(
+      '{"lastReading": 10, "totalSteps": 5, "todaySteps": 5, '
+      '"todayDate": "2026-11-23"}',
+    );
+    expect(s.totalSteps, 5);
+    expect(s.lastReadingAt, isNull);
+  });
 }
