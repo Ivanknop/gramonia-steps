@@ -141,7 +141,7 @@ void main() {
     storage.saved = saveAt(2, 3300, {'flor_lila': 15, 'semilla_agua': 4});
     await show(tester);
     expect(find.text(Strings.stageOf(3, 8)), findsOneWidget);
-    expect(find.text('El nido del Rocanrón'), findsOneWidget);
+    expect(find.text('El nido del Rocanón'), findsOneWidget);
     expect(find.text(chapter1.stages[2].intro), findsOneWidget);
     expect(find.text('Semilla de fuego'), findsOneWidget);
     expect(find.text(Strings.countOf(0, 3)), findsOneWidget);
@@ -447,7 +447,7 @@ void main() {
     expect(gameImage('assets/items/semilla_agua.webp'), findsOneWidget);
     expect(gameImage('assets/items/semilla_hielo.webp'), findsOneWidget);
     expect(find.text(Strings.countOf(4, 10)), findsOneWidget);
-    expect(gameImage('assets/characters/rocanron.webp'), findsOneWidget);
+    expect(gameImage('assets/characters/rocanon.webp'), findsOneWidget);
   });
 
   testWidgets('durante la caminata se ve a Caperucita de espaldas', (
@@ -476,18 +476,18 @@ void main() {
   testWidgets('en los diálogos, los personajes animados se mueven', (
     tester,
   ) async {
-    // El nido: el Rocanrón en la intro.
+    // El nido: el Rocanón en la intro.
     storage.saved = saveAt(2, 3000, {'flor_lila': 15});
     await show(tester);
-    final rocanron = tester.widget<GameImage>(
-      gameImage('assets/characters/rocanron.webp'),
+    final rocanon = tester.widget<GameImage>(
+      gameImage('assets/characters/rocanon.webp'),
     );
-    expect(rocanron.animated, 'assets/characters/rocanron_animado.webp');
+    expect(rocanon.animated, 'assets/characters/rocanon_animado.webp');
     await tester.runAsync(() => Future<void>.delayed(Durations.long2));
     await tester.pump();
     expect(find.byKey(const ValueKey('animated-art')), findsOneWidget);
     // Cargó la animación: el dibujo quieto no hizo falta.
-    expect(assetImage('assets/characters/rocanron.webp'), findsNothing);
+    expect(assetImage('assets/characters/rocanon.webp'), findsNothing);
   });
 
   testWidgets('el objeto vuela a la bolsa y suma al número de nuevos', (
@@ -531,7 +531,7 @@ void main() {
     expect(find.text('Semilla de agua'), findsOneWidget);
     expect(find.text(Strings.times(22)), findsOneWidget);
     expect(find.text('Caperuza de aprendiz'), findsOneWidget);
-    expect(find.text('Pluma del Rocanrón'), findsOneWidget);
+    expect(find.text('Pluma del Rocanón'), findsOneWidget);
 
     // Al tocar un objeto: para qué sirve y dónde se consigue.
     await tester.tap(find.text('Semilla de agua'));
@@ -543,16 +543,16 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text(Strings.foundIn(3, 'El nido del Rocanrón')),
+      find.text(Strings.foundIn(3, 'El nido del Rocanón')),
       findsOneWidget,
     );
     await tester.tap(find.text(Strings.close));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Pluma del Rocanrón'));
+    await tester.tap(find.text('Pluma del Rocanón'));
     await tester.pumpAndSettle();
     expect(
-      find.text(Strings.rewardOf(3, 'El nido del Rocanrón')),
+      find.text(Strings.rewardOf(3, 'El nido del Rocanón')),
       findsOneWidget,
     );
   });

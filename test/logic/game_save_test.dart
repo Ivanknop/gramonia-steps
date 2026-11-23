@@ -93,7 +93,7 @@ void main() {
         '"inventory":{"flor_lila":15,"semilla_agua":4},'
         '"sinceLast":{"semilla_fuego":200}}}';
     final game = decode(v3);
-    // Sigue en el nido del Rocanrón, que ahora es la etapa 3, y el tramo
+    // Sigue en el nido del Rocanón, que ahora es la etapa 3, y el tramo
     // de caminata hasta el Árbol Mágico (de la versión 5) ya está hecho.
     expect(game.chapter.stageIndex, 2);
     final nido = engine.currentStage(game.chapter)!;

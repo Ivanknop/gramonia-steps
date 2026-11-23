@@ -20,7 +20,7 @@ const _ofrendas = ['piedra_fuego', 'agua_cascada', 'escama', 'flor_nubes'];
 const _bienes = ['madera', 'clavos', 'cuerdas', 'bandera', 'ancla'];
 
 const chapter1 = Chapter(
-  name: 'Capítulo 1: La pluma del Rocanrón',
+  name: 'Capítulo 1: La pluma del Rocanón',
   walkingBackground: 'assets/backgrounds/walking.webp',
   walkingCharacter: 'caperucita_espalda',
   characters: [
@@ -42,7 +42,7 @@ const chapter1 = Chapter(
       name: 'Hada Madrina',
       animation: 'hada_madrina_animada',
     ),
-    Character(id: 'rocanron', name: 'Rocanrón', animation: 'rocanron_animado'),
+    Character(id: 'rocanon', name: 'Rocanón', animation: 'rocanon_animado'),
     Character(id: 'hormigas', name: 'Hormigas guardianas'),
     Character(id: 'dragones', name: 'Dragones'),
     Character(id: 'papa_caperucita', name: 'Papá Caperucita'),
@@ -244,7 +244,7 @@ const chapter1 = Chapter(
       completeMessage:
           'La abuelita pone el ramo en un florero. De pronto, una mariposa se '
           'posa en la ventana: trae un mensaje del Hada Madrina. Hay que '
-          'llevar una pluma del Rocanrón hasta la Isla Negra para calmar la '
+          'llevar una pluma del Rocanón hasta la Isla Negra para calmar la '
           'furia de Mututu.',
     ),
     Stage(
@@ -269,20 +269,21 @@ const chapter1 = Chapter(
           'Mágico.',
     ),
     Stage(
+      // El id conserva la grafía vieja: se guarda en el celular.
       id: 'nido_rocanron',
-      introCharacter: 'rocanron',
-      completeCharacter: 'rocanron',
+      introCharacter: 'rocanon',
+      completeCharacter: 'rocanon',
       background: 'assets/backgrounds/stage_2.webp',
       place: 'Árbol Mágico',
       placeArticle: 'el',
-      name: 'El nido del Rocanrón',
+      name: 'El nido del Rocanón',
       travelSteps: 3000,
       travelText:
           'El Árbol Mágico está en el centro de la isla, donde vive el Hada '
           'Madrina. Hay que cruzar los prados y un puentecito de madera. '
           '¡A caminar!',
       intro:
-          'En la copa del Árbol Mágico tiene su nido el Rocanrón, un pájaro '
+          'En la copa del Árbol Mágico tiene su nido el Rocanón, un pájaro '
           'enorme que canta como una guitarra eléctrica. Te va a regalar una pluma si le '
           'llevás 3 semillas de fuego, su comida favorita. Son muy difíciles de '
           'encontrar… pero dicen que 10 semillas de agua o de hielo, juntas, se '
@@ -306,11 +307,11 @@ const chapter1 = Chapter(
               'encienden! Ahora tenés una semilla de fuego.',
         ),
       ],
-      reward: Reward(id: 'pluma_rocanron', name: 'Pluma del Rocanrón'),
+      reward: Reward(id: 'pluma_rocanon', name: 'Pluma del Rocanón'),
       completeMessage:
-          'El Rocanrón se come las semillas, canta un solo de rock que hace '
+          'El Rocanón se come las semillas, canta un solo de rock que hace '
           'temblar las hojas y te regala una de sus plumas. ¡Tenés la Pluma del '
-          'Rocanrón!',
+          'Rocanón!',
     ),
     Stage(
       id: 'laberinto_hormigas',
