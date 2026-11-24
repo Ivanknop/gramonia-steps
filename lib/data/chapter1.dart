@@ -10,6 +10,8 @@ library;
 
 import '../logic/chapter.dart';
 import '../logic/music.dart';
+import '../logic/shop.dart';
+import '../logic/wallet.dart';
 import 'textos.dart' as t;
 
 /// Pasos que suma el botón de debug.
@@ -35,6 +37,35 @@ const double musicVolume = 0.5;
 /// Fundido al cambiar de tema.
 const musicFade = Duration(milliseconds: 1500);
 
+// ── Monedas y Tienda del Lobo ───────────────────────────────────────────
+// Al cambiar estos números, repetir la simulación (también calcula cuánto
+// se ahorra quien compra todo lo que puede).
+
+/// Monedas en cada tirada al azar en la que no sale el objeto, mientras a la
+/// etapa le falte algo.
+const missCoins = CoinRange(13, 51);
+
+/// Bono del día: la primera vez que se abre la app en el día.
+const dailyBonusCoins = CoinRange(35, 78);
+
+/// Bono de bienvenida a la 1.2.0 (solo partidas de antes): monedas por cada
+/// 100 pasos ya caminados.
+const welcomeCoinsPer100Steps = 10;
+
+/// Precios de la Tienda del Lobo, según cuántos de ese objeto pide la etapa.
+const shopPrices = ShopPrices([
+  // Más de 10 (por ejemplo, las 15 flores lilas).
+  PriceTier(moreThan: 10, price: 300),
+  // De 6 a 10.
+  PriceTier(moreThan: 5, price: 600),
+  // Menos de 6 (piezas del acertijo, ofrendas, bienes del barco).
+  PriceTier(moreThan: 0, price: 1200),
+]);
+
+/// Quién atiende la tienda y dónde.
+const shopkeeper = 'lobo';
+const shopBackground = 'assets/backgrounds/tienda.webp';
+
 const _ofrendas = ['piedra_fuego', 'agua_cascada', 'escama', 'flor_nubes'];
 const _bienes = ['madera', 'clavos', 'cuerdas', 'bandera', 'ancla'];
 
@@ -44,6 +75,7 @@ const chapter1 = Chapter(
   // La Isla Negra (el barco frente a la isla de Mututu).
   islandBackground: 'assets/backgrounds/isla_negra.webp',
   walkingCharacter: 'caperucita_espalda',
+  coinsPerMiss: missCoins,
   characters: [
     Character(id: 'caperucita_sin_caperuza', name: t.sofia),
     // Sofía saluda en los diálogos.
@@ -63,6 +95,8 @@ const chapter1 = Chapter(
     Character(id: 'hormigas', name: t.hormigas),
     Character(id: 'dragones', name: t.dragones),
     Character(id: 'papa', name: t.papa),
+    // Atiende la Tienda del Lobo.
+    Character(id: 'lobo', name: t.lobo, animation: 'lobo_animado'),
   ],
   items: [
     // Etapa 1.

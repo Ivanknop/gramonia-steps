@@ -35,7 +35,9 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 - No hay que mirar el celular mientras se camina: los objetos se juntan solos.
 - Capítulo 1: 8 etapas, unos 110.000 pasos en promedio (unas 3 semanas y media). Todo cambio de lugar es un tramo de caminata. Empieza en el jardín de la abuelita y termina cuando el barco zarpa. Al cambiar números, repetir la simulación de `docs/diseno.md`.
 - Los `id` de objetos y etapas y el número de etapa quedan guardados en el celular: no se cambian (ni se agregan etapas antes de otras) sin migrar la partida vieja en `lib/logic/game_save.dart`.
-- Monedas, tienda (mejoras para conseguir más objetos) y experiencia quedan para más adelante.
+- Ninguna actualización puede perder pasos, objetos, etapas, monedas ni historial. Si cambia lo que se guarda, subir `GameSave.version`, convertir la partida vieja en `GameSave.decode` y sumar un test que cargue una partida real de la versión anterior.
+- Monedas (1.2.0): al fallar una tirada al azar, bono del día y bono de bienvenida para partidas de antes. Se gastan en la Tienda del Lobo, que vende lo que falta de la etapa actual. Los números y precios están en `lib/data/chapter1.dart`; la simulación calcula cuánto se ahorra quien compra todo.
+- Mejoras de la tienda y experiencia quedan para más adelante.
 
 ## Plan de desarrollo
 

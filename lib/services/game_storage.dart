@@ -30,6 +30,7 @@ class PrefsGameStorage implements GameStorage {
       prefs.getString(key) ?? prefs.getString(v2Key),
       legacySource: prefs.getString(legacyKey),
       engine: engine,
+      welcomeCoinsPer100Steps: welcomeCoinsPer100Steps,
     );
   }
 

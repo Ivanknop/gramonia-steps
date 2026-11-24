@@ -5,6 +5,7 @@ import 'package:rpg/data/textos.dart' as t;
 import 'package:rpg/logic/chapter_progress.dart';
 import 'package:rpg/logic/game_save.dart';
 import 'package:rpg/logic/step_state.dart';
+import 'package:rpg/logic/wallet.dart';
 import 'package:rpg/services/step_sensor.dart';
 import 'package:rpg/data/textos.dart';
 import 'package:rpg/ui/arrival.dart';
@@ -51,6 +52,8 @@ void main() {
       storage: storage,
       clock: FakeClock(DateTime(2026, 11, 22, 10)),
       random: FixedRandom(dice),
+      // El aviso del bono del día se prueba aparte (coins_test).
+      dailyBonus: CoinRange.none,
     );
     await controller.start();
     // El timer del cambio de día tiene que cerrarse dentro de cada test.

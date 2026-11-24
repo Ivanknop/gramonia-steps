@@ -4,6 +4,7 @@ import 'package:rpg/app.dart';
 import 'package:rpg/data/chapter1.dart';
 import 'package:rpg/data/textos.dart';
 import 'package:rpg/logic/music.dart';
+import 'package:rpg/logic/wallet.dart';
 import 'package:rpg/ui/home_screen.dart';
 import 'package:rpg/ui/music_controller.dart';
 import 'package:rpg/ui/my_steps_screen.dart';
@@ -22,7 +23,11 @@ void main() {
     prefs = FakeMusicPrefs();
     final storage = FakeStorage();
     storage.saved = storage.saved.copyWith(playerName: 'Regi', introSeen: true);
-    steps = StepController(sensor: FakeSensor(), storage: storage);
+    steps = StepController(
+      sensor: FakeSensor(),
+      storage: storage,
+      dailyBonus: CoinRange.none, // Sin el aviso del bono encima.
+    );
     // La app arranca los pasos por su cuenta.
     if (startSteps) await steps.start();
     music = MusicController(

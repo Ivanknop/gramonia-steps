@@ -42,4 +42,30 @@ void main() {
       expect(await storage.load(), game);
     });
   }
+
+  test(
+    'partida de la 1.1.0: se convierte, se guarda y el bono no se repite',
+    () async {
+      const v110 =
+          '{"version":5,"steps":{"lastReading":5000,"totalSteps":8888,'
+          '"todaySteps":1200,"todayDate":"2026-11-23","lastReadingAt":null},'
+          '"chapter":{"stageIndex":1,"stepsInStage":2350,'
+          '"inventory":{"flor_amarilla":15,"flor_lila":6},"sinceLast":{},'
+          '"found":{"flor_amarilla":15,"flor_lila":6},"unseen":0,'
+          '"entered":true},"player":{"name":"Regi","introSeen":true}}';
+      SharedPreferences.setMockInitialValues({PrefsGameStorage.key: v110});
+      final storage = PrefsGameStorage();
+      final game = await storage.load();
+      expect(game.steps.totalSteps, 8888);
+      expect(game.chapter.stageIndex, 1);
+      expect(game.chapter.count('flor_lila'), 6);
+      expect(game.playerName, 'Regi');
+      expect(game.wallet.coins, 880);
+
+      await storage.save(game);
+      final reopened = await storage.load();
+      expect(reopened, game);
+      expect(reopened.wallet.coins, 880);
+    },
+  );
 }

@@ -35,6 +35,7 @@ void main() {
         ArrivalMoment(:final stage) => 'llegada:${stage.id}',
         DialogueMoment(:final stage) => 'diálogo:${stage.id}',
         EndingMoment() => 'continuará',
+        CoinMoment(:final notice) => 'monedas:${notice.amount}',
       },
   ];
 

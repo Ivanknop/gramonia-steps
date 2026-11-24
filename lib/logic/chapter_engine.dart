@@ -36,9 +36,12 @@ class ChapterCompleted extends ChapterEvent {
 }
 
 class ChapterAdvance {
-  const ChapterAdvance(this.progress, this.events);
+  const ChapterAdvance(this.progress, this.events, [this.coins = 0]);
   final ChapterProgress progress;
   final List<ChapterEvent> events;
+
+  /// Monedas ganadas en las tiradas en las que no salió nada.
+  final int coins;
 }
 
 enum StageStatus { done, current, locked }
@@ -148,17 +151,22 @@ class ChapterEngine {
       for (final spawn in active) {
         if (next % spawn.every != 0) continue;
         if (!_isActive(stage, spawn, run.inventory)) continue;
-        if (_rolls(spawn, run, random)) {
+        if (_rolls(stage, spawn, run, random)) {
           _give(stage, _pick(stage, spawn, run.inventory, random), run);
         }
       }
     }
 
-    return ChapterAdvance(run.toProgress(), List.unmodifiable(run.events));
+    return ChapterAdvance(
+      run.toProgress(),
+      List.unmodifiable(run.events),
+      run.coins,
+    );
   }
 
   /// Tira el dado de una aparición. Lleva la cuenta para la garantía.
-  bool _rolls(Spawn spawn, _Run run, Random random) {
+  /// Si no sale nada y a la etapa todavía le falta algo, da monedas.
+  bool _rolls(Stage stage, Spawn spawn, _Run run, Random random) {
     switch (spawn) {
       case FixedSpawn():
         return true;
@@ -167,6 +175,9 @@ class ChapterEngine {
         final hit =
             random.nextInt(spawn.oneIn) == 0 || since >= spawn.guaranteeSteps;
         run.sinceLast[spawn.key] = hit ? 0 : since;
+        if (!hit && !_isComplete(stage, run.inventory)) {
+          run.coins += chapter.coinsPerMiss.roll(random);
+        }
         return hit;
     }
   }
@@ -258,6 +269,7 @@ class _Run {
   final Map<String, int> found;
   int unseen;
   bool entered;
+  int coins = 0;
   final events = <ChapterEvent>[];
 
   /// Lo cuenta para la bolsa. Los objetos sin aviso (gemas) no suman al

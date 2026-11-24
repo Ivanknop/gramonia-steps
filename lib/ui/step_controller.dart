@@ -7,6 +7,8 @@ import '../data/chapter1.dart';
 import '../logic/chapter_engine.dart';
 import '../logic/clock.dart';
 import '../logic/game_save.dart';
+import '../logic/shop.dart';
+import '../logic/wallet.dart';
 import '../logic/step_history.dart';
 import '../logic/step_state.dart';
 import '../logic/step_tracker.dart';
@@ -34,8 +36,11 @@ class StepController extends ChangeNotifier {
     Random? random,
     this.saveDelay = const Duration(seconds: 1),
     this.dayCheckInterval = const Duration(minutes: 1),
+    this.dailyBonus = dailyBonusCoins,
+    ShopPrices prices = shopPrices,
   }) : random = random ?? Random(),
-       historyStorage = historyStorage ?? MemoryStepHistoryStorage();
+       historyStorage = historyStorage ?? MemoryStepHistoryStorage(),
+       shop = Shop(engine, prices);
 
   final StepSensor sensor;
   final GameStorage storage;
@@ -49,6 +54,12 @@ class StepController extends ChangeNotifier {
   /// Azar para la aparición de objetos (en los tests, con semilla fija).
   final Random random;
 
+  /// Monedas del bono del día.
+  final CoinRange dailyBonus;
+
+  /// Tienda del Lobo.
+  final Shop shop;
+
   /// Como mucho se guarda una vez por [saveDelay], para no escribir en cada paso.
   final Duration saveDelay;
   final Duration dayCheckInterval;
@@ -56,6 +67,12 @@ class StepController extends ChangeNotifier {
   GameSave _game = const GameSave.initial();
   GameSave get game => _game;
   StepState get state => _game.steps;
+
+  /// Monedas que hay para gastar.
+  int get coins => _game.wallet.coins;
+
+  /// Avisos de monedas que todavía no se mostraron.
+  List<CoinNotice> get coinNotices => _game.wallet.notices;
 
   StepHistory _history = StepHistory();
 
@@ -116,6 +133,7 @@ class StepController extends ChangeNotifier {
     // existiera el historial) pasa al historial.
     _record(loaded.steps);
     _update(tracker.refreshDay(loaded.steps, clock.now()));
+    _claimDailyBonus();
     notifyListeners();
     await _flush();
     _dayTimer = Timer.periodic(dayCheckInterval, (_) => refreshDay());
@@ -149,6 +167,51 @@ class StepController extends ChangeNotifier {
       _update(next);
       _scheduleSave();
     }
+    if (_claimDailyBonus()) {
+      notifyListeners();
+      _scheduleSave();
+    }
+  }
+
+  /// La primera vez que se abre la app en el día (fecha local), el bono.
+  /// Devuelve si se cobró.
+  bool _claimDailyBonus() {
+    if (_disposed) return false;
+    final wallet = _game.wallet.claimDaily(
+      dateKey(clock.now()),
+      dailyBonus,
+      random,
+    );
+    if (identical(wallet, _game.wallet)) return false;
+    _game = _game.copyWith(wallet: wallet);
+    return true;
+  }
+
+  /// Ya se mostró el aviso de monedas.
+  void dismissCoinNotice(CoinNotice notice) {
+    if (_disposed) return;
+    final wallet = _game.wallet.dismiss(notice);
+    if (identical(wallet, _game.wallet)) return;
+    _game = _game.copyWith(wallet: wallet);
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// Compra un objeto en la Tienda del Lobo. Devuelve lo que pasó, o null si
+  /// no se pudo (no se vende o no alcanzan las monedas). Si con la compra se
+  /// completa la etapa, los eventos llegan como al caminar.
+  Future<Purchase?> buy(String itemId) async {
+    if (_disposed) return null;
+    final purchase = shop.buy(_game.chapter, coins, itemId, random);
+    if (purchase == null) return null;
+    _game = _game.copyWith(
+      chapter: purchase.progress,
+      wallet: _game.wallet.spend(purchase.price),
+    );
+    if (purchase.events.isNotEmpty) _events.add(purchase.events);
+    notifyListeners();
+    await _flush(); // Las monedas se guardan enseguida.
+    return purchase;
   }
 
   /// Al abrir la bolsa, el número de objetos nuevos vuelve a 0.
@@ -254,7 +317,11 @@ class StepController extends ChangeNotifier {
     // Los pasos nuevos (reales o de debug) avanzan el capítulo.
     final delta = next.totalSteps - state.totalSteps;
     final advance = engine.advance(_game.chapter, delta, random);
-    _game = _game.copyWith(steps: next, chapter: advance.progress);
+    _game = _game.copyWith(
+      steps: next,
+      chapter: advance.progress,
+      wallet: _game.wallet.add(advance.coins),
+    );
     _record(next);
     if (advance.events.isNotEmpty) {
       _log('eventos: ${advance.events.length}');

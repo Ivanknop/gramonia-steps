@@ -4,26 +4,43 @@ import 'dart:math';
 import 'chapter_engine.dart';
 import 'chapter_progress.dart';
 import 'step_state.dart';
+import 'wallet.dart';
 
-/// Toda la partida guardada en el celular: pasos y progreso del capítulo.
+/// Toda la partida guardada en el celular: pasos, progreso del capítulo y
+/// monedas.
+///
+/// Ninguna actualización puede perder pasos, objetos ni etapas: si cambia lo
+/// que se guarda, subir [version] y convertir la partida vieja en [decode]
+/// (con un test que cargue una partida real de la versión anterior). El
+/// historial de pasos por día se guarda aparte (StepHistoryStorage).
 class GameSave {
   const GameSave({
     required this.steps,
     required this.chapter,
     this.playerName,
     this.introSeen = false,
+    this.wallet = Wallet.initial,
   });
 
   const GameSave.initial()
     : steps = const StepState.initial(),
       chapter = const ChapterProgress.initial(),
       playerName = null,
-      introSeen = false;
+      introSeen = false,
+      wallet = Wallet.initial;
 
-  /// 3: etapas con inventario por cantidades (azar, fijos, canjes).
-  /// 4: se sumó una etapa al principio (el paseo por el jardín).
-  /// 5: el nido y el laberinto empiezan con un tramo de caminata.
-  static const int version = 5;
+  /// Versión del formato guardado (no es la versión de la app).
+  ///
+  /// - 3: etapas con inventario por cantidades (azar, fijos, canjes).
+  /// - 4: se sumó una etapa al principio (el paseo por el jardín).
+  /// - 5: el nido y el laberinto empiezan con un tramo de caminata.
+  ///   Es la de la app 1.0.0 y 1.1.0.
+  /// - 6: monedas, bono diario y bono de bienvenida (app 1.2.0).
+  static const int version = 6;
+
+  /// Versión en la que llegaron las monedas. Las partidas de antes reciben
+  /// el bono de bienvenida.
+  static const int _coinsSince = 6;
 
   /// Etapas que se agregaron al principio del capítulo en la versión 4.
   static const int _stagesAddedInV4 = 1;
@@ -40,16 +57,21 @@ class GameSave {
   /// Si ya se vio la introducción (Mututu despierta).
   final bool introSeen;
 
+  /// Monedas y bonos cobrados.
+  final Wallet wallet;
+
   GameSave copyWith({
     StepState? steps,
     ChapterProgress? chapter,
     String? playerName,
     bool? introSeen,
+    Wallet? wallet,
   }) => GameSave(
     steps: steps ?? this.steps,
     chapter: chapter ?? this.chapter,
     playerName: playerName ?? this.playerName,
     introSeen: introSeen ?? this.introSeen,
+    wallet: wallet ?? this.wallet,
   );
 
   String encode() => jsonEncode({
@@ -57,6 +79,7 @@ class GameSave {
     'steps': steps.toJson(),
     'chapter': chapter.toJson(),
     'player': {'name': playerName, 'introSeen': introSeen},
+    'wallet': wallet.toJson(),
   });
 
   /// Lee la partida guardada.
@@ -67,19 +90,32 @@ class GameSave {
   /// Si el progreso del capítulo falta, está roto o es de una versión vieja
   /// (que tenía otras etapas y objetos), se reconstruye aplicando el total de
   /// pasos a las reglas actuales: así no se pierde lo caminado.
+  ///
+  /// Las partidas de antes de las monedas (versión 5 o anterior) reciben
+  /// una sola vez el bono de bienvenida: [welcomeCoinsPer100Steps] monedas
+  /// por cada 100 pasos caminados. Las partidas nuevas no.
   static GameSave decode(
     String? source, {
     String? legacySource,
     required ChapterEngine engine,
+    required int welcomeCoinsPer100Steps,
     Random? random,
   }) {
     StepState? steps;
     ChapterProgress? chapter;
     String? playerName;
     var introSeen = false;
+    Wallet? wallet;
+    // Hay una partida de una versión anterior (y no es una instalación nueva).
+    var isOld = legacySource != null && legacySource.isNotEmpty;
 
     final json = _tryDecodeMap(source);
     if (json != null) {
+      final savedVersion = json['version'];
+      isOld = savedVersion is! int || savedVersion < _coinsSince;
+      if (!isOld) {
+        wallet = _tryParse(() => Wallet.fromJson(_map(json['wallet'])));
+      }
       steps = _tryParse(() => StepState.fromJson(_map(json['steps'])));
       // Las partidas de antes no tienen nombre: Sofía lo pregunta.
       final player = _tryParse(() => _map(json['player']));
@@ -87,14 +123,14 @@ class GameSave {
       introSeen =
           _tryParse<bool?>(() => player?['introSeen'] as bool?) ?? false;
       final saved = switch (json['version']) {
-        3 || 4 || version => _tryParse(
+        3 || 4 || 5 || version => _tryParse(
           () => ChapterProgress.fromJson(_map(json['chapter'])),
         ),
         _ => null,
       };
       chapter = switch ((json['version'], saved)) {
         (_, null) => null,
-        (version, final p?) => p,
+        (5 || version, final p?) => p,
         (4, final p?) => _addTravelV5(p, engine),
         // La partida ya había empezado: el paseo por el jardín cuenta como
         // hecho y sigue en la misma etapa que tenía.
@@ -111,11 +147,18 @@ class GameSave {
         )
         .progress;
 
+    wallet ??= Wallet.initial;
+    // Sin pasos no hay nada que agradecer (por ejemplo, una partida rota).
+    if (isOld && steps.totalSteps > 0) {
+      wallet = wallet.payWelcome(steps.totalSteps, welcomeCoinsPer100Steps);
+    }
+
     return GameSave(
       steps: steps,
       chapter: chapter,
       playerName: playerName,
       introSeen: introSeen,
+      wallet: wallet,
     );
   }
 
@@ -134,14 +177,17 @@ class GameSave {
       other.steps == steps &&
       other.chapter == chapter &&
       other.playerName == playerName &&
-      other.introSeen == introSeen;
+      other.introSeen == introSeen &&
+      other.wallet == wallet;
 
   @override
-  int get hashCode => Object.hash(steps, chapter, playerName, introSeen);
+  int get hashCode =>
+      Object.hash(steps, chapter, playerName, introSeen, wallet);
 
   @override
   String toString() =>
-      'GameSave($steps, $chapter, player: $playerName, intro: $introSeen)';
+      'GameSave($steps, $chapter, player: $playerName, intro: $introSeen, '
+      '$wallet)';
 }
 
 Map<String, dynamic>? _tryDecodeMap(String? source) {

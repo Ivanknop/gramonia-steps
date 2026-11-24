@@ -72,6 +72,19 @@ class ChapterProgress {
     entered: entered,
   );
 
+  /// La misma partida, con un [itemId] más (por ejemplo, comprado en la
+  /// tienda). Cuenta para la bolsa, pero no como nuevo: ya se vio al
+  /// comprarlo.
+  ChapterProgress withItem(String itemId) => ChapterProgress(
+    stageIndex: stageIndex,
+    stepsInStage: stepsInStage,
+    inventory: Map.unmodifiable({...inventory, itemId: count(itemId) + 1}),
+    sinceLast: sinceLast,
+    found: Map.unmodifiable({...found, itemId: foundCount(itemId) + 1}),
+    unseen: unseen,
+    entered: entered,
+  );
+
   ChapterProgress copyWith({int? unseen, bool? entered}) => ChapterProgress(
     stageIndex: stageIndex,
     stepsInStage: stepsInStage,

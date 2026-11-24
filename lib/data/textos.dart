@@ -118,6 +118,29 @@ abstract final class Strings {
   static String rewardOf(int number, String stage) =>
       'Recompensa de la etapa $number: $stage.';
   static const close = 'Cerrar';
+  static const bagCoins = 'Monedas';
+
+  // Monedas.
+  /// "1 moneda", "1.234 monedas".
+  static String coins(int n) =>
+      n == 1 ? '1 moneda' : '${formatNumber(n)} monedas';
+  static String coinBalance(int n) => 'Tenés ${coins(n)}';
+  static const coinsTooltip = 'Monedas (abre la Tienda del Lobo)';
+  static String dailyBonus(int n) => '¡Bono del día: ${coins(n)}!';
+  static String welcomeBonus(int n) =>
+      '¡Gracias por jugar desde el principio! Recibiste ${coins(n)} para '
+      'la Tienda del Lobo';
+  static const coinNoticeButton = '¡Genial!';
+  static const coinsHowTo =
+      'Las monedas aparecen caminando, cuando no sale ningún objeto.';
+
+  // Tienda del Lobo.
+  static const shopTitle = 'Tienda del Lobo';
+  static const shopEnter = 'Entrar a la tienda';
+  static const shopForSale = 'Para la etapa';
+  static String shopMissing(int n) => n == 1 ? 'Falta 1' : 'Faltan $n';
+  static String shopPrice(int price) => formatNumber(price);
+  static const shopTapLobo = 'Tocá al Lobo para charlar';
 
   // Música.
   static const muteMusic = 'Silenciar música';
@@ -355,6 +378,55 @@ const dialogoBarco = [
   Linea(_jugador, '¡Manos a la obra!'),
 ];
 
+// ── Tienda del Lobo ─────────────────────────────────────────────────────
+// Como todos los Lobos de Gramonia, es guardián y habla poco. Este además
+// junta cosas en su mochila y las cambia por monedas. Le habla a Sofía y a
+// quien juega ("ustedes"). {nombre} se reemplaza por el nombre.
+
+/// Al entrar a la tienda (uno al azar).
+const loboSaludos = [
+  'Pasen. Soy el Lobo. Guardo cosas para quien camina.',
+  'Hola, Sofía. Hola, {nombre}. Miren con calma. Mirar no cuesta.',
+  '¿Otra vez por acá? Bien. Las cosas no se venden solas.',
+  'Shhh. Los frascos duermen. Pasen despacio.',
+];
+
+/// Al tocar al Lobo (uno por vez, en orden).
+const loboDichos = [
+  '¿Por qué todos los caminos llevan al Árbol Mágico? Porque el Árbol está '
+      'en el centro.',
+  'Cada lugar de Gramonia tiene su Lobo. Yo cuido esta tienda.',
+  'Los anteojos son para leer mapas. Y precios.',
+  'Las monedas aparecen caminando. Como casi todo.',
+  'Comprar ayuda. Caminar ayuda más.',
+  'No explico mucho. Vendo.',
+];
+
+/// Al comprar (uno al azar). {objeto} es lo que se compró, con artículo
+/// ("una flor lila").
+const loboCompra = [
+  'Buena elección: {objeto}.',
+  'Trato hecho. Acá tienen {objeto}.',
+  'Listo. Ya llevan {objeto} en la bolsa.',
+];
+
+/// Con la compra se completó la etapa.
+const loboEtapaCompleta = '¡Ya tienen todo! Vayan. El camino espera.';
+
+/// No alcanzan las monedas. {faltan} es cuántas faltan.
+const loboSinMonedas =
+    'Faltan {faltan} monedas. Caminen un poco y vuelvan. Acá estoy.';
+
+/// En el tramo de caminata: no hay nada para la etapa todavía.
+const loboViajando =
+    'Primero lleguen. Después hablamos de lo que hace falta allá.';
+
+/// Antes de entrar a la etapa (pantalla de llegada o diálogo).
+const loboSinEntrar = 'Entren primero. Las cosas de la etapa esperan adentro.';
+
+/// Después de que zarpa el barco.
+const loboFinal = 'El barco ya zarpó. Buen viaje. Cuando vuelvan, acá estoy.';
+
 // ── Cierre: después de que zarpa el barco ───────────────────────────────
 
 const cierre = ['El barco navega hacia la Isla Negra.', '¿Qué esconde Mututu?'];
@@ -402,6 +474,7 @@ const rocanon = 'Rocanón';
 const hormigas = 'Hormigas guardianas';
 const dragones = 'Dragones';
 const papa = 'Papá';
+const lobo = 'Lobo';
 
 // ── Etapa 1: Un paseo por el jardín ─────────────────────────────────────
 

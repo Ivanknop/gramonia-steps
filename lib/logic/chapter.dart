@@ -4,6 +4,7 @@ library;
 
 import 'music.dart';
 import 'story.dart';
+import 'wallet.dart';
 
 /// Textos de un objeto (se escriben en lib/data/textos.dart).
 class TextoObjeto {
@@ -260,9 +261,14 @@ class Chapter {
     required this.islandBackground,
     required this.characters,
     required this.walkingCharacter,
+    this.coinsPerMiss = CoinRange.none,
   });
 
   final String name;
+
+  /// Monedas en cada tirada al azar en la que no sale el objeto (mientras
+  /// a la etapa le falte algo).
+  final CoinRange coinsPerMiss;
   final List<ItemType> items;
   final List<Stage> stages;
   final List<Character> characters;

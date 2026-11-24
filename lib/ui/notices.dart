@@ -1,6 +1,7 @@
 import '../logic/chapter.dart';
 import '../logic/chapter_engine.dart';
 import '../data/textos.dart';
+import '../logic/wallet.dart';
 
 /// Algo para mostrar en grande, uno después del otro.
 sealed class Moment {
@@ -42,6 +43,12 @@ class DialogueMoment extends Moment {
 /// Cierre del capítulo: la Isla Negra y "Continuará...".
 class EndingMoment extends Moment {
   const EndingMoment();
+}
+
+/// Aviso de monedas recibidas (bono del día o de bienvenida).
+class CoinMoment extends Moment {
+  const CoinMoment(this.notice);
+  final CoinNotice notice;
 }
 
 /// Como mucho se muestran estos carteles de objetos por cada avance (por

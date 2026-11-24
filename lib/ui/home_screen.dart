@@ -8,15 +8,18 @@ import '../data/chapter1.dart';
 import '../logic/chapter.dart';
 import '../logic/chapter_engine.dart';
 import '../logic/chapter_progress.dart';
+import '../logic/wallet.dart';
 import '../data/textos.dart';
 import 'arrival.dart';
 import 'bag.dart';
+import 'coins.dart';
 import 'credits_screen.dart';
 import 'dialogue.dart';
 import 'ending.dart';
 import 'music_controller.dart';
 import 'found_item.dart';
 import 'notices.dart';
+import 'shop_screen.dart';
 import 'stage_done.dart';
 import 'step_controller.dart';
 import 'theme.dart';
@@ -58,7 +61,26 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _events = widget.controller.events.listen(_onEvents);
     widget.controller.addListener(_onLoaded);
+    widget.controller.addListener(_onCoinNotices);
     _onLoaded(building: true);
+  }
+
+  /// Avisos de monedas que ya están en la cola (o en pantalla).
+  final _queuedNotices = Set<CoinNotice>.identity();
+
+  /// Avisos de monedas nuevos, en el orden en que llegaron.
+  List<CoinMoment> _newCoinMoments() => [
+    for (final notice in widget.controller.coinNotices)
+      if (_queuedNotices.add(notice)) CoinMoment(notice),
+  ];
+
+  /// Llegó un bono (por ejemplo, el del día al volver a la app).
+  void _onCoinNotices() {
+    if (!_checkedDoor) return; // Los primeros los pone _onLoaded.
+    final moments = _newCoinMoments();
+    if (moments.isEmpty) return;
+    _queue.addAll(moments);
+    if (_current == null) _next();
   }
 
   var _checkedDoor = false;
@@ -72,12 +94,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _checkedDoor = true;
     controller.removeListener(_onLoaded);
     final chapter = controller.game.chapter;
-    if (!controller.engine.needsEntering(chapter)) return;
-    final stage = controller.engine.currentStage(chapter)!;
-    _queue.insert(
-      0,
-      stage.hasTravel ? ArrivalMoment(stage) : DialogueMoment(stage),
-    );
+    // Primero los bonos de monedas, después la puerta de la etapa.
+    final first = <Moment>[..._newCoinMoments()];
+    if (controller.engine.needsEntering(chapter)) {
+      final stage = controller.engine.currentStage(chapter)!;
+      first.add(stage.hasTravel ? ArrivalMoment(stage) : DialogueMoment(stage));
+    }
+    if (first.isEmpty) return;
+    _queue.insertAll(0, first);
     if (_current != null) return;
     if (building) {
       _current = _queue.removeAt(0); // Todavía no se dibujó nada.
@@ -141,6 +165,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return stack.globalToLocal(bag.localToGlobal(bag.size.center(Offset.zero)));
   }
 
+  void _coinNoticeSeen(CoinNotice notice) {
+    widget.controller.dismissCoinNotice(notice);
+    _next();
+  }
+
+  void _openShop() => ShopScreen.open(context, widget.controller);
+
   void _openBag() {
     widget.controller.markBagSeen();
     Navigator.of(context).push(
@@ -154,6 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _events?.cancel();
     widget.controller.removeListener(_onLoaded);
+    widget.controller.removeListener(_onCoinNotices);
     super.dispose();
   }
 
@@ -218,6 +250,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ],
                       const SizedBox(height: 12),
+                      _ShopCard(
+                        engine: engine,
+                        coins: controller.coins,
+                        onTap: _openShop,
+                      ),
+                      const SizedBox(height: 12),
                       _JourneyCard(engine: engine, progress: chapter),
                       if (widget.showDebug) ...[
                         const SizedBox(height: 12),
@@ -231,6 +269,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ],
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: CoinChip(coins: controller.coins, onTap: _openShop),
                   ),
                 ),
               ),
@@ -283,6 +330,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     background: stage.background,
                     doneLabel: Strings.stageDialogueButton,
                     onDone: () => _entered(stage),
+                  ),
+                  CoinMoment(:final notice) => CoinNoticeOverlay(
+                    key: ObjectKey(current),
+                    chapter: engine.chapter,
+                    notice: notice,
+                    onDone: () => _coinNoticeSeen(notice),
                   ),
                   FoundMoment() => FoundItemOverlay(
                     key: ObjectKey(current),
@@ -633,6 +686,51 @@ class _ExchangeRow extends StatelessWidget {
             style: text.bodySmall,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Entrada a la Tienda del Lobo, con el saldo.
+class _ShopCard extends StatelessWidget {
+  const _ShopCard({
+    required this.engine,
+    required this.coins,
+    required this.onTap,
+  });
+
+  final ChapterEngine engine;
+  final int coins;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Panel(
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListTile(
+          key: const ValueKey('shop-card'),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 4,
+          ),
+          // Quieto: el animado se ve adentro de la tienda.
+          leading: GameImage.character(
+            engine.chapter.character(shopkeeper).image,
+            size: 56,
+          ),
+          title: Text(Strings.shopTitle, style: text.titleMedium),
+          subtitle: Row(
+            children: [
+              const Icon(Icons.monetization_on, color: coinColor, size: 18),
+              const SizedBox(width: 4),
+              Flexible(child: Text(Strings.coinBalance(coins))),
+            ],
+          ),
+          trailing: const Icon(Icons.storefront),
+          onTap: onTap,
+        ),
       ),
     );
   }

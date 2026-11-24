@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../logic/chapter.dart';
 import '../data/textos.dart';
+import 'coins.dart';
 import 'step_controller.dart';
 import 'widgets.dart';
 
@@ -99,6 +100,18 @@ class BagScreen extends StatelessWidget {
           final rewards = engine.rewardsEarned(progress);
           return CustomScrollView(
             slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                sliver: SliverToBoxAdapter(
+                  child: Row(
+                    children: [
+                      Text(Strings.bagCoins, style: text.titleLarge),
+                      const Spacer(),
+                      CoinChip(coins: controller.coins),
+                    ],
+                  ),
+                ),
+              ),
               _title(Strings.bagItems, text),
               if (items.isEmpty)
                 _note(Strings.bagEmpty)
