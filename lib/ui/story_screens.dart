@@ -25,6 +25,7 @@ class IntroScreen extends StatelessWidget {
         chapter: chapter,
         lines: t.introduccion,
         playerName: controller.playerName ?? '',
+        genero: controller.genero,
         background: chapter.islandBackground,
         doneLabel: Strings.introButton,
         onDone: onDone,

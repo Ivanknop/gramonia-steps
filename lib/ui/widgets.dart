@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../data/textos.dart';
 import '../logic/chapter.dart';
 
 /// Panel semitransparente con bordes redondeados, para que el texto se lea
@@ -18,6 +19,32 @@ class Panel extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Padding(padding: padding, child: child),
+    );
+  }
+}
+
+/// La "x" de un aviso, para cerrarlo antes de tiempo.
+class NoticeCloseButton extends StatelessWidget {
+  const NoticeCloseButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  /// Cuánto dura un aviso si no se lo cierra.
+  static const noticeDuration = Duration(seconds: 6);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.surface,
+      shape: const CircleBorder(),
+      elevation: 2,
+      child: IconButton(
+        key: const ValueKey('notice-close'),
+        tooltip: Strings.closeNotice,
+        icon: const Icon(Icons.close),
+        onPressed: onPressed,
+      ),
     );
   }
 }

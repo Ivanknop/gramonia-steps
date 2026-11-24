@@ -7,6 +7,7 @@ import 'package:rpg/logic/chapter_engine.dart';
 import 'package:rpg/logic/chapter_progress.dart';
 import 'package:rpg/logic/game_save.dart';
 import 'package:rpg/logic/step_state.dart';
+import 'package:rpg/logic/story.dart';
 import 'package:rpg/logic/wallet.dart';
 import 'package:rpg/ui/bag.dart';
 import 'package:rpg/ui/coins.dart';
@@ -33,7 +34,11 @@ void main() {
   setUp(() {
     sensor = FakeSensor();
     storage = FakeStorage(savedSteps);
-    storage.saved = storage.saved.copyWith(playerName: 'Regi', introSeen: true);
+    storage.saved = storage.saved.copyWith(
+      playerName: 'Regi',
+      introSeen: true,
+      genero: Genero.neutro,
+    );
     clock = FakeClock(DateTime(2026, 11, 24, 9));
   });
 
@@ -190,6 +195,26 @@ void main() {
       expect(find.text(Strings.coinBalance(35)), findsOneWidget);
     });
 
+    testWidgets('el aviso de monedas se cierra solo a los 6 segundos', (
+      tester,
+    ) async {
+      final c = await showHome(tester);
+      await tester.pump(const Duration(seconds: 5));
+      expect(find.byType(CoinNoticeOverlay), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      expect(find.byType(CoinNoticeOverlay), findsNothing);
+      expect(c.coinNotices, isEmpty);
+    });
+
+    testWidgets('con la x se cierra antes', (tester) async {
+      final c = await showHome(tester);
+      await tester.tap(find.byKey(const ValueKey('notice-close')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CoinNoticeOverlay), findsNothing);
+      expect(c.coinNotices, isEmpty);
+    });
+
     testWidgets('bono de bienvenida de la 1.2.0, antes que el del día', (
       tester,
     ) async {
@@ -262,7 +287,10 @@ void main() {
     ) async {
       saveAt('casa_abuelita', 700, {'flor_lila': 12});
       final c = await showShop(tester);
-      expect(find.text(t.loboSaludos.first), findsOneWidget);
+      expect(
+        find.text('Pasen. Soy el Lobo. Guardo cosas para quien camina.'),
+        findsOneWidget,
+      );
       expect(find.text(t.florLila.nombre), findsOneWidget);
       expect(find.text(Strings.shopMissing(3)), findsOneWidget);
       expect(find.text('300'), findsOneWidget);

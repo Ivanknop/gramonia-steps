@@ -4,6 +4,7 @@ import 'dart:math';
 import 'chapter_engine.dart';
 import 'chapter_progress.dart';
 import 'step_state.dart';
+import 'story.dart';
 import 'wallet.dart';
 
 /// Toda la partida guardada en el celular: pasos, progreso del capítulo y
@@ -20,6 +21,7 @@ class GameSave {
     this.playerName,
     this.introSeen = false,
     this.wallet = Wallet.initial,
+    this.genero,
   });
 
   const GameSave.initial()
@@ -27,7 +29,8 @@ class GameSave {
       chapter = const ChapterProgress.initial(),
       playerName = null,
       introSeen = false,
-      wallet = Wallet.initial;
+      wallet = Wallet.initial,
+      genero = null;
 
   /// Versión del formato guardado (no es la versión de la app).
   ///
@@ -35,7 +38,9 @@ class GameSave {
   /// - 4: se sumó una etapa al principio (el paseo por el jardín).
   /// - 5: el nido y el laberinto empiezan con un tramo de caminata.
   ///   Es la de la app 1.0.0 y 1.1.0.
-  /// - 6: monedas, bono diario y bono de bienvenida (app 1.2.0).
+  /// - 6: monedas, bono diario y bono de bienvenida (app 1.2.0). En la
+  ///   1.2.0 también se suma `player.gender`, opcional: si falta, se
+  ///   pregunta.
   static const int version = 6;
 
   /// Versión en la que llegaron las monedas. Las partidas de antes reciben
@@ -60,25 +65,35 @@ class GameSave {
   /// Monedas y bonos cobrados.
   final Wallet wallet;
 
+  /// Chico, chica o "prefiero no decir". Nulo si todavía no se preguntó
+  /// (partidas de antes de la 1.2.0: se pregunta una vez al abrir).
+  final Genero? genero;
+
   GameSave copyWith({
     StepState? steps,
     ChapterProgress? chapter,
     String? playerName,
     bool? introSeen,
     Wallet? wallet,
+    Genero? genero,
   }) => GameSave(
     steps: steps ?? this.steps,
     chapter: chapter ?? this.chapter,
     playerName: playerName ?? this.playerName,
     introSeen: introSeen ?? this.introSeen,
     wallet: wallet ?? this.wallet,
+    genero: genero ?? this.genero,
   );
 
   String encode() => jsonEncode({
     'version': version,
     'steps': steps.toJson(),
     'chapter': chapter.toJson(),
-    'player': {'name': playerName, 'introSeen': introSeen},
+    'player': {
+      'name': playerName,
+      'introSeen': introSeen,
+      'gender': genero?.name,
+    },
     'wallet': wallet.toJson(),
   });
 
@@ -105,6 +120,7 @@ class GameSave {
     ChapterProgress? chapter;
     String? playerName;
     var introSeen = false;
+    Genero? genero;
     Wallet? wallet;
     // Hay una partida de una versión anterior (y no es una instalación nueva).
     var isOld = legacySource != null && legacySource.isNotEmpty;
@@ -122,6 +138,9 @@ class GameSave {
       playerName = _tryParse<String?>(() => player?['name'] as String?);
       introSeen =
           _tryParse<bool?>(() => player?['introSeen'] as bool?) ?? false;
+      genero = _tryParse(
+        () => Genero.values.byName(player?['gender'] as String),
+      );
       final saved = switch (json['version']) {
         3 || 4 || 5 || version => _tryParse(
           () => ChapterProgress.fromJson(_map(json['chapter'])),
@@ -159,6 +178,7 @@ class GameSave {
       playerName: playerName,
       introSeen: introSeen,
       wallet: wallet,
+      genero: genero,
     );
   }
 
@@ -178,16 +198,17 @@ class GameSave {
       other.chapter == chapter &&
       other.playerName == playerName &&
       other.introSeen == introSeen &&
-      other.wallet == wallet;
+      other.wallet == wallet &&
+      other.genero == genero;
 
   @override
   int get hashCode =>
-      Object.hash(steps, chapter, playerName, introSeen, wallet);
+      Object.hash(steps, chapter, playerName, introSeen, wallet, genero);
 
   @override
   String toString() =>
       'GameSave($steps, $chapter, player: $playerName, intro: $introSeen, '
-      '$wallet)';
+      '$wallet, $genero)';
 }
 
 Map<String, dynamic>? _tryDecodeMap(String? source) {

@@ -5,8 +5,15 @@
 /// - Abajo, la historia del Capítulo 1: personajes, etapas y objetos.
 ///
 /// Estilo (como los Cuentos de Gramonia): frases cortas, para chicas y
-/// chicos de primaria. A quien juega se le habla de "vos", sin género:
-/// nada de "lista/listo" ni "bienvenido/a".
+/// chicos de primaria. A quien juega se le habla de "vos".
+///
+/// Género: en la presentación, quien juega elige chico, chica o "prefiero no
+/// decir". Todo lo que tenga género va con sus tres variantes:
+/// `{chico|chica|neutro}`, por ejemplo `lo damos {juntos|juntas|en equipo}`.
+/// La neutra es la de "prefiero no decir" (y la de quien todavía no
+/// respondió): nada de "lista/listo" ni "bienvenido/a". Cuando Sofía y quien
+/// juega van juntos, el plural sigue a quien juega (Sofía es chica: con un
+/// chico, "cansados"; con una chica, "cansadas").
 library;
 
 import '../logic/chapter.dart';
@@ -34,6 +41,9 @@ abstract final class Strings {
   static const dialogueNext = 'Seguir';
   static const nameHint = 'Tu nombre';
   static const nameButton = 'Seguir';
+  static const genderBoy = 'Chico';
+  static const genderGirl = 'Chica';
+  static const genderNone = 'Prefiero no decir';
   static const introButton = '¡Vamos!';
   static const stageDialogueButton = '¡Vamos!';
 
@@ -91,6 +101,7 @@ abstract final class Strings {
   static String foundMany(String name, int count) =>
       '¡Encontraste $name ×$count!';
   static const tapToContinue = 'Tocá para seguir';
+  static const closeNotice = 'Cerrar el aviso';
 
   // Fin de etapa.
   static const stageDoneTitle = '¡Etapa completada!';
@@ -141,6 +152,21 @@ abstract final class Strings {
   static String shopMissing(int n) => n == 1 ? 'Falta 1' : 'Faltan $n';
   static String shopPrice(int price) => formatNumber(price);
   static const shopTapLobo = 'Tocá al Lobo para charlar';
+
+  // Notificaciones del celular.
+  static const notificationsSwitch = 'Avisos en el celular';
+  static const notificationsHint =
+      'Te avisa cuando encontrás un objeto o pasás de etapa, aunque no '
+      'estés mirando el juego.';
+  static const notificationsDenied =
+      'Sin permiso, el celular no puede mostrar los avisos.';
+  static const notificationChannel = 'Objetos y etapas';
+  static const notificationChannelDescription =
+      'Avisos al conseguir objetos y al pasar de etapa.';
+  static String notificationStageDone(String stage) =>
+      '¡Etapa completada: $stage!';
+  static String notificationStages(int n) => '¡Completaste $n etapas!';
+  static String notificationItems(int n) => '¡Encontraste $n objetos!';
 
   // Música.
   static const muteMusic = 'Silenciar música';
@@ -225,6 +251,28 @@ const presentacionDespues = [
   Linea(_sofiaSinCaperuza, '¡Qué lindo nombre, {nombre}!'),
 ];
 
+/// Después del nombre: chico, chica o "prefiero no decir".
+const preguntaGenero = [
+  Linea(_sofiaSinCaperuza, 'Contame, ¿sos chico o chica?'),
+];
+
+/// Lo que dice Sofía después de que quien juega responde.
+const respuestaGenero = [
+  Linea(
+    _sofiaSinCaperuza,
+    '¡{Bienvenido a|Bienvenida a|Qué alegría tenerte en} Gramonia, {nombre}!',
+  ),
+];
+
+/// Partidas de antes de la 1.2.0: se pregunta una vez, al abrir.
+const preguntaGeneroDeNuevo = [
+  Linea(_sofia, '¡Hola otra vez, {nombre}! Antes de seguir, una pregunta.'),
+  Linea(_sofia, 'Contame, ¿sos chico o chica?'),
+];
+const respuestaGeneroDeNuevo = [
+  Linea(_sofia, '¡Gracias! Sigamos caminando {juntos|juntas|en equipo}.'),
+];
+
 // ── Introducción: Mututu despierta ──────────────────────────────────────
 
 const _narracion = Linea.narracion;
@@ -247,7 +295,8 @@ const introduccion = [
   Linea(_sofiaSinCaperuza, '¡Yo quiero ser esa heroína! Pero sola no puedo.'),
   Linea(
     _sofiaSinCaperuza,
-    '{nombre}, ¿me ayudás? Cada paso que des, lo damos juntos.',
+    '{nombre}, ¿me ayudás? Cada paso que des, lo damos '
+    '{juntos|juntas|en equipo}.',
   ),
   Linea(_sofiaSinCaperuza, 'Empecemos por el jardín de mi abuelita. ¡Vamos!'),
 ];
@@ -354,6 +403,11 @@ const dialogoDragones = [
 /// Etapa 7: en la Ciudad, con papá.
 const dialogoPapa = [
   Linea(_papa, '¡Sofía! ¡Y vos debés ser {nombre}! Pasen, pasen.'),
+  Linea(
+    _papa,
+    'Deben estar {cansados|cansadas|con hambre} de tanto caminar. ¡Hay '
+    'chocolatada!',
+  ),
   Linea(_sofia, 'Papá, ¡nos vamos en barco a la Isla Negra!'),
   Linea(
     _papa,
@@ -385,7 +439,8 @@ const dialogoBarco = [
 
 /// Al entrar a la tienda (uno al azar).
 const loboSaludos = [
-  'Pasen. Soy el Lobo. Guardo cosas para quien camina.',
+  '{Bienvenidos|Bienvenidas|Pasen}. Soy el Lobo. Guardo cosas para quien '
+      'camina.',
   'Hola, Sofía. Hola, {nombre}. Miren con calma. Mirar no cuesta.',
   '¿Otra vez por acá? Bien. Las cosas no se venden solas.',
   'Shhh. Los frascos duermen. Pasen despacio.',

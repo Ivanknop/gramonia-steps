@@ -4,14 +4,21 @@ import '../data/textos.dart';
 import 'home_screen.dart';
 import 'music_controller.dart';
 import 'my_steps_screen.dart';
+import 'notification_controller.dart';
 import 'step_controller.dart';
 
 /// Las dos pestañas: el juego y "Mis pasos".
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key, required this.controller, this.music});
+  const MainScreen({
+    super.key,
+    required this.controller,
+    this.music,
+    this.notifications,
+  });
 
   final StepController controller;
   final MusicController? music;
+  final NotificationController? notifications;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -29,7 +36,11 @@ class _MainScreenState extends State<MainScreen> {
         index: _tab,
         children: [
           HomeScreen(controller: widget.controller, music: widget.music),
-          MyStepsScreen(controller: widget.controller, music: widget.music),
+          MyStepsScreen(
+            controller: widget.controller,
+            music: widget.music,
+            notifications: widget.notifications,
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'credits_screen.dart';
 import '../logic/music.dart';
 import 'main_screen.dart';
+import 'notification_controller.dart';
 import 'music_controller.dart';
 import 'presentation_screen.dart';
 import 'story_screens.dart';
@@ -15,10 +16,16 @@ enum FlowScreen { title, presentation, intro, game }
 /// Ordena las pantallas grandes: portada → presentación (si todavía no se
 /// sabe el nombre de quien juega) → introducción (una sola vez) → juego.
 class GameFlow extends StatefulWidget {
-  const GameFlow({super.key, required this.controller, this.music});
+  const GameFlow({
+    super.key,
+    required this.controller,
+    this.music,
+    this.notifications,
+  });
 
   final StepController controller;
   final MusicController? music;
+  final NotificationController? notifications;
 
   @override
   State<GameFlow> createState() => _GameFlowState();
@@ -37,10 +44,12 @@ class _GameFlowState extends State<GameFlow> {
     });
   }
 
-  /// Después de la portada: lo que todavía no se vio.
+  /// Después de la portada: lo que todavía no se vio. Si falta el nombre o
+  /// el género (partidas de antes de la 1.2.0), la presentación.
   void _start() {
     final controller = widget.controller;
-    _go(controller.playerName == null ? FlowScreen.presentation : _afterName());
+    final ask = controller.playerName == null || controller.genero == null;
+    _go(ask ? FlowScreen.presentation : _afterName());
   }
 
   FlowScreen _afterName() =>
@@ -84,6 +93,7 @@ class _GameFlowState extends State<GameFlow> {
             key: const ValueKey(FlowScreen.game),
             controller: controller,
             music: widget.music,
+            notifications: widget.notifications,
           ),
         },
       ),

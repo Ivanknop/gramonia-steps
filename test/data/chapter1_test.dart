@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:rpg/data/chapter1.dart';
 import 'package:rpg/data/textos.dart' as t;
 import 'package:rpg/logic/chapter.dart';
+import 'package:rpg/logic/story.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -87,6 +88,39 @@ void main() {
         contains(line.quien),
         reason: line.texto,
       );
+    }
+  });
+
+  test('los textos con género tienen sus tres variantes bien escritas', () {
+    final all =
+        [
+          ...t.presentacion,
+          ...t.presentacionDespues,
+          ...t.preguntaGenero,
+          ...t.respuestaGenero,
+          ...t.preguntaGeneroDeNuevo,
+          ...t.respuestaGeneroDeNuevo,
+          ...t.introduccion,
+          for (final stage in chapter1.stages) ...stage.dialogue,
+        ].map((l) => l.texto).followedBy([
+          ...t.loboSaludos,
+          ...t.loboDichos,
+          ...t.loboCompra,
+          t.loboEtapaCompleta,
+          t.loboSinMonedas,
+          t.loboViajando,
+          t.loboSinEntrar,
+          t.loboFinal,
+        ]);
+    // Después de elegir la variante, solo pueden quedar estas marcas.
+    const marcas = {'{nombre}', '{objeto}', '{faltan}'};
+    for (final texto in all) {
+      for (final genero in [...Genero.values, null]) {
+        final listo = conGenero(texto, genero);
+        final quedan = RegExp(r'\{[^}]*\}').allMatches(listo).map((m) => m[0]);
+        expect(marcas, containsAll(quedan), reason: texto);
+        expect(listo, isNot(contains('|')), reason: texto);
+      }
     }
   });
 

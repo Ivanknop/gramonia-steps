@@ -327,6 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     chapter: engine.chapter,
                     lines: stage.dialogue,
                     playerName: controller.playerName ?? '',
+                    genero: controller.genero,
                     background: stage.background,
                     doneLabel: Strings.stageDialogueButton,
                     onDone: () => _entered(stage),

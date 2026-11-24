@@ -333,6 +333,31 @@ void main() {
     expect(find.text(Strings.walkingTo('Bosque Mágico', 'el')), findsOneWidget);
   });
 
+  testWidgets('el cartel dura 6 segundos, o se cierra antes con la x', (
+    tester,
+  ) async {
+    await show(tester); // El jardín: una flor cada 100 pasos.
+    await controller.addDebugSteps(100);
+    await tester.pump();
+    expect(find.byType(FoundItemOverlay), findsOneWidget);
+    // A los 5 segundos sigue ahí.
+    await tester.pump(const Duration(seconds: 5));
+    expect(find.text('¡Encontraste una flor amarilla!'), findsOneWidget);
+    // A los 6, vuela a la bolsa.
+    await letItemFly(tester);
+    await tester.pumpAndSettle();
+    expect(find.byType(FoundItemOverlay), findsNothing);
+
+    // Otra flor: con la x se va enseguida.
+    await controller.addDebugSteps(100);
+    await tester.pump(FoundItemOverlay.appearDuration);
+    await tester.tap(find.byKey(const ValueKey('notice-close')));
+    await tester.pump(); // Empieza a volar.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    expect(find.byType(FoundItemOverlay), findsNothing);
+  });
+
   testWidgets('al terminar el laberinto empieza el tramo hasta el Muelle', (
     tester,
   ) async {

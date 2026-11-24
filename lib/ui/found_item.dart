@@ -7,8 +7,8 @@ import '../data/textos.dart';
 import 'notices.dart';
 import 'widgets.dart';
 
-/// Cartel de objeto conseguido: aparece grande en el centro y, a los pocos
-/// segundos o al tocarlo, se achica y vuela hasta la bolsa.
+/// Cartel de objeto conseguido: aparece grande en el centro y, a los 6
+/// segundos, al tocarlo o con la "x", se achica y vuela hasta la bolsa.
 class FoundItemOverlay extends StatefulWidget {
   const FoundItemOverlay({
     super.key,
@@ -26,7 +26,7 @@ class FoundItemOverlay extends StatefulWidget {
   final VoidCallback onLanded;
 
   static const appearDuration = Duration(milliseconds: 350);
-  static const holdDuration = Duration(milliseconds: 1600);
+  static const holdDuration = NoticeCloseButton.noticeDuration;
   static const flyDuration = Duration(milliseconds: 650);
 
   /// Tamaño del dibujo en el centro.
@@ -124,25 +124,36 @@ class _FoundItemOverlayState extends State<FoundItemOverlay>
                       top: center.dy + FoundItemOverlay.bigSize / 2 + 12,
                       child: Opacity(
                         opacity: fade * _appear.value,
-                        child: Panel(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                moment.title,
-                                textAlign: TextAlign.center,
-                                style: text.headlineSmall,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            NoticeCloseButton(onPressed: _startFlying),
+                            const SizedBox(height: 8),
+                            Panel(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    moment.title,
+                                    textAlign: TextAlign.center,
+                                    style: text.headlineSmall,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    moment.message,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    Strings.tapToContinue,
+                                    style: text.bodySmall,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 8),
-                              Text(moment.message, textAlign: TextAlign.center),
-                              const SizedBox(height: 8),
-                              Text(
-                                Strings.tapToContinue,
-                                style: text.bodySmall,
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

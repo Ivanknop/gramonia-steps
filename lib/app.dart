@@ -5,14 +5,21 @@ import 'services/music_player.dart';
 import 'services/step_sensor.dart';
 import 'services/game_storage.dart';
 import 'services/step_history_storage.dart';
+import 'services/system_notifier.dart';
 import 'data/textos.dart';
 import 'ui/game_flow.dart';
 import 'ui/music_controller.dart';
+import 'ui/notification_controller.dart';
 import 'ui/step_controller.dart';
 import 'ui/theme.dart';
 
 class GramoniaApp extends StatefulWidget {
-  const GramoniaApp({super.key, this.controller, this.music});
+  const GramoniaApp({
+    super.key,
+    this.controller,
+    this.music,
+    this.notifications,
+  });
 
   /// Para los tests. Si es nulo, se usan el sensor y el guardado reales.
   final StepController? controller;
@@ -21,6 +28,9 @@ class GramoniaApp extends StatefulWidget {
   /// solo hay música si se pasa una.
   final MusicController? music;
 
+  /// Para los tests, como [music].
+  final NotificationController? notifications;
+
   @override
   State<GramoniaApp> createState() => _GramoniaAppState();
 }
@@ -28,6 +38,7 @@ class GramoniaApp extends StatefulWidget {
 class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
   late final StepController _controller;
   MusicController? _music;
+  NotificationController? _notifications;
 
   @override
   void initState() {
@@ -47,9 +58,18 @@ class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
                 steps: _controller,
               )
             : null);
+    _notifications =
+        widget.notifications ??
+        (widget.controller == null
+            ? NotificationController(
+                notifier: LocalSystemNotifier(),
+                steps: _controller,
+              )
+            : null);
     WidgetsBinding.instance.addObserver(this);
     _controller.start();
     _music?.start();
+    _notifications?.start();
   }
 
   @override
@@ -58,12 +78,16 @@ class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         _controller.onResume();
         _music?.onResume();
+        _notifications?.onResume();
       case AppLifecycleState.paused:
         _controller.onPause();
         _music?.onPause();
-      // Pantalla apagada o app tapada: la música se pausa.
+        _notifications?.onPause();
+      // Pantalla apagada o app tapada: la música se pausa y los avisos van
+      // al celular.
       case AppLifecycleState.hidden:
         _music?.onPause();
+        _notifications?.onPause();
       default:
         break;
     }
@@ -73,6 +97,7 @@ class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     if (widget.music == null) _music?.dispose();
+    if (widget.notifications == null) _notifications?.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -82,7 +107,11 @@ class _GramoniaAppState extends State<GramoniaApp> with WidgetsBindingObserver {
     return MaterialApp(
       title: Strings.appTitle,
       theme: gameTheme(),
-      home: GameFlow(controller: _controller, music: _music),
+      home: GameFlow(
+        controller: _controller,
+        music: _music,
+        notifications: _notifications,
+      ),
     );
   }
 }

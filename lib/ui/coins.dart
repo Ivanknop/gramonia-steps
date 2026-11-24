@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../data/chapter1.dart' show shopkeeper;
@@ -54,9 +56,9 @@ class CoinChip extends StatelessWidget {
   }
 }
 
-/// Aviso de monedas recibidas (bono del día o de bienvenida). Se cierra con
-/// el botón o tocando afuera.
-class CoinNoticeOverlay extends StatelessWidget {
+/// Aviso de monedas recibidas (bono del día o de bienvenida). Se cierra solo
+/// a los 6 segundos, con la "x", con el botón o tocando afuera.
+class CoinNoticeOverlay extends StatefulWidget {
   const CoinNoticeOverlay({
     super.key,
     required this.chapter,
@@ -69,46 +71,84 @@ class CoinNoticeOverlay extends StatelessWidget {
   final VoidCallback onDone;
 
   @override
+  State<CoinNoticeOverlay> createState() => _CoinNoticeOverlayState();
+}
+
+class _CoinNoticeOverlayState extends State<CoinNoticeOverlay> {
+  late final Timer _timer;
+  var _closed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(NoticeCloseButton.noticeDuration, _close);
+  }
+
+  void _close() {
+    if (_closed) return;
+    _closed = true;
+    _timer.cancel();
+    widget.onDone();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final notice = widget.notice;
     final welcome = notice.kind == CoinNoticeKind.welcome;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onDone,
+      onTap: _close,
       child: ColoredBox(
         color: Colors.black54,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              child: Panel(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (welcome)
-                      GameImage.of(chapter.character(shopkeeper), size: 140)
-                    else
-                      const Icon(
-                        Icons.monetization_on,
-                        color: coinColor,
-                        size: 96,
-                      ),
-                    const SizedBox(height: 12),
-                    Text(
-                      welcome
-                          ? Strings.welcomeBonus(notice.amount)
-                          : Strings.dailyBonus(notice.amount),
-                      textAlign: TextAlign.center,
-                      style: text.headlineSmall,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  NoticeCloseButton(onPressed: _close),
+                  const SizedBox(height: 8),
+                  Panel(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (welcome)
+                          GameImage.of(
+                            widget.chapter.character(shopkeeper),
+                            size: 140,
+                          )
+                        else
+                          const Icon(
+                            Icons.monetization_on,
+                            color: coinColor,
+                            size: 96,
+                          ),
+                        const SizedBox(height: 12),
+                        Text(
+                          welcome
+                              ? Strings.welcomeBonus(notice.amount)
+                              : Strings.dailyBonus(notice.amount),
+                          textAlign: TextAlign.center,
+                          style: text.headlineSmall,
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          onPressed: _close,
+                          child: const Text(Strings.coinNoticeButton),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: onDone,
-                      child: const Text(Strings.coinNoticeButton),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

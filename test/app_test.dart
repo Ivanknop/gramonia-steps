@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rpg/app.dart';
 import 'package:rpg/data/textos.dart';
 import 'package:rpg/logic/step_state.dart';
+import 'package:rpg/logic/story.dart';
 import 'package:rpg/ui/step_controller.dart';
 import 'package:rpg/ui/story_screens.dart';
 import 'package:rpg/data/textos.dart' as t;
@@ -57,6 +58,15 @@ void main() {
     expect(storage.saved.playerName, 'Regi');
     expect(find.text('¡Qué lindo nombre, Regi!'), findsOneWidget);
 
+    // Sofía pregunta si es chico o chica.
+    await tester.tap(find.byType(DialogueView));
+    await tester.pumpAndSettle();
+    expect(find.text(t.preguntaGenero.single.texto), findsOneWidget);
+    await tester.tap(find.text(Strings.genderGirl));
+    await tester.pumpAndSettle();
+    expect(controller.genero, Genero.chica);
+    expect(find.text('¡Bienvenida a Gramonia, Regi!'), findsOneWidget);
+
     await tester.tap(find.text(Strings.dialogueNext));
     await tester.pumpAndSettle();
     expect(find.byType(PresentationScreen), findsNothing);
@@ -68,7 +78,7 @@ void main() {
       await tester.pumpAndSettle();
     }
     expect(
-      find.text('Regi, ¿me ayudás? Cada paso que des, lo damos juntos.'),
+      find.text('Regi, ¿me ayudás? Cada paso que des, lo damos juntas.'),
       findsOneWidget,
     );
     await tester.tap(find.text(Strings.introButton));
@@ -111,7 +121,11 @@ void main() {
     tester,
   ) async {
     final storage = FakeStorage();
-    storage.saved = storage.saved.copyWith(playerName: 'Regi', introSeen: true);
+    storage.saved = storage.saved.copyWith(
+      playerName: 'Regi',
+      introSeen: true,
+      genero: Genero.chica,
+    );
     final controller = StepController(sensor: FakeSensor(), storage: storage);
     await tester.pumpWidget(GramoniaApp(controller: controller));
     await tester.pump();
@@ -126,13 +140,78 @@ void main() {
     tester,
   ) async {
     final storage = FakeStorage();
-    storage.saved = storage.saved.copyWith(playerName: 'Regi');
+    storage.saved = storage.saved.copyWith(
+      playerName: 'Regi',
+      genero: Genero.neutro,
+    );
     final controller = StepController(sensor: FakeSensor(), storage: storage);
     await tester.pumpWidget(GramoniaApp(controller: controller));
     await tester.pump();
     await tester.tap(find.text(Strings.resumeButton));
     await tester.pumpAndSettle();
     expect(find.byType(IntroScreen), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('partida de antes de la 1.2.0: pregunta el género una vez', (
+    tester,
+  ) async {
+    final storage = FakeStorage();
+    storage.saved = storage.saved.copyWith(playerName: 'Regi', introSeen: true);
+    final controller = StepController(
+      sensor: FakeSensor(),
+      storage: storage,
+      saveDelay: Duration.zero,
+    );
+    await tester.pumpWidget(GramoniaApp(controller: controller));
+    await tester.pump();
+    await tester.tap(find.text(Strings.resumeButton));
+    await tester.pumpAndSettle();
+    // No vuelve a preguntar el nombre: saluda y pregunta.
+    expect(
+      find.text('¡Hola otra vez, Regi! Antes de seguir, una pregunta.'),
+      findsOneWidget,
+    );
+    expect(find.byType(TextField), findsNothing);
+    await tester.tap(find.byType(DialogueView));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(Strings.genderBoy));
+    await tester.pumpAndSettle();
+    expect(find.text('¡Gracias! Sigamos caminando juntos.'), findsOneWidget);
+    await tester.tap(find.text(Strings.dialogueNext));
+    await tester.pumpAndSettle();
+    expect(find.byType(PresentationScreen), findsNothing);
+    expect(find.text(Strings.todayLabel), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2)); // Se guarda.
+    expect(storage.saved.genero, Genero.chico);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('"Prefiero no decir" deja los textos neutros', (tester) async {
+    final storage = FakeStorage();
+    storage.saved = storage.saved.copyWith(playerName: 'Alex');
+    final controller = StepController(sensor: FakeSensor(), storage: storage);
+    await tester.pumpWidget(GramoniaApp(controller: controller));
+    await tester.pump();
+    await tester.tap(find.text(Strings.resumeButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DialogueView));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(Strings.genderNone));
+    await tester.pumpAndSettle();
+    expect(controller.genero, Genero.neutro);
+    expect(find.text('¡Gracias! Sigamos caminando en equipo.'), findsOneWidget);
+    await tester.tap(find.text(Strings.dialogueNext));
+    await tester.pumpAndSettle();
+    // La intro, sin género.
+    for (var i = 1; i < t.introduccion.length; i++) {
+      await tester.tap(find.byType(DialogueView));
+      await tester.pumpAndSettle();
+    }
+    expect(
+      find.text('Alex, ¿me ayudás? Cada paso que des, lo damos en equipo.'),
+      findsOneWidget,
+    );
     await tester.pumpWidget(const SizedBox());
   });
 

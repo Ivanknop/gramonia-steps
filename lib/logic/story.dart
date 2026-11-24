@@ -23,6 +23,37 @@ class Linea {
 String conNombre(String texto, String nombre) =>
     texto.replaceAll('{nombre}', nombre);
 
+/// Cómo prefiere quien juega que le hablen. [neutro] es "prefiero no
+/// decir": los textos quedan sin género.
+enum Genero { chico, chica, neutro }
+
+/// Elige entre las tres variantes de un texto con género. Sin respuesta
+/// (null), la neutra.
+String segunGenero(
+  Genero? genero, {
+  required String chico,
+  required String chica,
+  required String neutro,
+}) => switch (genero) {
+  Genero.chico => chico,
+  Genero.chica => chica,
+  Genero.neutro || null => neutro,
+};
+
+/// Variantes con género dentro de un texto: `{chico|chica|neutro}`, por
+/// ejemplo `lo damos {juntos|juntas|en equipo}`.
+final _variantes = RegExp(r'\{([^{}|]*)\|([^{}|]*)\|([^{}|]*)\}');
+
+/// Elige la variante de género de cada `{chico|chica|neutro}` del texto.
+String conGenero(String texto, Genero? genero) => texto.replaceAllMapped(
+  _variantes,
+  (m) => segunGenero(genero, chico: m[1]!, chica: m[2]!, neutro: m[3]!),
+);
+
+/// Un texto listo para quien juega: su nombre y su género.
+String paraQuienJuega(String texto, String nombre, Genero? genero) =>
+    conNombre(conGenero(texto, genero), nombre);
+
 /// Largo máximo del nombre de quien juega.
 const maxNombre = 20;
 

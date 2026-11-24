@@ -12,7 +12,7 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 
 ## Reglas
 
-- Textos del juego en español, con el estilo de los cuentos (`arte/cuentos/`): frases cortas, para primaria, y sin género para quien juega. Código, nombres de variables y comentarios técnicos pueden ir en inglés. **Todos** los textos visibles van en `lib/data/textos.dart` (pantallas e historia), nunca sueltos en los widgets ni en `chapter1.dart`.
+- Textos del juego en español, con el estilo de los cuentos (`arte/cuentos/`): frases cortas, para primaria. Quien juega elige chico, chica o "prefiero no decir": todo texto con género lleva sus tres variantes `{chico|chica|neutro}` (la neutra, como si no hubiera respondido). Código, nombres de variables y comentarios técnicos pueden ir en inglés. **Todos** los textos visibles van en `lib/data/textos.dart` (pantallas e historia), nunca sueltos en los widgets ni en `chapter1.dart`.
 - Las cifras del juego (pasos por etapa, objetos y sus umbrales, recompensas) y los `id` van en un solo archivo de datos: `lib/data/chapter1.dart`. Nunca se repiten en la lógica. Así se ajustan cambiando un número.
 - Trabajar en partes chicas que se puedan probar en el celular. Antes de terminar una tarea: `flutter analyze` y `flutter test` sin errores.
 - La lógica del juego (pasos → avance de etapa, objetos, recompensas) va en Dart puro, sin Flutter, con tests unitarios.
@@ -32,7 +32,7 @@ El diseño completo del Capítulo 1 está en `docs/diseno.md`. Ante una duda de 
 - Mecánicas genéricas para todos los objetos: aparición al azar (cada K pasos, 1 en N), garantía de mala suerte (sale seguro a los 3×N×K pasos), objetos fijos (uno cada M pasos), canje (X comunes → 1 objeto de la etapa) y tramo de "llegar" sin objetos al inicio de algunas etapas.
 - El azar usa un `Random` con semilla inyectable para los tests.
 - Al completar una etapa se entrega la recompensa y los pasos que sobran pasan a la siguiente (un salto grande puede completar varias).
-- No hay que mirar el celular mientras se camina: los objetos se juntan solos.
+- No hay que mirar el celular mientras se camina: los objetos se juntan solos. Con el juego en segundo plano, una sola notificación del celular (que se va actualizando) cuenta lo conseguido, si están activadas en "Mis pasos".
 - Capítulo 1: 8 etapas, unos 110.000 pasos en promedio (unas 3 semanas y media). Todo cambio de lugar es un tramo de caminata. Empieza en el jardín de la abuelita y termina cuando el barco zarpa. Al cambiar números, repetir la simulación de `docs/diseno.md`.
 - Los `id` de objetos y etapas y el número de etapa quedan guardados en el celular: no se cambian (ni se agregan etapas antes de otras) sin migrar la partida vieja en `lib/logic/game_save.dart`.
 - Ninguna actualización puede perder pasos, objetos, etapas, monedas ni historial. Si cambia lo que se guarda, subir `GameSave.version`, convertir la partida vieja en `GameSave.decode` y sumar un test que cargue una partida real de la versión anterior.

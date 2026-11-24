@@ -6,6 +6,7 @@ import 'package:rpg/logic/chapter_engine.dart';
 import 'package:rpg/logic/chapter_progress.dart';
 import 'package:rpg/logic/game_save.dart';
 import 'package:rpg/logic/step_state.dart';
+import 'package:rpg/logic/story.dart';
 import 'package:rpg/logic/wallet.dart';
 import 'package:test/test.dart';
 
@@ -278,5 +279,16 @@ void main() {
       ),
     );
     expect(decode(game.encode()), game);
+  });
+
+  test('el género se guarda; las partidas de antes no lo tienen', () {
+    for (final genero in Genero.values) {
+      final game = const GameSave.initial().copyWith(
+        playerName: 'Regi',
+        genero: genero,
+      );
+      expect(decode(game.encode()).genero, genero);
+    }
+    expect(decode(const GameSave.initial().encode()).genero, isNull);
   });
 }

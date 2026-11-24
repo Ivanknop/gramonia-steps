@@ -8,6 +8,7 @@ import '../logic/chapter_engine.dart';
 import '../logic/clock.dart';
 import '../logic/game_save.dart';
 import '../logic/shop.dart';
+import '../logic/story.dart';
 import '../logic/wallet.dart';
 import '../logic/step_history.dart';
 import '../logic/step_state.dart';
@@ -102,6 +103,16 @@ class StepController extends ChangeNotifier {
   void setPlayerName(String name) {
     if (_disposed) return;
     _game = _game.copyWith(playerName: name);
+    notifyListeners();
+    _scheduleSave();
+  }
+
+  /// Chico, chica o "prefiero no decir"; null si todavía no se preguntó.
+  Genero? get genero => _game.genero;
+
+  void setGenero(Genero genero) {
+    if (_disposed) return;
+    _game = _game.copyWith(genero: genero);
     notifyListeners();
     _scheduleSave();
   }

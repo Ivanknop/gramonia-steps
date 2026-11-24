@@ -3,18 +3,27 @@ import 'package:material_ui/material_ui.dart';
 import '../logic/step_history.dart';
 import '../data/textos.dart';
 import 'music_controller.dart';
+import 'notification_controller.dart';
 import 'step_controller.dart';
 
 enum StepPeriod { week, month, months }
 
 /// Pestaña "Mis pasos": gráficos de barras de la semana, el mes y los meses.
 class MyStepsScreen extends StatefulWidget {
-  const MyStepsScreen({super.key, required this.controller, this.music});
+  const MyStepsScreen({
+    super.key,
+    required this.controller,
+    this.music,
+    this.notifications,
+  });
 
   final StepController controller;
 
   /// Si es nulo (tests), no se ve la opción de silenciar.
   final MusicController? music;
+
+  /// Si es nulo (tests), no se ve el interruptor de los avisos.
+  final NotificationController? notifications;
 
   @override
   State<MyStepsScreen> createState() => _MyStepsScreenState();
@@ -22,6 +31,25 @@ class MyStepsScreen extends StatefulWidget {
 
 class _MyStepsScreenState extends State<MyStepsScreen> {
   var _period = StepPeriod.week;
+
+  /// Al activarlos se pide el permiso. Si se niega, un aviso con el botón
+  /// para ir a los ajustes.
+  Future<void> _setNotifications(
+    NotificationController notifications,
+    bool on,
+  ) async {
+    final ok = await notifications.setEnabled(on);
+    if (ok || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(Strings.notificationsDenied),
+        action: SnackBarAction(
+          label: Strings.openSettings,
+          onPressed: notifications.notifier.openSettings,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +123,19 @@ class _MyStepsScreenState extends State<MyStepsScreen> {
                   ),
                 ),
               ],
+              if (widget.notifications case final notifications?)
+                ListenableBuilder(
+                  listenable: notifications,
+                  builder: (context, _) => SwitchListTile(
+                    key: const ValueKey('notifications-switch'),
+                    contentPadding: EdgeInsets.zero,
+                    secondary: const Icon(Icons.notifications_active),
+                    title: const Text(Strings.notificationsSwitch),
+                    subtitle: const Text(Strings.notificationsHint),
+                    value: notifications.enabled,
+                    onChanged: (on) => _setNotifications(notifications, on),
+                  ),
+                ),
             ],
           );
         },

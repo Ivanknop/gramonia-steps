@@ -126,7 +126,11 @@ class _ShopScreenState extends State<ShopScreen> {
                   padding: const EdgeInsets.all(16),
                   children: [
                     _LoboSays(
-                      line: conNombre(_line, _controller.playerName ?? ''),
+                      line: paraQuienJuega(
+                        _line,
+                        _controller.playerName ?? '',
+                        _controller.genero,
+                      ),
                       onTap: _chat,
                       lobo: GameImage.of(
                         engine.chapter.character(shopkeeper),

@@ -17,6 +17,7 @@ class DialogueView extends StatefulWidget {
     required this.chapter,
     required this.lines,
     required this.playerName,
+    this.genero,
     required this.background,
     this.doneLabel = Strings.dialogueNext,
     this.onDone,
@@ -29,6 +30,9 @@ class DialogueView extends StatefulWidget {
 
   /// Para `{nombre}` y para el globo de quien juega.
   final String playerName;
+
+  /// Para las variantes `{chico|chica|neutro}`.
+  final Genero? genero;
 
   /// Ilustración de fondo.
   final String background;
@@ -52,17 +56,33 @@ class _DialogueViewState extends State<DialogueView> {
 
   bool get _allShown => _shown >= widget.lines.length;
 
+  @override
+  void initState() {
+    super.initState();
+    // Si abre con varios globos, se ve el último.
+    if (_shown > 1) _scrollToEnd(jump: true);
+  }
+
   void _more() {
     if (_allShown) return;
     setState(() => _shown++);
-    // Baja hasta el globo nuevo cuando ya está dibujado.
+    _scrollToEnd();
+  }
+
+  /// Baja hasta el último globo cuando ya está dibujado.
+  void _scrollToEnd({bool jump = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scroll.hasClients) return;
-      _scroll.animateTo(
-        _scroll.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      final end = _scroll.position.maxScrollExtent;
+      if (jump) {
+        _scroll.jumpTo(end);
+      } else {
+        _scroll.animateTo(
+          end,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -103,6 +123,7 @@ class _DialogueViewState extends State<DialogueView> {
                           line: line,
                           chapter: widget.chapter,
                           playerName: widget.playerName,
+                          genero: widget.genero,
                         ),
                     ],
                   ),
@@ -145,11 +166,13 @@ class _Bubble extends StatelessWidget {
     required this.line,
     required this.chapter,
     required this.playerName,
+    required this.genero,
   });
 
   final Linea line;
   final Chapter chapter;
   final String playerName;
+  final Genero? genero;
 
   static const portrait = 72.0;
 
@@ -160,7 +183,7 @@ class _Bubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
-    final message = conNombre(line.texto, playerName);
+    final message = paraQuienJuega(line.texto, playerName, genero);
 
     if (line.esNarracion) {
       return Padding(
