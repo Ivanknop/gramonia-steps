@@ -680,12 +680,15 @@ void main() {
   });
 
   testWidgets('si falta un dibujo, se ve un ícono genérico', (tester) async {
-    // En el laberinto faltan la salida a la costa, el ramo y la pluma.
-    storage.saved = saveAt(3, 2000, const {});
-    await show(tester);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GameImage('assets/items/no_existe.webp', size: 80),
+      ),
+    );
     await tester.runAsync(() => Future<void>.delayed(Durations.long2));
     await tester.pump();
-    expect(find.byKey(const ValueKey('missing-art')), findsNWidgets(3));
+    expect(find.byKey(const ValueKey('missing-art')), findsOneWidget);
+    expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
   });
 
   testWidgets('si falta el dibujo de un personaje, se ve una persona', (

@@ -82,10 +82,30 @@ class Shop {
         if (p.count(r.item) < r.count)
           Offer(
             item: engine.chapter.item(r.item),
-            price: prices.priceFor(r.count),
+            price: priceOf(stage, r),
             missing: r.count - p.count(r.item),
           ),
     ];
+  }
+
+  /// Lo que se compra con monedas en la etapa (los bienes del barco) vale
+  /// lo mismo en la tienda que con el botón de la etapa.
+  int priceOf(Stage stage, Requirement r) {
+    final goods = stage.coinPurchase;
+    if (goods != null && goods.outputs.contains(r.item)) return goods.price;
+    return prices.priceFor(r.count);
+  }
+
+  /// El próximo bien que se compra con el botón de la etapa, o null si la
+  /// etapa no tiene botón, ya no falta ninguno o no se puede comprar ahora
+  /// (viajando o sin entrar).
+  Offer? nextGood(ChapterProgress p) {
+    final goods = engine.currentStage(p)?.coinPurchase;
+    if (goods == null) return null;
+    for (final offer in offers(p)) {
+      if (goods.outputs.contains(offer.item.id)) return offer;
+    }
+    return null;
   }
 
   /// Compra un [itemId] con [coins] monedas. Devuelve null si no se vende o

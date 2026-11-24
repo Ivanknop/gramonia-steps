@@ -48,9 +48,9 @@ const missCoins = CoinRange(6, 25);
 /// Bono del día: la primera vez que se abre la app en el día.
 const dailyBonusCoins = CoinRange(35, 78);
 
-/// Bono de bienvenida a la 1.2.0 (solo partidas de antes): monedas por cada
-/// 100 pasos ya caminados.
-const welcomeCoinsPer100Steps = 10;
+/// Bono de bienvenida a la 1.2.0 (solo partidas de antes, una vez): 20
+/// monedas por cada 500 pasos ya caminados, redondeado hacia abajo.
+const welcomeBonus = WelcomeBonus(coins: 20, everySteps: 500);
 
 /// Precios de la Tienda del Lobo, según cuántos de ese objeto pide la etapa.
 const shopPrices = ShopPrices([
@@ -61,6 +61,10 @@ const shopPrices = ShopPrices([
   // Menos de 6 (piezas del acertijo, ofrendas, bienes del barco).
   PriceTier(moreThan: 0, price: 1200),
 ]);
+
+/// Bienes del barco: se compran con el botón de la etapa (y en la tienda),
+/// a este precio cada uno.
+const goodsPrice = 20;
 
 /// Quién atiende la tienda y dónde.
 const shopkeeper = 'lobo';
@@ -133,7 +137,6 @@ const chapter1 = Chapter(
     ItemType(id: 'cuerdas', texto: t.cuerdas),
     ItemType(id: 'bandera', texto: t.bandera),
     ItemType(id: 'ancla', texto: t.ancla),
-    ItemType(id: 'moneda_oro', texto: t.monedaOro),
   ],
   stages: [
     Stage(
@@ -146,7 +149,7 @@ const chapter1 = Chapter(
       spawns: [
         FixedSpawn(items: ['flor_amarilla'], every: 100),
       ],
-      reward: Reward(id: 'ramo_flores', name: t.recompensaJardin),
+      reward: Reward(id: 'ramo_flores_amarillas', name: t.recompensaJardin),
     ),
     Stage(
       id: 'casa_abuelita',
@@ -312,16 +315,15 @@ const chapter1 = Chapter(
         RandomSpawn(items: ['cuerdas'], every: 100, oneIn: 100),
         RandomSpawn(items: ['bandera'], every: 100, oneIn: 100),
         RandomSpawn(items: ['ancla'], every: 100, oneIn: 100),
-        RandomSpawn(items: ['moneda_oro'], every: 50, oneIn: 10),
+        // Donde antes salían monedas de oro: 1 moneda a la billetera.
+        CoinSpawn(every: 50, oneIn: 10),
       ],
-      exchanges: [
-        Exchange(
-          inputs: ['moneda_oro'],
-          count: 20,
-          outputs: _bienes,
-          message: t.canjeMonedas,
-        ),
-      ],
+      // Botón "Comprar bien": el primero que falte, con monedas.
+      coinPurchase: CoinPurchase(
+        price: goodsPrice,
+        outputs: _bienes,
+        message: t.compraBien,
+      ),
       reward: Reward(id: 'barco_zarpa', name: t.recompensaBarco),
     ),
   ],

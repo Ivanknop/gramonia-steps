@@ -2,7 +2,8 @@
 //
 // Uso: dart run tool/simulate.dart [partidas] [semilla]
 // Imprime tablas en Markdown para pegar en docs/diseno.md:
-// - sin usar la tienda;
+// - sin usar la Tienda del Lobo (en el barco sí se usa el botón "Comprar
+//   bien", que es parte de la etapa);
 // - comprando en la Tienda del Lobo todo lo posible, apenas alcanzan las
 //   monedas (con el bono del día, sin el de bienvenida).
 // Es una herramienta de terminal: imprimir es lo que tiene que hacer.
@@ -67,8 +68,8 @@ void play(Random random, Result out, {required bool buy}) {
     // Al llegar a una etapa se entra enseguida (en el juego, al tocar
     // "Entrar").
     p = engine.enter(p);
-    while (buy) {
-      final offer = shop.offers(p).firstOrNull;
+    while (true) {
+      final offer = buy ? shop.offers(p).firstOrNull : shop.nextGood(p);
       if (offer == null || coins < offer.price) break;
       final stage = p.stageIndex;
       final purchase = shop.buy(p, coins, offer.item.id, random)!;

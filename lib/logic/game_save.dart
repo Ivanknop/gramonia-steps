@@ -22,6 +22,7 @@ class GameSave {
     this.introSeen = false,
     this.wallet = Wallet.initial,
     this.genero,
+    this.notificationsAsked = false,
   });
 
   const GameSave.initial()
@@ -30,7 +31,8 @@ class GameSave {
       playerName = null,
       introSeen = false,
       wallet = Wallet.initial,
-      genero = null;
+      genero = null,
+      notificationsAsked = false;
 
   /// Versión del formato guardado (no es la versión de la app).
   ///
@@ -41,7 +43,13 @@ class GameSave {
   /// - 6: monedas, bono diario y bono de bienvenida (app 1.2.0). En la
   ///   1.2.0 también se suma `player.gender`, opcional: si falta, se
   ///   pregunta.
-  static const int version = 6;
+  /// - 7: una sola moneda. Las monedas de oro del barco dejan de ser un
+  ///   objeto: las que había en el inventario pasan a la billetera, 1 a 1.
+  ///   Se suma `player.notificationsAsked`.
+  static const int version = 7;
+
+  /// Ya no existe como objeto (versión 7): pasa a la billetera.
+  static const _goldCoin = 'moneda_oro';
 
   /// Versión en la que llegaron las monedas. Las partidas de antes reciben
   /// el bono de bienvenida.
@@ -69,6 +77,9 @@ class GameSave {
   /// (partidas de antes de la 1.2.0: se pregunta una vez al abrir).
   final Genero? genero;
 
+  /// Si Sofía ya preguntó si avisar en el celular (una sola vez).
+  final bool notificationsAsked;
+
   GameSave copyWith({
     StepState? steps,
     ChapterProgress? chapter,
@@ -76,6 +87,7 @@ class GameSave {
     bool? introSeen,
     Wallet? wallet,
     Genero? genero,
+    bool? notificationsAsked,
   }) => GameSave(
     steps: steps ?? this.steps,
     chapter: chapter ?? this.chapter,
@@ -83,6 +95,7 @@ class GameSave {
     introSeen: introSeen ?? this.introSeen,
     wallet: wallet ?? this.wallet,
     genero: genero ?? this.genero,
+    notificationsAsked: notificationsAsked ?? this.notificationsAsked,
   );
 
   String encode() => jsonEncode({
@@ -93,6 +106,7 @@ class GameSave {
       'name': playerName,
       'introSeen': introSeen,
       'gender': genero?.name,
+      'notificationsAsked': notificationsAsked,
     },
     'wallet': wallet.toJson(),
   });
@@ -107,13 +121,14 @@ class GameSave {
   /// pasos a las reglas actuales: así no se pierde lo caminado.
   ///
   /// Las partidas de antes de las monedas (versión 5 o anterior) reciben
-  /// una sola vez el bono de bienvenida: [welcomeCoinsPer100Steps] monedas
-  /// por cada 100 pasos caminados. Las partidas nuevas no.
+  /// una sola vez el [welcomeBonus], según los pasos ya caminados. Queda
+  /// marcado en la billetera: al volver a abrir (o reinstalar encima) no se
+  /// cobra de nuevo. Las partidas nuevas no lo reciben.
   static GameSave decode(
     String? source, {
     String? legacySource,
     required ChapterEngine engine,
-    required int welcomeCoinsPer100Steps,
+    required WelcomeBonus welcomeBonus,
     Random? random,
   }) {
     StepState? steps;
@@ -121,6 +136,7 @@ class GameSave {
     String? playerName;
     var introSeen = false;
     Genero? genero;
+    var notificationsAsked = false;
     Wallet? wallet;
     // Hay una partida de una versión anterior (y no es una instalación nueva).
     var isOld = legacySource != null && legacySource.isNotEmpty;
@@ -141,15 +157,18 @@ class GameSave {
       genero = _tryParse(
         () => Genero.values.byName(player?['gender'] as String),
       );
+      notificationsAsked =
+          _tryParse<bool?>(() => player?['notificationsAsked'] as bool?) ??
+          false;
       final saved = switch (json['version']) {
-        3 || 4 || 5 || version => _tryParse(
+        3 || 4 || 5 || 6 || version => _tryParse(
           () => ChapterProgress.fromJson(_map(json['chapter'])),
         ),
         _ => null,
       };
       chapter = switch ((json['version'], saved)) {
         (_, null) => null,
-        (5 || version, final p?) => p,
+        (5 || 6 || version, final p?) => p,
         (4, final p?) => _addTravelV5(p, engine),
         // La partida ya había empezado: el paseo por el jardín cuenta como
         // hecho y sigue en la misma etapa que tenía.
@@ -169,7 +188,14 @@ class GameSave {
     wallet ??= Wallet.initial;
     // Sin pasos no hay nada que agradecer (por ejemplo, una partida rota).
     if (isOld && steps.totalSteps > 0) {
-      wallet = wallet.payWelcome(steps.totalSteps, welcomeCoinsPer100Steps);
+      wallet = wallet.payWelcome(steps.totalSteps, welcomeBonus);
+    }
+
+    // Versión 7: las monedas de oro pasan a la billetera, 1 a 1.
+    final gold = chapter.count(_goldCoin);
+    if (gold > 0 || chapter.foundCount(_goldCoin) > 0) {
+      wallet = wallet.add(gold);
+      chapter = chapter.without(_goldCoin);
     }
 
     return GameSave(
@@ -179,6 +205,7 @@ class GameSave {
       introSeen: introSeen,
       wallet: wallet,
       genero: genero,
+      notificationsAsked: notificationsAsked,
     );
   }
 
@@ -199,16 +226,24 @@ class GameSave {
       other.playerName == playerName &&
       other.introSeen == introSeen &&
       other.wallet == wallet &&
-      other.genero == genero;
+      other.genero == genero &&
+      other.notificationsAsked == notificationsAsked;
 
   @override
-  int get hashCode =>
-      Object.hash(steps, chapter, playerName, introSeen, wallet, genero);
+  int get hashCode => Object.hash(
+    steps,
+    chapter,
+    playerName,
+    introSeen,
+    wallet,
+    genero,
+    notificationsAsked,
+  );
 
   @override
   String toString() =>
       'GameSave($steps, $chapter, player: $playerName, intro: $introSeen, '
-      '$wallet, $genero)';
+      '$wallet, $genero, avisos: $notificationsAsked)';
 }
 
 Map<String, dynamic>? _tryDecodeMap(String? source) {

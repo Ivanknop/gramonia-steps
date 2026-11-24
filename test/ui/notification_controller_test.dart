@@ -3,49 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' hide StepState;
 import 'package:rpg/data/textos.dart';
 import 'package:rpg/logic/chapter_progress.dart';
-import 'package:rpg/logic/notification_summary.dart';
 import 'package:rpg/logic/wallet.dart';
-import 'package:rpg/services/system_notifier.dart';
 import 'package:rpg/ui/my_steps_screen.dart';
 import 'package:rpg/ui/notification_controller.dart';
 import 'package:rpg/ui/step_controller.dart';
 
 import '../fakes/fake_random.dart';
 import '../fakes/fakes.dart';
-
-class FakeNotifier implements SystemNotifier {
-  bool grant = true;
-  int permissionRequests = 0;
-  int cancels = 0;
-  int settings = 0;
-  final shown = <GameNotification>[];
-
-  @override
-  Future<bool> requestPermission() async {
-    permissionRequests++;
-    return grant;
-  }
-
-  @override
-  Future<void> show(GameNotification notification) async =>
-      shown.add(notification);
-
-  @override
-  Future<void> cancel() async => cancels++;
-
-  @override
-  Future<void> openSettings() async => settings++;
-}
-
-class FakeNotificationPrefs implements NotificationPrefs {
-  bool enabled = false;
-
-  @override
-  Future<bool> loadEnabled() async => enabled;
-
-  @override
-  Future<void> saveEnabled(bool enabled) async => this.enabled = enabled;
-}
 
 void main() {
   late FakeNotifier notifier;

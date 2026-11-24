@@ -14,6 +14,17 @@ class CoinRange {
       max <= min ? min : min + random.nextInt(max - min + 1);
 }
 
+/// Bono de bienvenida: [coins] monedas por cada [everySteps] pasos ya
+/// caminados, redondeado hacia abajo.
+class WelcomeBonus {
+  const WelcomeBonus({required this.coins, required this.everySteps});
+
+  final int coins;
+  final int everySteps;
+
+  int amountFor(int totalSteps) => max(0, totalSteps) ~/ everySteps * coins;
+}
+
 enum CoinNoticeKind { daily, welcome }
 
 /// Aviso de monedas recibidas que todavía no se mostró. Se guarda en la
@@ -102,11 +113,11 @@ class Wallet {
     );
   }
 
-  /// Bono de bienvenida: [per100Steps] monedas por cada 100 pasos ya
-  /// caminados. Se cobra una sola vez.
-  Wallet payWelcome(int totalSteps, int per100Steps) {
+  /// Bono de bienvenida, según los pasos ya caminados. Se cobra una sola
+  /// vez: queda marcado en [welcomeBonusPaid].
+  Wallet payWelcome(int totalSteps, WelcomeBonus bonus) {
     if (welcomeBonusPaid) return this;
-    final amount = max(0, totalSteps) ~/ 100 * per100Steps;
+    final amount = bonus.amountFor(totalSteps);
     return _copy(
       coins: coins + amount,
       welcomeBonusPaid: true,

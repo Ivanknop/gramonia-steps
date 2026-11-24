@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:rpg/logic/clock.dart';
 import 'package:rpg/logic/game_save.dart';
+import 'package:rpg/logic/notification_summary.dart';
 import 'package:rpg/logic/step_state.dart';
 import 'package:rpg/services/music_player.dart';
 import 'package:rpg/services/step_sensor.dart';
 import 'package:rpg/services/game_storage.dart';
+import 'package:rpg/services/system_notifier.dart';
 
 class FakeClock implements Clock {
   FakeClock(this.time);
@@ -98,4 +100,38 @@ class FakeMusicPrefs implements MusicPrefs {
 
   @override
   Future<void> saveMuted(bool muted) async => this.muted = muted;
+}
+
+class FakeNotifier implements SystemNotifier {
+  bool grant = true;
+  int permissionRequests = 0;
+  int cancels = 0;
+  int settings = 0;
+  final shown = <GameNotification>[];
+
+  @override
+  Future<bool> requestPermission() async {
+    permissionRequests++;
+    return grant;
+  }
+
+  @override
+  Future<void> show(GameNotification notification) async =>
+      shown.add(notification);
+
+  @override
+  Future<void> cancel() async => cancels++;
+
+  @override
+  Future<void> openSettings() async => settings++;
+}
+
+class FakeNotificationPrefs implements NotificationPrefs {
+  bool enabled = false;
+
+  @override
+  Future<bool> loadEnabled() async => enabled;
+
+  @override
+  Future<void> saveEnabled(bool enabled) async => this.enabled = enabled;
 }

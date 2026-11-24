@@ -44,6 +44,8 @@ abstract final class Strings {
   static const genderBoy = 'Chico';
   static const genderGirl = 'Chica';
   static const genderNone = 'Prefiero no decir';
+  static const notificationsYes = '¡Sí!';
+  static const notificationsNo = 'Ahora no';
   static const introButton = '¡Vamos!';
   static const stageDialogueButton = '¡Vamos!';
 
@@ -98,10 +100,16 @@ abstract final class Strings {
 
   // Objetos conseguidos.
   static String found(String foundName) => '¡Encontraste $foundName!';
+  static String bought(String foundName) => '¡Compraste $foundName!';
   static String foundMany(String name, int count) =>
       '¡Encontraste $name ×$count!';
   static const tapToContinue = 'Tocá para seguir';
   static const closeNotice = 'Cerrar el aviso';
+
+  // Etapa del barco: comprar bienes con monedas.
+  static String buyGood(int price) => 'Comprar bien (${coins(price)})';
+  static String coinsMissing(int n) =>
+      n == 1 ? 'Te falta 1 moneda.' : 'Te faltan ${formatNumber(n)} monedas.';
 
   // Fin de etapa.
   static const stageDoneTitle = '¡Etapa completada!';
@@ -273,6 +281,33 @@ const respuestaGeneroDeNuevo = [
   Linea(_sofia, '¡Gracias! Sigamos caminando {juntos|juntas|en equipo}.'),
 ];
 
+/// Partidas que ya saben el género pero no respondieron lo de los avisos.
+const saludoAvisos = [
+  Linea(_sofia, '¡Hola otra vez, {nombre}! Una pregunta rápida.'),
+];
+
+/// Después de la presentación (o una vez al abrir una partida vieja).
+const preguntaAvisos = [
+  Linea(_sofia, '¿Querés que te avise en el celular cuando encontrás algo?'),
+];
+const respuestaAvisosSi = [
+  Linea(
+    _sofia,
+    '¡Genial! Cuando encontremos algo, te aviso. Vos guardá el celular y '
+    'caminá.',
+  ),
+];
+const respuestaAvisosNo = [
+  Linea(_sofia, 'Está bien. Si cambiás de idea, está en "Mis pasos".'),
+];
+const respuestaAvisosSinPermiso = [
+  Linea(
+    _sofia,
+    'Sin permiso, el celular no me deja avisarte. Si cambiás de idea, está '
+    'en "Mis pasos".',
+  ),
+];
+
 // ── Introducción: Mututu despierta ──────────────────────────────────────
 
 const _narracion = Linea.narracion;
@@ -426,8 +461,7 @@ const dialogoBarco = [
   ),
   Linea(
     _sofia,
-    'Si juntamos monedas de oro, el vendedor del puerto nos vende lo que '
-    'falte.',
+    'Con nuestras monedas, el vendedor del puerto nos vende lo que falte.',
   ),
   Linea(_jugador, '¡Manos a la obra!'),
 ];
@@ -777,7 +811,7 @@ const barco = TextoEtapa(
       'tranquilo y brillante.',
   tarjeta:
       'Arreglá el barco: madera, clavos, cuerdas, bandera pirata y ancla. '
-      'Con 20 monedas de oro, el vendedor te da lo que falte.',
+      'Con monedas, el vendedor del puerto te da lo que falte.',
   alTerminar:
       'El barco está listo. Suben las velas y flamea la bandera pirata. ¡El '
       'barco zarpa hacia la Isla Negra!',
@@ -809,10 +843,7 @@ const ancla = TextoObjeto(
   conArticulo: 'un ancla',
   mensaje: 'Un ancla pesada, para que el barco no se escape.',
 );
-const monedaOro = TextoObjeto(
-  nombre: 'Moneda de oro',
-  conArticulo: 'una moneda de oro',
-  mensaje: '¡Una moneda de oro! Suena tilín al caer en el bolsillo.',
-);
-const canjeMonedas =
-    'Con 20 monedas de oro, el vendedor del puerto te da: {objeto}.';
+
+/// Al comprar un bien con el botón de la etapa.
+const compraBien =
+    'El vendedor del puerto cuenta tus monedas y te da: {objeto}.';

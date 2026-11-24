@@ -151,6 +151,10 @@ class ChapterEngine {
       for (final spawn in active) {
         if (next % spawn.every != 0) continue;
         if (!_isActive(stage, spawn, run.inventory)) continue;
+        if (spawn is CoinSpawn) {
+          if (random.nextInt(spawn.oneIn) == 0) run.coins += spawn.coins;
+          continue;
+        }
         if (_rolls(stage, spawn, run, random)) {
           _give(stage, _pick(stage, spawn, run.inventory, random), run);
         }
@@ -170,6 +174,8 @@ class ChapterEngine {
     switch (spawn) {
       case FixedSpawn():
         return true;
+      case CoinSpawn():
+        return false; // Se resuelve en advance: no da objetos.
       case RandomSpawn():
         final since = (run.sinceLast[spawn.key] ?? 0) + spawn.every;
         final hit =
@@ -231,10 +237,13 @@ class ChapterEngine {
       spawn.items.every(stage.isRequired);
 
   /// Una aparición de objetos de la etapa deja de salir cuando ya no falta
-  /// ninguno; una de objetos comunes sigue saliendo.
+  /// ninguno; una de objetos comunes sigue saliendo. Las monedas salen
+  /// mientras a la etapa le falte algo.
   bool _isActive(Stage stage, Spawn spawn, Map<String, int> inventory) =>
-      !_isGoalSpawn(stage, spawn) ||
-      _firstMissing(stage, spawn.items, inventory) != null;
+      spawn is CoinSpawn
+      ? !_isComplete(stage, inventory)
+      : !_isGoalSpawn(stage, spawn) ||
+            _firstMissing(stage, spawn.items, inventory) != null;
 
   String? _firstMissing(
     Stage stage,

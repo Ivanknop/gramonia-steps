@@ -27,6 +27,7 @@ void main() {
       playerName: 'Regi',
       introSeen: true,
       genero: Genero.neutro,
+      notificationsAsked: true,
     );
     steps = StepController(
       sensor: FakeSensor(),

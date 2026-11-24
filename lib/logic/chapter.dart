@@ -150,6 +150,38 @@ class FixedSpawn extends Spawn {
   const FixedSpawn({required super.items, required super.every});
 }
 
+/// Cada [every] pasos se tira un número del 1 al [oneIn]; si sale 1, suma
+/// [coins] monedas a la billetera. No es un objeto: no va a la bolsa, no
+/// tiene garantía y, si no sale, no da las monedas de la tirada fallida.
+/// Sale mientras a la etapa le falte algo.
+class CoinSpawn extends Spawn {
+  const CoinSpawn({required super.every, required this.oneIn, this.coins = 1})
+    : super(items: const []);
+
+  final int oneIn;
+  final int coins;
+
+  @override
+  String get key => 'monedas';
+}
+
+/// Los objetos de [outputs] se compran con monedas de la billetera, [price]
+/// cada uno, con un botón en la etapa (no es automático). Se compra el
+/// primero que falte.
+class CoinPurchase {
+  const CoinPurchase({
+    required this.price,
+    required this.outputs,
+    required this.message,
+  });
+
+  final int price;
+  final List<String> outputs;
+
+  /// Texto del cartel. `{objeto}` se reemplaza por lo que se compró.
+  final String message;
+}
+
 /// Al juntar [count] objetos de [inputs], se cambian solos por el primero que
 /// falte de [outputs].
 class Exchange {
@@ -186,6 +218,7 @@ class Stage {
     required this.requirements,
     required this.spawns,
     this.exchanges = const [],
+    this.coinPurchase,
     required this.reward,
     required this.background,
     required this.introCharacter,
@@ -233,6 +266,9 @@ class Stage {
   final List<Requirement> requirements;
   final List<Spawn> spawns;
   final List<Exchange> exchanges;
+
+  /// Bienes que se compran con monedas, con su botón (el barco).
+  final CoinPurchase? coinPurchase;
   final Reward reward;
   String get completeMessage => texto.alTerminar;
 

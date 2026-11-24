@@ -222,16 +222,16 @@ void main() {
       final old = const GameSave(
         steps: savedSteps,
         chapter: ChapterProgress.initial(),
-      ).encode().replaceFirst('"version":6', '"version":5');
+      ).encode().replaceFirst('"version":${GameSave.version}', '"version":5');
       storage.saved = GameSave.decode(
         old,
         engine: const ChapterEngine(chapter1),
-        welcomeCoinsPer100Steps: welcomeCoinsPer100Steps,
+        welcomeBonus: welcomeBonus,
       );
       final c = await showHome(tester);
       expect(
         find.text(
-          '¡Gracias por jugar desde el principio! Recibiste 1.230 monedas '
+          '¡Gracias por jugar desde el principio! Recibiste 480 monedas '
           'para la Tienda del Lobo',
         ),
         findsOneWidget,
@@ -241,8 +241,9 @@ void main() {
       expect(find.text('¡Bono del día: 35 monedas!'), findsOneWidget);
       await tester.tap(find.text(Strings.coinNoticeButton));
       await tester.pumpAndSettle();
-      expect(c.coins, 1230 + 35);
-      expect(balance(tester), '1.265');
+      // 12.345 pasos → 24 × 20 = 480.
+      expect(c.coins, 480 + 35);
+      expect(balance(tester), '515');
     });
 
     testWidgets('el saldo también se ve en la bolsa', (tester) async {
@@ -358,6 +359,55 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.byType(StageDoneOverlay), findsOneWidget);
+    });
+
+    testWidgets('en el barco: "Comprar bien" con monedas de la billetera', (
+      tester,
+    ) async {
+      saveAt('barco', 2 * goodsPrice + 5, {'madera': 1});
+      final c = await showHome(tester, daily: CoinRange.none);
+      final button = find.byKey(const ValueKey('buy-good'));
+      await tester.scrollUntilVisible(button, 200);
+      expect(find.text(Strings.buyGood(goodsPrice)), findsOneWidget);
+      expect(find.text('Comprar bien (20 monedas)'), findsOneWidget);
+
+      await tester.tap(button);
+      await tester.pump();
+      expect(find.text('¡Compraste clavos!'), findsOneWidget);
+      expect(c.coins, goodsPrice + 5);
+      expect(c.game.chapter.count('clavos'), 1);
+      await tester.tap(find.byKey(const ValueKey('notice-close')));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(button, 200);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('notice-close')));
+      await tester.pumpAndSettle();
+      expect(c.coins, 5);
+      expect(c.game.chapter.count('cuerdas'), 1);
+
+      // Ya no alcanza: avisa cuántas faltan.
+      await tester.scrollUntilVisible(button, 200);
+      await tester.tap(button);
+      await tester.pump();
+      expect(find.text(Strings.coinsMissing(goodsPrice - 5)), findsOneWidget);
+      expect(find.text('Te faltan 15 monedas.'), findsOneWidget);
+      expect(c.coins, 5);
+    });
+
+    testWidgets('en las otras etapas no está el botón', (tester) async {
+      saveAt('casa_abuelita', 1000);
+      await showHome(tester, daily: CoinRange.none);
+      expect(find.byKey(const ValueKey('buy-good')), findsNothing);
+    });
+
+    testWidgets('la bolsa ya no muestra monedas de oro', (tester) async {
+      saveAt('barco', 0, {'madera': 1});
+      await showHome(tester, daily: CoinRange.none);
+      await tester.tap(find.byType(BagButton));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('oro'), findsNothing);
     });
   });
 }

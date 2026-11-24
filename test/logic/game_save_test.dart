@@ -23,7 +23,7 @@ void main() {
     source,
     legacySource: legacy,
     engine: engine,
-    welcomeCoinsPer100Steps: welcomeCoinsPer100Steps,
+    welcomeBonus: welcomeBonus,
     random: Random(1),
   );
 
@@ -215,12 +215,12 @@ void main() {
       expect(engine.currentStage(game.chapter)!.id, 'nido_rocanron');
     });
 
-    test('recibe el bono de bienvenida: 10 monedas cada 100 pasos', () {
+    test('recibe el bono de bienvenida: 20 monedas cada 500 pasos', () {
       final wallet = decode(v110).wallet;
-      // 21.437 pasos → 214 veces 100 → 2.140 monedas.
-      expect(wallet.coins, 2140);
+      // 21.437 pasos → 42 veces 500 → 840 monedas.
+      expect(wallet.coins, 840);
       expect(wallet.welcomeBonusPaid, isTrue);
-      expect(wallet.notices, [const CoinNotice(CoinNoticeKind.welcome, 2140)]);
+      expect(wallet.notices, [const CoinNotice(CoinNoticeKind.welcome, 840)]);
       // El bono del día se cobra al abrir (no en la conversión).
       expect(wallet.dailyBonusDate, isNull);
     });
@@ -230,19 +230,24 @@ void main() {
       // Se guarda en la versión nueva y se vuelve a abrir.
       final again = decode(first.encode());
       expect(again, first);
-      expect(again.wallet.coins, 2140);
-      // Ya gastó y vio el aviso: sigue sin cobrarse de nuevo.
+      expect(again.wallet.coins, 840);
+      expect(again.wallet.welcomeBonusPaid, isTrue);
+      // Ya gastó, vio el aviso y caminó más: sigue sin cobrarse de nuevo.
       final later = first.copyWith(
-        wallet: first.wallet.spend(1200).dismiss(first.wallet.notices.single),
+        steps: first.steps.copyWith(totalSteps: 60000),
+        wallet: first.wallet.spend(300).dismiss(first.wallet.notices.single),
       );
-      final reopened = decode(later.encode());
-      expect(reopened.wallet.coins, 940);
+      var reopened = decode(later.encode());
+      for (var i = 0; i < 3; i++) {
+        reopened = decode(reopened.encode());
+      }
+      expect(reopened.wallet.coins, 540);
       expect(reopened.wallet.notices, isEmpty);
     });
 
-    test('lo convertido se guarda como versión 6', () {
-      expect(decode(v110).encode(), contains('"version":6'));
-      expect(GameSave.version, 6);
+    test('lo convertido se guarda en la versión actual', () {
+      expect(GameSave.version, 7);
+      expect(decode(v110).encode(), contains('"version":7'));
     });
 
     test('las partidas de versiones más viejas también lo reciben', () {
@@ -290,5 +295,110 @@ void main() {
       expect(decode(game.encode()).genero, genero);
     }
     expect(decode(const GameSave.initial().encode()).genero, isNull);
+  });
+
+  group('versión 7: las monedas de oro pasan a la billetera', () {
+    // Una partida guardada por la 1.2.0 (versión 6), tal cual la escribe: en
+    // el barco, con 13 monedas de oro, un canje hecho y monedas en la
+    // billetera.
+    const v6 =
+        '{"version":6,'
+        '"steps":{"lastReading":402311,"totalSteps":104220,"todaySteps":5120,'
+        '"todayDate":"2026-12-15","lastReadingAt":"2026-12-15T19:03:44.120"},'
+        '"chapter":{"stageIndex":7,"stepsInStage":9350,'
+        '"inventory":{"flor_amarilla":15,"flor_lila":15,"semilla_fuego":3,'
+        '"semilla_agua":2,"semilla_hielo":5,"pieza_hoja":1,"pieza_gota":1,'
+        '"pieza_piedra":1,"pieza_sol":1,"pieza_luna":1,"pieza_estrella":1,'
+        '"pista":1,"gema":40,"piedra_fuego":1,"agua_cascada":1,"escama":1,'
+        '"flor_nubes":1,"farol_luciernagas":1,"manta":1,"pan":1,'
+        '"mermelada":1,"madera":1,"clavos":1,"moneda_oro":13},'
+        '"sinceLast":{"cuerdas":4300,"bandera":4300,"ancla":4300,'
+        '"moneda_oro":50},'
+        '"found":{"flor_amarilla":15,"flor_lila":15,"semilla_fuego":3,'
+        '"semilla_agua":14,"semilla_hielo":13,"pieza_hoja":1,"pieza_gota":1,'
+        '"pieza_piedra":1,"pieza_sol":1,"pieza_luna":1,"pieza_estrella":1,'
+        '"pista":1,"gema":340,"piedra_fuego":1,"agua_cascada":1,"escama":1,'
+        '"flor_nubes":1,"farol_luciernagas":1,"manta":1,"pan":1,'
+        '"mermelada":1,"madera":1,"clavos":1,"moneda_oro":33},'
+        '"unseen":2,"entered":true},'
+        '"player":{"name":"Regi","introSeen":true,"gender":"chica"},'
+        '"wallet":{"coins":512,"dailyBonusDate":"2026-12-15",'
+        '"welcomeBonusPaid":true,"notices":[]}}';
+
+    test('v6: 13 monedas de oro → 13 monedas más; lo demás, igual', () {
+      final game = decode(v6);
+      expect(game.wallet.coins, 512 + 13);
+      expect(game.chapter.count('moneda_oro'), 0);
+      expect(game.chapter.inventory.containsKey('moneda_oro'), isFalse);
+      // La bolsa ya no las muestra.
+      expect(game.chapter.found.containsKey('moneda_oro'), isFalse);
+      // Lo demás no cambia.
+      expect(game.chapter.stageIndex, 7);
+      expect(engine.currentStage(game.chapter)!.id, 'barco');
+      expect(game.chapter.stepsInStage, 9350);
+      expect(game.chapter.count('madera'), 1);
+      expect(game.chapter.count('clavos'), 1);
+      expect(game.chapter.count('gema'), 40);
+      expect(game.chapter.foundCount('gema'), 340);
+      expect(game.chapter.unseen, 2);
+      expect(game.chapter.sinceLast['ancla'], 4300);
+      expect(game.steps.totalSteps, 104220);
+      expect(game.playerName, 'Regi');
+      expect(game.genero, Genero.chica);
+      expect(game.wallet.dailyBonusDate, '2026-12-15');
+      expect(game.wallet.welcomeBonusPaid, isTrue);
+      expect(game.wallet.notices, isEmpty); // Sin bono de bienvenida.
+      expect(game.notificationsAsked, isFalse); // Se pregunta al abrir.
+    });
+
+    test('v6: guardada y vuelta a abrir, no se suman otra vez', () {
+      final first = decode(v6);
+      final again = decode(first.encode());
+      expect(again, first);
+      expect(again.wallet.coins, 525);
+    });
+
+    // Una partida de la 1.1.0 (versión 5) en el barco con monedas de oro.
+    const v5 =
+        '{"version":5,'
+        '"steps":{"lastReading":90000,"totalSteps":100050,"todaySteps":4000,'
+        '"todayDate":"2026-11-23","lastReadingAt":"2026-11-23T20:00:00.000"},'
+        '"chapter":{"stageIndex":7,"stepsInStage":6000,'
+        '"inventory":{"madera":1,"moneda_oro":7},"sinceLast":{},'
+        '"found":{"madera":1,"moneda_oro":7},"unseen":0,"entered":true},'
+        '"player":{"name":"Regi","introSeen":true}}';
+
+    test('v5 (1.1.0): bono de bienvenida más las monedas de oro', () {
+      final game = decode(v5);
+      // 100.050 pasos → 200 × 20 = 4.000, más 7 monedas de oro.
+      expect(game.wallet.coins, 4000 + 7);
+      expect(game.wallet.notices, [
+        const CoinNotice(CoinNoticeKind.welcome, 4000),
+      ]);
+      expect(game.chapter.count('moneda_oro'), 0);
+      expect(game.chapter.found.containsKey('moneda_oro'), isFalse);
+      expect(game.chapter.count('madera'), 1);
+      expect(game.chapter.stepsInStage, 6000);
+      expect(decode(game.encode()).wallet.coins, 4007);
+    });
+
+    test('sin monedas de oro, la partida queda igual', () {
+      const game = GameSave(
+        steps: steps,
+        chapter: ChapterProgress(
+          stageIndex: 7,
+          stepsInStage: 5000,
+          inventory: {'madera': 1},
+          sinceLast: {},
+        ),
+        wallet: Wallet(coins: 40),
+      );
+      expect(decode(game.encode()), game);
+    });
+
+    test('la pregunta de los avisos se guarda', () {
+      final game = const GameSave.initial().copyWith(notificationsAsked: true);
+      expect(decode(game.encode()).notificationsAsked, isTrue);
+    });
   });
 }

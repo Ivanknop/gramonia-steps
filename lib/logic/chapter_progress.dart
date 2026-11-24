@@ -85,6 +85,18 @@ class ChapterProgress {
     entered: entered,
   );
 
+  /// La misma partida, sin rastros de un objeto que ya no existe (ni en el
+  /// inventario, ni en la bolsa, ni en la garantía).
+  ChapterProgress without(String itemId) => ChapterProgress(
+    stageIndex: stageIndex,
+    stepsInStage: stepsInStage,
+    inventory: Map.unmodifiable({...inventory}..remove(itemId)),
+    sinceLast: Map.unmodifiable({...sinceLast}..remove(itemId)),
+    found: Map.unmodifiable({...found}..remove(itemId)),
+    unseen: unseen,
+    entered: entered,
+  );
+
   ChapterProgress copyWith({int? unseen, bool? entered}) => ChapterProgress(
     stageIndex: stageIndex,
     stepsInStage: stepsInStage,

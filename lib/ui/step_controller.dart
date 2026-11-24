@@ -117,6 +117,17 @@ class StepController extends ChangeNotifier {
     _scheduleSave();
   }
 
+  /// Si Sofía ya preguntó lo de los avisos en el celular.
+  bool get notificationsAsked => _game.notificationsAsked;
+
+  /// Ya se preguntó lo de los avisos: no se vuelve a preguntar.
+  void markNotificationsAsked() {
+    if (_disposed || _game.notificationsAsked) return;
+    _game = _game.copyWith(notificationsAsked: true);
+    notifyListeners();
+    _scheduleSave();
+  }
+
   /// Ya se vio la introducción: no se vuelve a mostrar.
   void markIntroSeen() {
     if (_disposed || _game.introSeen) return;

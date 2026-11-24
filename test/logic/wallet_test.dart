@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:rpg/data/chapter1.dart';
 import 'package:rpg/logic/wallet.dart';
 import 'package:test/test.dart';
 
@@ -51,21 +52,34 @@ void main() {
   });
 
   group('bono de bienvenida', () {
-    test('10 monedas por cada 100 pasos, redondeado hacia abajo', () {
-      final w = Wallet.initial.payWelcome(12345, 10);
-      expect(w.coins, 1230);
+    const bonus = WelcomeBonus(coins: 20, everySteps: 500);
+
+    test('el del juego: 20 monedas cada 500 pasos', () {
+      expect(welcomeBonus.coins, 20);
+      expect(welcomeBonus.everySteps, 500);
+    });
+
+    test('20 monedas por cada 500 pasos, redondeado hacia abajo', () {
+      // 12.345 pasos → 24 veces 500 → 480 monedas.
+      final w = Wallet.initial.payWelcome(12345, bonus);
+      expect(w.coins, 480);
       expect(w.welcomeBonusPaid, isTrue);
-      expect(w.notices, [const CoinNotice(CoinNoticeKind.welcome, 1230)]);
+      expect(w.notices, [const CoinNotice(CoinNoticeKind.welcome, 480)]);
+      expect(bonus.amountFor(499), 0);
+      expect(bonus.amountFor(500), 20);
+      expect(bonus.amountFor(999), 20);
+      expect(bonus.amountFor(1000), 40);
     });
 
     test('no se cobra dos veces', () {
-      final once = Wallet.initial.payWelcome(12345, 10);
-      expect(identical(once.payWelcome(12345, 10), once), true);
-      expect(once.payWelcome(99999, 10).coins, 1230);
+      final once = Wallet.initial.payWelcome(12345, bonus);
+      expect(identical(once.payWelcome(12345, bonus), once), true);
+      // Ni con más pasos caminados después.
+      expect(once.payWelcome(99999, bonus).coins, 480);
     });
 
-    test('con menos de 100 pasos queda marcado, sin monedas ni aviso', () {
-      final w = Wallet.initial.payWelcome(99, 10);
+    test('con menos de 500 pasos queda marcado, sin monedas ni aviso', () {
+      final w = Wallet.initial.payWelcome(499, bonus);
       expect(w.coins, 0);
       expect(w.welcomeBonusPaid, isTrue);
       expect(w.notices, isEmpty);
@@ -80,7 +94,7 @@ void main() {
 
   test('al ver un aviso se saca solo ese', () {
     final w = Wallet.initial
-        .payWelcome(1000, 10)
+        .payWelcome(1000, const WelcomeBonus(coins: 20, everySteps: 500))
         .claimDaily('2026-11-24', range, FixedRandom(0));
     final daily = w.notices.last;
     expect(w.dismiss(daily).notices, [w.notices.first]);
@@ -89,7 +103,7 @@ void main() {
 
   test('ida y vuelta en JSON', () {
     final w = Wallet.initial
-        .payWelcome(5000, 10)
+        .payWelcome(5000, const WelcomeBonus(coins: 20, everySteps: 500))
         .claimDaily('2026-11-24', range, Random(3))
         .add(17);
     expect(Wallet.fromJson(w.toJson()), w);

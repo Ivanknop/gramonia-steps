@@ -10,14 +10,19 @@ sealed class Moment {
 
 /// Cartel "¡Encontraste…!" que después vuela a la bolsa.
 class FoundMoment extends Moment {
-  const FoundMoment(this.item, this.count, this.message);
+  const FoundMoment(this.item, this.count, this.message, {this.bought = false});
   final ItemType item;
   final int count;
 
   /// El texto del objeto, o el del canje si salió de un canje.
   final String message;
 
-  String get title => count == 1
+  /// Se compró con monedas (el botón del barco): "¡Compraste…!".
+  final bool bought;
+
+  String get title => bought
+      ? Strings.bought(item.foundName)
+      : count == 1
       ? Strings.found(item.foundName)
       : Strings.foundMany(item.name, count);
 }

@@ -44,11 +44,19 @@ class _GameFlowState extends State<GameFlow> {
     });
   }
 
-  /// Después de la portada: lo que todavía no se vio. Si falta el nombre o
-  /// el género (partidas de antes de la 1.2.0), la presentación.
+  /// Después de la portada: lo que todavía no se vio. Si falta el nombre,
+  /// el género o la pregunta de los avisos (partidas de antes), la
+  /// presentación.
   void _start() {
     final controller = widget.controller;
-    final ask = controller.playerName == null || controller.genero == null;
+    // Si ya activó los avisos en "Mis pasos", no hace falta preguntar.
+    if (widget.notifications?.enabled ?? false) {
+      controller.markNotificationsAsked();
+    }
+    final ask =
+        controller.playerName == null ||
+        controller.genero == null ||
+        !controller.notificationsAsked;
     _go(ask ? FlowScreen.presentation : _afterName());
   }
 
@@ -82,6 +90,10 @@ class _GameFlowState extends State<GameFlow> {
           FlowScreen.presentation => PresentationScreen(
             key: const ValueKey(FlowScreen.presentation),
             controller: controller,
+            enableNotifications: switch (widget.notifications) {
+              final n? => () => n.setEnabled(true),
+              null => null,
+            },
             onDone: () => _go(_afterName()),
           ),
           FlowScreen.intro => IntroScreen(

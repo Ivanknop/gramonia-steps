@@ -20,6 +20,7 @@ import 'music_controller.dart';
 import 'found_item.dart';
 import 'notices.dart';
 import 'shop_screen.dart';
+import '../logic/shop.dart';
 import 'stage_done.dart';
 import 'step_controller.dart';
 import 'theme.dart';
@@ -172,6 +173,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openShop() => ShopScreen.open(context, widget.controller);
 
+  /// Botón "Comprar bien" del barco. Si no alcanza, avisa cuántas monedas
+  /// faltan. Si alcanza, el bien aparece con su cartel y vuela a la bolsa.
+  Future<void> _buyGood(Offer offer) async {
+    final controller = widget.controller;
+    final coins = controller.coins;
+    if (coins < offer.price) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(Strings.coinsMissing(offer.price - coins))),
+        );
+      return;
+    }
+    final message = controller.engine
+        .currentStage(controller.game.chapter)!
+        .coinPurchase!
+        .message
+        .replaceAll('{objeto}', offer.item.foundName);
+    // El cartel va antes que el fin de etapa (si con esto se completa).
+    final moment = FoundMoment(offer.item, 1, message, bought: true);
+    _queue.add(moment);
+    if (_current == null) _next();
+    if (await controller.buy(offer.item.id) == null) {
+      _queue.remove(moment); // No se pudo (no debería pasar).
+    }
+  }
+
   void _openBag() {
     widget.controller.markBagSeen();
     Navigator.of(context).push(
@@ -246,6 +274,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             engine: engine,
                             stage: stage,
                             progress: chapter,
+                            nextGood: controller.shop.nextGood(chapter),
+                            onBuyGood: _buyGood,
                           ),
                         ],
                       ],
@@ -539,7 +569,13 @@ class _GoalsCard extends StatelessWidget {
     required this.engine,
     required this.stage,
     required this.progress,
+    required this.nextGood,
+    required this.onBuyGood,
   });
+
+  /// El próximo bien que se compra con monedas (el barco), o null.
+  final Offer? nextGood;
+  final ValueChanged<Offer> onBuyGood;
 
   final ChapterEngine engine;
   final Stage stage;
@@ -623,6 +659,16 @@ class _GoalsCard extends StatelessWidget {
                     (s, id) => s + progress.count(id),
                   ),
                 ),
+            if (nextGood case final good?)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: FilledButton.icon(
+                  key: const ValueKey('buy-good'),
+                  onPressed: () => onBuyGood(good),
+                  icon: const Icon(Icons.monetization_on, color: coinColor),
+                  label: Text(Strings.buyGood(good.price)),
+                ),
+              ),
           ],
         ),
       ),

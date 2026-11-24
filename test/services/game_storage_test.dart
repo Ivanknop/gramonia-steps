@@ -60,12 +60,23 @@ void main() {
       expect(game.chapter.stageIndex, 1);
       expect(game.chapter.count('flor_lila'), 6);
       expect(game.playerName, 'Regi');
-      expect(game.wallet.coins, 880);
+      // 8.888 pasos → 17 × 20 = 340.
+      expect(game.wallet.coins, 340);
 
       await storage.save(game);
       final reopened = await storage.load();
       expect(reopened, game);
-      expect(reopened.wallet.coins, 880);
+      expect(reopened.wallet.coins, 340);
+
+      // Reinstalar encima conserva lo guardado: abrir de nuevo, varias
+      // veces, no lo vuelve a cobrar.
+      for (var i = 0; i < 3; i++) {
+        final again = PrefsGameStorage();
+        final loaded = await again.load();
+        expect(loaded.wallet.coins, 340);
+        expect(loaded.wallet.welcomeBonusPaid, isTrue);
+        await again.save(loaded);
+      }
     },
   );
 }

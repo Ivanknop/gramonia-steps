@@ -76,26 +76,29 @@ void main() {
     });
 
     test('con la etapa completa no da más monedas', () {
-      final almost = at('barco', {
-        'madera': 1,
-        'clavos': 1,
-        'cuerdas': 1,
-        'bandera': 1,
-      });
-      // A los 50 pasos: moneda de oro (no sale: el mínimo de monedas).
-      // A los 100: el ancla sale (0) y completa el barco; la tirada de la
-      // moneda de oro (no sale) ya no da monedas.
-      final r = engine.advance(almost, 100, ScriptRandom([5, 0, 0, 5]));
-      expect(r.events.whereType<StageCompleted>(), isNotEmpty);
-      expect(r.coins, missCoins.min);
-
-      // Sin el ancla, las dos tiradas a los 100 dan monedas.
-      final miss = engine.advance(
-        almost,
-        100,
-        ScriptRandom([5, 0, 5, 0, 5, 0]),
+      // Nido con 2 semillas de fuego. A los 50, 100 y 150 pasos, la semilla
+      // de agua o hielo no sale: el mínimo de monedas cada vez. A los 200,
+      // sale la de fuego (0) y completa la etapa; la tirada de agua o hielo
+      // de ese mismo paso (no sale) ya no da monedas.
+      final r = engine.advance(
+        at('nido_rocanron', {'semilla_fuego': 2}),
+        200,
+        ScriptRandom([5, 0, 5, 0, 5, 0, 0, 5, 0]),
       );
-      expect(miss.coins, 3 * missCoins.min);
+      expect(r.events.whereType<StageCompleted>(), isNotEmpty);
+      expect(r.coins, 3 * missCoins.min);
+    });
+
+    test('en el barco, donde salían monedas de oro, sale 1 moneda', () {
+      // A los 50 pasos solo tira la moneda (sale con 0).
+      expect(engine.advance(at('barco'), 50, FixedRandom(0)).coins, 1);
+      // Si no sale, no da nada (no es la tirada de un objeto).
+      expect(engine.advance(at('barco'), 50, FixedRandom(9)).coins, 0);
+    });
+
+    test('ya no existen las monedas de oro como objeto', () {
+      expect(chapter1.items.map((i) => i.id), isNot(contains('moneda_oro')));
+      expect(chapter1.stages.last.exchanges, isEmpty);
     });
 
     test('después del final no hay más monedas', () {
@@ -228,6 +231,40 @@ void main() {
       // La próxima pieza fija sigue siendo la primera que falta.
       final r = engine.advance(p, 1000, FixedRandom(0));
       expect(r.progress.count('pieza_hoja'), 1);
+    });
+  });
+
+  group('bienes del barco', () {
+    test('cuestan lo mismo con el botón y en la tienda', () {
+      final p = at('barco', {'madera': 1});
+      final good = shop.nextGood(p)!;
+      expect(good.item.id, 'clavos');
+      expect(good.price, goodsPrice);
+      expect(shop.offers(p).map((o) => o.price), everyElement(goodsPrice));
+    });
+
+    test('con el botón se compra el primero que falte', () {
+      var p = at('barco');
+      var coins = 5 * goodsPrice;
+      for (final id in ['madera', 'clavos', 'cuerdas', 'bandera', 'ancla']) {
+        final good = shop.nextGood(p)!;
+        expect(good.item.id, id);
+        final buy = shop.buy(p, coins, good.item.id, Random(1))!;
+        coins -= buy.price;
+        p = buy.progress;
+      }
+      expect(coins, 0);
+      expect(engine.isFinished(p), isTrue);
+      expect(shop.nextGood(p), isNull);
+    });
+
+    test('si no alcanza, no se compra', () {
+      final p = at('barco');
+      expect(shop.buy(p, goodsPrice - 1, 'madera', Random(1)), isNull);
+    });
+
+    test('en las otras etapas no hay botón', () {
+      expect(shop.nextGood(at('casa_abuelita')), isNull);
     });
   });
 }
