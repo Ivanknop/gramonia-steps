@@ -43,7 +43,7 @@ const musicFade = Duration(milliseconds: 1500);
 
 /// Monedas en cada tirada al azar en la que no sale el objeto, mientras a la
 /// etapa le falte algo.
-const missCoins = CoinRange(13, 51);
+const missCoins = CoinRange(6, 25);
 
 /// Bono del día: la primera vez que se abre la app en el día.
 const dailyBonusCoins = CoinRange(35, 78);

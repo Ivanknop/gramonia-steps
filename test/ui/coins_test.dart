@@ -120,9 +120,9 @@ void main() {
       await c.start();
       addTearDown(c.dispose);
       await c.addDebugSteps(1000);
-      // 20 tiradas de flor lila, 14 monedas cada una.
-      expect(c.coins, 20 * 14);
-      expect(storage.saved.wallet.coins, 20 * 14);
+      // 20 tiradas de flor lila; FixedRandom(1) da el mínimo + 1.
+      expect(c.coins, 20 * (missCoins.min + 1));
+      expect(storage.saved.wallet.coins, 20 * (missCoins.min + 1));
     });
 
     test('comprar descuenta, suma el objeto y guarda', () async {

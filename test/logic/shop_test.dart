@@ -42,17 +42,17 @@ void main() {
   }
 
   group('monedas al caminar', () {
-    test('cada tirada al azar en la que no sale nada da de 13 a 51', () {
+    test('cada tirada al azar en la que no sale nada da monedas', () {
       // Flor lila: una tirada cada 50 pasos. Con 1, nunca sale; la moneda
-      // da 13 + 1.
+      // da el mínimo + 1.
       final r = engine.advance(at('casa_abuelita'), 500, FixedRandom(1));
       expect(r.progress.count('flor_lila'), 0);
-      expect(r.coins, 10 * 14);
+      expect(r.coins, 10 * (missCoins.min + 1));
     });
 
-    test('con el máximo, 51 por tirada', () {
+    test('con el máximo, el máximo por tirada', () {
       final r = engine.advance(at('casa_abuelita'), 50, FixedRandom(99));
-      expect(r.coins, 51);
+      expect(r.coins, missCoins.max);
     });
 
     test('si sale el objeto, esa tirada no da monedas', () {
@@ -82,12 +82,12 @@ void main() {
         'cuerdas': 1,
         'bandera': 1,
       });
-      // A los 50 pasos: moneda de oro (no sale, 13 monedas).
+      // A los 50 pasos: moneda de oro (no sale: el mínimo de monedas).
       // A los 100: el ancla sale (0) y completa el barco; la tirada de la
       // moneda de oro (no sale) ya no da monedas.
       final r = engine.advance(almost, 100, ScriptRandom([5, 0, 0, 5]));
       expect(r.events.whereType<StageCompleted>(), isNotEmpty);
-      expect(r.coins, 13);
+      expect(r.coins, missCoins.min);
 
       // Sin el ancla, las dos tiradas a los 100 dan monedas.
       final miss = engine.advance(
@@ -95,7 +95,7 @@ void main() {
         100,
         ScriptRandom([5, 0, 5, 0, 5, 0]),
       );
-      expect(miss.coins, 3 * 13);
+      expect(miss.coins, 3 * missCoins.min);
     });
 
     test('después del final no hay más monedas', () {
